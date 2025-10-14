@@ -31,6 +31,10 @@ export const Logo = styled.img`
   width: 120px;
   height: 60px;
   cursor: pointer;
+  image-rendering: optimizequality;
+  image-rendering: -webkit-optimize-contrast;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 `;
 
 export const LogoLink = styled(Link)`
@@ -374,6 +378,11 @@ export const SheetHeader = styled.div`
   }
 `;
 
+export const SheetFooter = styled.div`
+  margin-top: auto;
+  padding: 12px 16px;
+`;
+
 export const SheetClose = styled.button`
   position: relative;
   width: 44px;
@@ -476,13 +485,63 @@ export const SheetOption = styled.li`
   }
 `;
 
-export const SheetToggleRow = styled.div`
+export const SheetToggleItem = styled.button`
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  text-align: left;
+  font-size: 16px;
+
+  &:hover {
+    background: rgb(100 150 255 / 8%);
+    color: ${({ theme }) => theme.colors.text};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
+  }
 
   span {
-    color: ${({ theme }) => theme.colors.textPrimary};
+    color: inherit;
+    font: inherit;
+  }
+`;
+
+export const SheetActions = styled.div`
+  display: grid;
+  gap: 8px;
+`;
+
+export const SheetLogoutButton = styled.button`
+  width: 100%;
+  height: 48px;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius}px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surface};
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
   }
 `;

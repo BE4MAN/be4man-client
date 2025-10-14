@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 import logo from '/icons/logo.svg';
 import { PATHS } from '@/app/routes/paths';
-import SafeSvg from '@/components/common/SafeSvg';
 import { useUIStore } from '@/stores/uiStore';
 
 import * as S from './Header.styles';
@@ -12,6 +11,7 @@ import * as S from './Header.styles';
 import defaultAvatar from '/icons/rose.jpeg';
 
 export default function Header() {
+  const navigate = useNavigate();
   const { setTheme, theme, service, setService, user } = useUIStore();
   const isDark = theme === 'dark';
   const nextTheme = isDark ? 'light' : 'dark';
@@ -116,7 +116,7 @@ export default function Header() {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mql = window.matchMedia('(min-width: 601px)');
     const handler = (e) => e.matches && setMobileOpen(false);
-    handler(mql); // 초기 동기화
+    handler(mql);
     mql.addEventListener?.('change', handler);
     return () => mql.removeEventListener?.('change', handler);
   }, []);
@@ -137,6 +137,11 @@ export default function Header() {
     [setTheme, nextTheme],
   );
 
+  const onLogout = useCallback(async () => {
+    setMobileOpen(false);
+    navigate(PATHS.DEPLOY);
+  }, [navigate]);
+
   return (
     <S.Bar>
       <S.Left>
@@ -145,7 +150,7 @@ export default function Header() {
           aria-label="Go to home"
           onClick={onClickBrand}
         >
-          <SafeSvg src={logo} alt="BE4MAN" width={120} height={60} />
+          <S.Logo src={logo} alt="BE4MAN" />
         </S.LogoLink>
         <S.BrandLink to={PATHS.PR} onClick={onClickBrand}>
           BE4MAN
@@ -296,19 +301,33 @@ export default function Header() {
 
               <S.SheetSection>
                 <S.SheetTitle>Appearance</S.SheetTitle>
-                <S.SheetToggleRow>
-                  <span>Dark Mode</span>
+                <S.SheetToggleItem
+                  type="button"
+                  onClick={onClickTheme}
+                  aria-pressed={isDark}
+                  aria-label={
+                    isDark ? 'Switch to light mode' : 'Switch to dark mode'
+                  }
+                >
+                  Dark Mode
                   <S.ModeToggle
-                    type="button"
                     isDark={isDark}
-                    onClick={onClickTheme}
-                    aria-pressed={isDark}
-                    aria-label={
-                      isDark ? 'Switch to light mode' : 'Switch to dark mode'
-                    }
+                    aria-hidden="true"
+                    tabIndex={-1}
                   />
-                </S.SheetToggleRow>
+                </S.SheetToggleItem>
               </S.SheetSection>
+
+              <S.SheetFooter>
+                <S.SheetLogoutButton
+                  type="button"
+                  role="menuitem"
+                  onClick={onLogout}
+                  aria-label="로그아웃"
+                >
+                  로그아웃
+                </S.SheetLogoutButton>
+              </S.SheetFooter>
             </S.Sheet>
           </>,
           document.body,
