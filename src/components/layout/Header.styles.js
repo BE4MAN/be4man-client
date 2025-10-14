@@ -247,7 +247,7 @@ export const ModeToggle = styled.button`
     isDark ? theme.colors.surface : theme.colors.textPrimary};
   transition: none;
   -webkit-tap-highlight-color: transparent;
-  pointer-events: none;
+  pointer-events: ${({ $displayOnly }) => ($displayOnly ? 'none' : 'auto')};
 
   &::after {
     content: '';
