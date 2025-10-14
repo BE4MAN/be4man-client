@@ -4,9 +4,11 @@ import { NavLink } from 'react-router-dom';
 
 import logo from '/icons/logo.svg';
 import { PATHS } from '@/app/routes/paths';
+import SafeSvg from '@/components/common/SafeSvg';
 import { useUIStore } from '@/stores/uiStore';
 
 import * as S from './Header.styles';
+
 import defaultAvatar from '/icons/rose.jpeg';
 
 export default function Header() {
@@ -143,7 +145,7 @@ export default function Header() {
           aria-label="Go to home"
           onClick={onClickBrand}
         >
-          <S.Logo src={logo} alt="BE4MAN" />
+          <SafeSvg src={logo} alt="BE4MAN" width={120} height={60} />
         </S.LogoLink>
         <S.BrandLink to={PATHS.PR} onClick={onClickBrand}>
           BE4MAN
