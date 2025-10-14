@@ -10,7 +10,7 @@ const DeployManagement = lazy(
   () => import('@/features/deploy/pages/DeployManagement'),
 );
 const Dashboard = lazy(() => import('@/features/dashboard/pages/Dashboard'));
-const LogManagement = lazy(() => import('@/features/logs/pages/LogManagement'));
+const LogManagement = lazy(() => import('@/features/log/pages/LogManagement'));
 
 export const router = createBrowserRouter([
   {
