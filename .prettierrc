@@ -1,7 +1,12 @@
 {
-    "singleQuote": true,
-    "semi": true,
-    "trailingComma": "all",
-    "printWidth": 80
-  }
-  
+  "singleQuote": true,
+  "semi": true,
+  "trailingComma": "all",
+  "printWidth": 80,
+  "bracketSpacing": true,
+  "proseWrap": "preserve",
+  "endOfLine": "lf",
+  "insertPragma": false,
+  "requirePragma": false,
+  "htmlWhitespaceSensitivity": "ignore"
+}
