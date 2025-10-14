@@ -119,7 +119,7 @@ export const SelectButton = styled.button`
 
 export const SelectList = styled.ul`
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% 6px);
   left: 0;
   width: max-content;
   min-width: 100%;
@@ -375,12 +375,35 @@ export const SheetHeader = styled.div`
 `;
 
 export const SheetClose = styled.button`
+  position: relative;
+  width: 44px;
+  height: 44px;
   border: none;
   background: transparent;
-  color: ${({ theme }) => theme.colors.textPrimary};
-  width: 32px;
-  height: 28px;
   cursor: pointer;
+  text-size-adjust: 100%;
+  display: inline-block;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 18px;
+    height: 2px;
+    background: ${({ theme }) => theme.colors.textPrimary};
+    border-radius: 2px;
+    transform-origin: center;
+  }
+
+  &::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  &::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
 
   &:focus,
   &:focus-visible {
