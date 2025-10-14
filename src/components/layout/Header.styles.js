@@ -119,7 +119,7 @@ export const SelectButton = styled.button`
 
 export const SelectList = styled.ul`
   position: absolute;
-  top: calc(100% 6px);
+  top: calc(100% + 6px);
   left: 0;
   width: max-content;
   min-width: 100%;
