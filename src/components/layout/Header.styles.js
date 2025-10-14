@@ -41,6 +41,7 @@ export const LogoLink = styled(Link)`
   display: inline-flex;
   align-items: center;
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
 `;
 
 export const BrandLink = styled(Link)`
@@ -53,6 +54,7 @@ export const BrandLink = styled(Link)`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  -webkit-tap-highlight-color: transparent;
 
   ${({ theme }) => theme.mqMax.sm`
     display: none;
@@ -244,6 +246,8 @@ export const ModeToggle = styled.button`
   background: ${({ theme, isDark }) =>
     isDark ? theme.colors.surface : theme.colors.textPrimary};
   transition: none;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: none;
 
   &::after {
     content: '';
@@ -292,6 +296,7 @@ export const BurgerBtn = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 
   span,
   &::before,
@@ -444,6 +449,7 @@ export const SheetNavItem = styled(NavLink)`
   border-radius: 10px;
   color: ${({ theme }) => theme.colors.textSecondary};
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
 
   &:hover {
     background: rgb(100 150 255 / 8%);
@@ -472,6 +478,7 @@ export const SheetOption = styled.li`
   color: ${({ theme }) => theme.colors.textSecondary};
   cursor: pointer;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
 
   &[aria-selected='true'] {
     color: ${({ theme }) => theme.colors.brand};
@@ -499,10 +506,18 @@ export const SheetToggleItem = styled.button`
   color: ${({ theme }) => theme.colors.textSecondary};
   text-align: left;
   font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
 
   &:hover {
     background: rgb(100 150 255 / 8%);
     color: ${({ theme }) => theme.colors.text};
+  }
+
+  @media (hover: none) {
+    &:hover {
+      background: transparent;
+      color: ${({ theme }) => theme.colors.textSecondary};
+    }
   }
 
   &:focus-visible {
@@ -531,6 +546,7 @@ export const SheetLogoutButton = styled.button`
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 
   &:hover {
     background: ${({ theme }) => theme.colors.surface};

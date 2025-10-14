@@ -123,7 +123,12 @@ export default function Header() {
 
   const onClickBrand = useCallback(() => {}, []);
   const onClickTheme = useCallback(
-    () => setTheme(nextTheme),
+    (e) => {
+      setTheme(nextTheme);
+      if (e?.currentTarget && typeof e.currentTarget.blur === 'function') {
+        requestAnimationFrame(() => e.currentTarget.blur());
+      }
+    },
     [nextTheme, setTheme],
   );
   const onToggleDropdown = useCallback(() => {
