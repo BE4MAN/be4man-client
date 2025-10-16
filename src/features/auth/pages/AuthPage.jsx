@@ -1,30 +1,25 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Github } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import logo from '/icons/logo.svg';
 
 import Button from '@/components/auth/Button';
 import Input from '@/components/auth/Input';
 import Modal from '@/components/auth/Modal';
 import Select from '@/components/auth/Select';
+import { POSITION_OPTIONS } from '@/constants/accounts';
 
 import { useAuth } from '../hooks/useAuth';
 
 import * as S from './AuthPage.styles';
 
-const POSITIONS = [
-  { value: '본부장', label: '본부장' },
-  { value: '차장', label: '차장' },
-  { value: '과장', label: '과장' },
-  { value: '대리', label: '대리' },
-  { value: '사원', label: '사원' },
-];
-
 export default function AuthPage() {
+  const location = useLocation();
   const { loginWithGithub, completeRegistration } = useAuth();
   const [step, setStep] = useState(1);
   const [showLoadingModal, setShowLoadingModal] = useState(false);
-  const [githubUser, setGithubUser] = useState(null);
+  const [signToken, setSignToken] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     position: '',
@@ -41,6 +36,18 @@ export default function AuthPage() {
     position: false,
     email: false,
   });
+
+  // AuthCallback에서 회원가입 필요 시 SignToken과 함께 리다이렉트
+  useEffect(() => {
+    // URL state에서 회원가입 필요 여부 확인
+    if (location.state?.requiresSignup) {
+      const token = sessionStorage.getItem('sign_token');
+      if (token) {
+        setSignToken(token);
+        setStep(2);
+      }
+    }
+  }, [location]);
 
   const validateName = (name) => {
     const nameRegex = /^[a-zA-Z가-힣\s]{2,30}$/;
@@ -64,15 +71,9 @@ export default function AuthPage() {
     return '';
   };
 
-  const handleGithubLogin = async () => {
-    try {
-      const user = await loginWithGithub();
-      setGithubUser(user);
-      setFormData((prev) => ({ ...prev, email: user.email }));
-      setStep(2);
-    } catch (error) {
-      console.error('GitHub login error:', error);
-    }
+  const handleGithubLogin = () => {
+    // GitHub OAuth 페이지로 리다이렉트
+    loginWithGithub();
   };
 
   const handleInputChange = (field, value) => {
@@ -111,16 +112,23 @@ export default function AuthPage() {
       setShowLoadingModal(true);
 
       try {
-        await completeRegistration({
-          ...githubUser,
-          name: formData.name,
-          position: formData.position,
-          department: formData.department,
-          email: formData.email,
-        });
+        // SignToken과 회원가입 정보로 실제 API 호출
+        await completeRegistration(
+          {
+            name: formData.name,
+            position: formData.position,
+            department: formData.department,
+            email: formData.email,
+          },
+          signToken,
+        );
+
+        // 성공 시 sessionStorage의 signToken 제거
+        sessionStorage.removeItem('sign_token');
       } catch (error) {
         console.error('Registration error:', error);
         setShowLoadingModal(false);
+        // TODO: 사용자에게 에러 메시지 표시
       }
     }
   };
@@ -202,7 +210,7 @@ export default function AuthPage() {
                         handleInputChange('position', e.target.value)
                       }
                       onBlur={() => handleBlur('position')}
-                      options={POSITIONS}
+                      options={POSITION_OPTIONS}
                       error={touched.position ? errors.position : ''}
                       size="lg"
                     />

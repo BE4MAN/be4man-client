@@ -8,6 +8,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { PATHS } from './paths';
 
 const AuthPage = lazy(() => import('@/features/auth/pages/AuthPage'));
+const AuthCallback = lazy(() => import('@/features/auth/pages/AuthCallback'));
 const DeployManagement = lazy(
   () => import('@/features/deploy/pages/DeployManagement'),
 );
@@ -20,6 +21,14 @@ export const router = createBrowserRouter([
     element: (
       <Suspense fallback={null}>
         <AuthPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: PATHS.AUTH_CALLBACK,
+    element: (
+      <Suspense fallback={null}>
+        <AuthCallback />
       </Suspense>
     ),
   },

@@ -1,54 +1,44 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import axiosInstance from '@/api/axios';
 import { PATHS } from '@/app/routes/paths';
+import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
+import { POSITION_MAP } from '@/constants/accounts';
 import { useAuthStore } from '@/stores/authStore';
 
 export const useAuth = () => {
   const navigate = useNavigate();
-  const { setUser, clearUser } = useAuthStore();
+  const { setTokens, logout: storeLogout } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
 
-  const loginWithGithub = async () => {
-    setIsLoading(true);
-    try {
-      // TODO: 실제 GitHub OAuth 로직 구현
-      // 현재는 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      // GitHub에서 받아온 데이터 시뮬레이션
-      const githubUser = {
-        id: 'github_user_id',
-        email: 'user@github.com',
-        avatar: 'https://github.com/ghost.png',
-      };
-
-      return githubUser;
-    } catch (error) {
-      console.error('GitHub login failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+  const loginWithGithub = () => {
+    // GitHub OAuth 페이지로 리다이렉트
+    // Backend가 /oauth2/authorization/github에서 자동으로 GitHub으로 리다이렉트
+    window.location.href = `${API_BASE_URL}${API_ENDPOINTS.GITHUB_LOGIN}`;
   };
 
-  const completeRegistration = async (userData) => {
+  const completeRegistration = async (userData, signToken) => {
     setIsLoading(true);
     try {
-      // TODO: API 호출하여 사용자 정보 저장
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Position 한글 → 영문 변환
+      const mappedPosition =
+        POSITION_MAP[userData.position] || userData.position;
 
-      const user = {
-        ...userData,
-        createdAt: new Date().toISOString(),
-      };
+      // 회원가입 API 호출
+      const { data } = await axiosInstance.post(API_ENDPOINTS.SIGNUP, {
+        signToken,
+        email: userData.email,
+        name: userData.name,
+        position: mappedPosition,
+        department: userData.department,
+      });
 
-      setUser(user);
+      // 토큰 저장 (authStore가 자동으로 user 정보 추출)
+      setTokens(data.accessToken, data.refreshToken);
 
       // Deploy 페이지로 리다이렉트
-      setTimeout(() => {
-        navigate(PATHS.DEPLOY);
-      }, 500);
+      navigate(PATHS.DEPLOY);
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;
@@ -57,9 +47,21 @@ export const useAuth = () => {
     }
   };
 
-  const logout = () => {
-    clearUser();
-    navigate(PATHS.AUTH);
+  const logout = async () => {
+    try {
+      const { refreshToken } = useAuthStore.getState();
+
+      if (refreshToken) {
+        // 백엔드에 로그아웃 요청
+        await axiosInstance.post(API_ENDPOINTS.LOGOUT, { refreshToken });
+      }
+    } catch (error) {
+      console.error('Logout API failed:', error);
+    } finally {
+      // 로컬 상태 클리어 (API 실패해도 실행)
+      storeLogout();
+      navigate(PATHS.AUTH);
+    }
   };
 
   return {
