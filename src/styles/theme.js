@@ -41,6 +41,25 @@ const shadow = {
   md: '0 4px 16px rgba(0,0,0,0.08)',
 };
 
+const typography = {
+  fontSize: {
+    xs: '0.75rem',
+    sm: '0.875rem',
+    md: '1rem',
+    lg: '1.125rem',
+    xl: '1.25rem',
+    '2xl': '1.5rem',
+    '3xl': '1.875rem',
+    '4xl': '2.25rem',
+  },
+  fontWeight: {
+    normal: '400',
+    medium: '500',
+    semibold: '600',
+    bold: '700',
+  },
+};
+
 const palette = {
   light: {
     bg: '#ffffff',
@@ -48,10 +67,23 @@ const palette = {
     textPrimary: '#0f1115',
     textSecondary: '#5b6270',
     border: '#e8e8ef',
-    brand: '#4f7df3',
+    brand: '#2563EB',
     brandText: '#2b5fe3',
     skeletonBase: 'rgba(0,0,0,0.06)',
     skeletonHi: 'rgba(0,0,0,0.12)',
+    // Interactive states (Header/Sidebar pattern)
+    interactiveHover: 'rgb(100 150 255 / 8%)',
+    interactiveActive: 'rgb(100 150 255 / 12%)',
+    // Auth 페이지용 색상
+    error: '#ef4444',
+    success: '#22c55e',
+    github: '#000000',
+    githubHover: '#1a1a1a',
+    gray: '#6b7280',
+    grayHover: '#4b5563',
+    cancelBorder: '#575D6B',
+    modalOverlay: 'rgba(0,0,0,0.6)',
+    inputBg: '#f1f5f9',
   },
   dark: {
     bg: '#0e1116',
@@ -59,10 +91,23 @@ const palette = {
     textPrimary: '#e8edf7',
     textSecondary: '#a8b0bf',
     border: '#263043',
-    brand: '#6da2ff',
+    brand: '#3b82f6',
     brandText: '#ffffff',
     skeletonBase: 'rgba(255,255,255,0.06)',
     skeletonHi: 'rgba(255,255,255,0.22)',
+    // Interactive states (Header/Sidebar pattern)
+    interactiveHover: 'rgb(100 150 255 / 8%)',
+    interactiveActive: 'rgb(100 150 255 / 12%)',
+    // Auth 페이지용 색상
+    error: '#ef4444',
+    success: '#22c55e',
+    github: '#000000',
+    githubHover: '#1a1a1a',
+    gray: '#6b7280',
+    grayHover: '#9ca3af',
+    cancelBorder: '#575D6B',
+    modalOverlay: 'rgba(0,0,0,0.6)',
+    inputBg: '#1e293b',
   },
 };
 
@@ -70,6 +115,7 @@ const base = {
   spacing,
   radius,
   shadow,
+  typography,
   breakpoints: bp,
   mq,
   mqMax,
