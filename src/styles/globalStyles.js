@@ -1,6 +1,20 @@
 import { css } from '@emotion/react';
 
 export const globalStyles = (theme) => css`
+  :root {
+    --header-h: 72px;
+    --header-h-sm: 56px;
+    --sidebar-w: 223px;
+  }
+
+  @media (width <= 767px) {
+    :root {
+      --header-h: var(--header-h-sm);
+      --sidebar-w: 0px;
+      --page-gap: 0px;
+    }
+  }
+
   *,
   *::before,
   *::after {
@@ -46,10 +60,5 @@ export const globalStyles = (theme) => css`
   :focus-visible {
     outline: 2px solid ${theme.colors.brand};
     outline-offset: 2px;
-  }
-
-  .safe-area-px {
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
   }
 `;

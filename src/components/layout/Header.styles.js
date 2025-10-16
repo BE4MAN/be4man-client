@@ -6,7 +6,8 @@ const R = (t, key = 'md', def = 8) =>
 
 export const Bar = styled.header`
   grid-area: header;
-  height: 72px;
+  height: var(--header-h);
+  min-height: var(--header-h);
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
