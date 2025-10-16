@@ -1,6 +1,6 @@
 export const PATHS = {
   ROOT: '/',
-  DEPLOY: '/deploy',
-  DASHBOARD: '/dashboard',
+  DEPLOY: '/deploys',
+  DASHBOARD: '/dashboards',
   LOGS: '/logs',
 };
