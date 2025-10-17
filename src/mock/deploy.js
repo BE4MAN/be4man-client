@@ -1,3 +1,13 @@
+export const MOCK_RISKS = [
+  {
+    text: 'Project C의 서버가 점검 중으로 배포 중 운영상의 위험이 있을 수 있음',
+    sub: '(Project C 서버 점검 시간 : 16:00 - 18:00)',
+  },
+  {
+    text: '정부24의 외부 API를 활용하는 서비스로, 24:00 이후 배포 진행 권장',
+  },
+];
+
 export const MOCK_LIST = [
   {
     id: '1',
@@ -98,7 +108,14 @@ export const MOCK_DETAIL = {
     '2개의 의존성으로 위험성 보통',
     '테스트 커버리지 높음으로 위험성 낮음',
   ],
-  deps: { parent: 'feature/user', child: 'feature/user-auth' },
+  relatedProjects: [
+    { name: 'user-service', active: true },
+    { name: 'billing-api', active: true },
+    { name: 'notification', active: true },
+    { name: 'legacy-', time: '16:00 - 18:00', active: false },
+    { name: 'Project B', active: false },
+  ],
+  risks: MOCK_RISKS,
 };
 
 export const statusKey = (label) => {
