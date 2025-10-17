@@ -233,15 +233,60 @@ export default function DeployManagement({
             <S.Row>
               <S.LeftCol>
                 <S.Card>
-                  <S.CardTitle>연관 프로젝트</S.CardTitle>
-                  <S.RealatedProjectArea />
+                  <S.CardTitle>프로젝트 의존성</S.CardTitle>
+                  <S.RelatedProjectArea>
+                    <S.DepTableInner>
+                      <S.DepHeader>
+                        <div>프로젝트</div>
+                        <div>배포 예정 시간</div>
+                        <div>운영상태</div>
+                      </S.DepHeader>
+
+                      <S.DepBody>
+                        {(detail.relatedProjects ?? []).map((p) => {
+                          const time =
+                            p.time ||
+                            p.schedule ||
+                            p.window ||
+                            p.maintenanceWindow ||
+                            p.deployWindow ||
+                            '-';
+                          const ok = !!p.active;
+                          return (
+                            <S.DepRow key={p.name}>
+                              <S.DepCell data-col="name">{p.name}</S.DepCell>
+                              <S.DepCell data-col="time">{time}</S.DepCell>
+                              <S.DepCell data-col="status">
+                                <S.StatusDot $ok={ok} />
+                                {ok ? '정상' : '점검'}
+                              </S.DepCell>
+                            </S.DepRow>
+                          );
+                        })}
+                      </S.DepBody>
+                    </S.DepTableInner>
+                  </S.RelatedProjectArea>
                 </S.Card>
               </S.LeftCol>
 
               <S.RightCol>
                 <S.Card>
-                  <S.CardTitle>위험성</S.CardTitle>
-                  <S.RiskAnalystArea />
+                  <S.CardTitle>위험 관리</S.CardTitle>
+                  <S.RiskAnalystArea>
+                    <S.RiskList>
+                      {(detail.risks ?? []).map((r, i) => (
+                        <li key={i}>
+                          <S.RiskText>{r.text}</S.RiskText>
+                          {r.sub && <S.RiskSub>{r.sub}</S.RiskSub>}
+                        </li>
+                      ))}
+                      {(detail.risks?.length ?? 0) === 0 && (
+                        <li>
+                          <S.RiskText>등록된 위험 항목이 없습니다.</S.RiskText>
+                        </li>
+                      )}
+                    </S.RiskList>
+                  </S.RiskAnalystArea>
                 </S.Card>
               </S.RightCol>
             </S.Row>

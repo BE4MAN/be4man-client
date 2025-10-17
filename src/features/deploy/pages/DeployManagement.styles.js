@@ -224,7 +224,6 @@ export const Main = styled.main`
   min-width: 0;
   max-width: 100%;
   overflow-x: clip;
-  border-left: 1px solid ${({ theme }) => theme.colors.border};
 
   @media (width <= 1200px) {
     border-left: none;
@@ -246,7 +245,7 @@ export const Main = styled.main`
 export const Panel = styled.section`
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 0.5rem;
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${(p) => R(p.theme)}px;
@@ -501,7 +500,7 @@ export const MetricCard = styled.div`
   strong {
     display: block;
     margin-top: 6px;
-    font-size: 18px;
+    font-size: 14px;
   }
 `;
 
@@ -569,16 +568,113 @@ export const CardTitle = styled.h3`
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
-export const RealatedProjectArea = styled.div`
+export const RelatedProjectArea = styled.div`
   height: 220px;
   width: 100%;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 10px;
   background: ${({ theme }) => theme.colors.bg};
-  display: grid;
   place-items: center;
   position: relative;
   align-self: stretch;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+`;
+
+export const DepTableInner = styled.div`
+  margin: 0;
+  border-radius: 12px;
+  background: ${({ theme }) => theme.colors.surface};
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+`;
+
+export const DepHeader = styled.div`
+  display: grid;
+  grid-template-columns: 30% 50% 20%;
+  padding: 10px 15px;
+  font-weight: 700;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  justify-items: center;
+  align-items: center;
+
+  & > div {
+    white-space: nowrap;
+    word-break: keep-all;
+  }
+`;
+
+export const DepBody = styled.div`
+  min-height: 0;
+`;
+
+export const DepRow = styled.div`
+  display: grid;
+  grid-template-columns: 30% 50% 20%;
+  padding: 16px 18px;
+  height: 1rem;
+  justify-items: center;
+  align-items: center;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+
+  &:last-child {
+    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  }
+`;
+
+export const DepCell = styled.div`
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  justify-content: center;
+  align-items: center;
+
+  &[data-col='status'] {
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+`;
+
+export const StatusDot = styled.span`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  background: ${({ $ok }) => ($ok ? '#22c55e' : '#ef4444')};
 `;
 
 export const RiskAnalystArea = styled.div`
@@ -587,74 +683,50 @@ export const RiskAnalystArea = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 10px;
   background: ${({ theme }) => theme.colors.bg};
-  display: grid;
-  place-items: center;
   position: relative;
   align-self: stretch;
-`;
+  overflow: auto;
+  padding-left: 15px;
+  overscroll-behavior: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 
-export const RiskScore = styled.div`
-  display: grid;
-  gap: 8px;
-`;
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
 
-export const ScoreBar = styled.div`
-  height: 8px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: ${({ theme }) => theme.colors.bg};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-`;
-
-export const ScoreFill = styled.div`
-  height: 100%;
-  background: ${({ theme, $tone }) =>
-    $tone === 'high'
-      ? theme.colors.scoreFill.high
-      : $tone === 'medium'
-        ? theme.colors.scoreFill.medium
-        : theme.colors.scoreFill.low};
-`;
-
-export const ScoreText = styled.div`
-  color: ${({ theme }) => theme.colors.textSecondary};
-`;
-
-export const KeyVals = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 8px;
-  min-height: 0;
-`;
-
-export const KV = styled.div`
-  background: ${({ theme }) => theme.colors.bg};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 8px;
-  padding: 8px 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  span {
-    color: ${({ theme }) => theme.colors.textSecondary};
+  @media (width <= 480px) {
+    height: auto;
+    max-height: 240px;
   }
 `;
 
-export const Divider = styled.hr`
-  border: none;
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
-  margin: 10px 0;
-`;
-
-export const Bullets = styled.ul`
+export const RiskList = styled.ol`
   margin: 0;
-  padding-left: 18px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   color: ${({ theme }) => theme.colors.textPrimary};
 
   li {
-    margin: 4px 0;
+    font-size: 14px;
+    line-height: 1.2;
   }
+`;
 
-  min-height: 0;
+export const RiskText = styled.div`
+  font-size: 14px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-break: anywhere;
+`;
+
+export const RiskSub = styled.div`
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-break: anywhere;
 `;
