@@ -26,8 +26,8 @@ export const Side = styled.aside`
   background: ${({ theme }) => theme.colors.surface};
   border-radius: ${(p) => R(p.theme)}px;
   border-right: 1px solid ${({ theme }) => theme.colors.border};
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   min-height: 0;
   height: 100%;
   align-self: stretch;
@@ -94,8 +94,7 @@ export const SideCount = styled.div`
 `;
 
 export const List = styled.div`
-  display: grid;
-  max-height: 66vh;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -114,11 +113,10 @@ export const List = styled.div`
 `;
 
 export const SideBody = styled.div`
-  display: block;
+  display: contents;
 `;
 
 export const SideFooter = styled.div`
-  position: static;
   margin-top: 12px;
   padding: 12px 15px;
   background: ${({ theme }) => theme.colors.surface};
