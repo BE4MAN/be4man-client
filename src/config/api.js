@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
   // Auth
   GITHUB_LOGIN: '/oauth2/authorization/github',
   OAUTH_CALLBACK: '/oauth/callback/github',
+  SIGNIN: '/api/auth/signin',
   SIGNUP: '/api/auth/signup',
   REFRESH: '/api/auth/refresh',
   LOGOUT: '/api/auth/logout',

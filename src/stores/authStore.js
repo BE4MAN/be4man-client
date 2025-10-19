@@ -7,14 +7,16 @@ export const useAuthStore = create(
       // 상태
       user: null,
       accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
 
-      // 액션: Access Token 저장
-      setTokens: (accessToken) => {
+      // 액션: Access Token & Refresh Token 저장
+      setTokens: (accessToken, refreshToken) => {
         set({
           accessToken,
-          isAuthenticated: !!accessToken,
+          refreshToken,
+          isAuthenticated: !!accessToken && !!refreshToken,
         });
       },
 
@@ -22,16 +24,22 @@ export const useAuthStore = create(
       setUser: (user) =>
         set({
           user,
-          isAuthenticated: !!user && !!get().accessToken,
+          isAuthenticated:
+            !!user && !!get().accessToken && !!get().refreshToken,
         }),
 
       // 액션: 로그아웃
-      logout: () =>
+      logout: () => {
         set({
           user: null,
           accessToken: null,
+          refreshToken: null,
           isAuthenticated: false,
-        }),
+        });
+
+        // localStorage에서 auth-store 완전히 제거
+        localStorage.removeItem('auth-store');
+      },
 
       // 액션: 사용자 정보 업데이트
       updateUser: (updates) =>
@@ -44,8 +52,15 @@ export const useAuthStore = create(
 
       // 헬퍼: 인증 여부 체크 (토큰과 사용자 정보 존재 확인)
       checkAuth: () => {
-        const { accessToken, user } = get();
-        return !!accessToken && !!user;
+        const { accessToken, refreshToken, user } = get();
+
+        // 마이그레이션: refreshToken 없으면 강제 로그아웃
+        if (accessToken && !refreshToken) {
+          get().logout();
+          return false;
+        }
+
+        return !!accessToken && !!refreshToken && !!user;
       },
     }),
     {
@@ -54,6 +69,7 @@ export const useAuthStore = create(
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
     },

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import axiosInstance from '@/api/axios';
@@ -8,19 +7,33 @@ import { useAuthStore } from '@/stores/authStore';
 
 export const useAuth = () => {
   const navigate = useNavigate();
-  const { setTokens, setUser, logout: storeLogout } = useAuthStore();
-  const [isLoading, setIsLoading] = useState(false);
 
+  // GitHub OAuth 로그인
   const loginWithGithub = () => {
-    // GitHub OAuth 페이지로 리다이렉트
-    // 백엔드가 /oauth2/authorization/github에서 자동으로 GitHub으로 리다이렉트
     window.location.href = `${API_BASE_URL}${API_ENDPOINTS.GITHUB_LOGIN}`;
   };
 
-  const completeRegistration = async (userData, signToken) => {
-    setIsLoading(true);
+  // 기존 사용자 로그인
+  const signin = async (code) => {
     try {
-      // 회원가입 API 호출 (Authorization 헤더로 signToken 전달)
+      const { data } = await axiosInstance.post(API_ENDPOINTS.SIGNIN, {
+        code,
+      });
+
+      // authStore에 직접 저장
+      useAuthStore.getState().setTokens(data.accessToken, data.refreshToken);
+
+      // Deploy 페이지로 이동 (ProtectedRoute에서 user 로드)
+      navigate(PATHS.DEPLOY);
+    } catch (error) {
+      console.error('로그인 실패:', error);
+      throw error;
+    }
+  };
+
+  // 회원가입
+  const completeRegistration = async (userData, signToken) => {
+    try {
       const { data } = await axiosInstance.post(
         API_ENDPOINTS.SIGNUP,
         {
@@ -35,55 +48,50 @@ export const useAuth = () => {
         },
       );
 
-      // Access Token 저장
-      setTokens(data.accessToken);
+      // authStore에 직접 저장
+      useAuthStore.getState().setTokens(data.accessToken, data.refreshToken);
 
-      // 회원가입 후 계정 정보 조회
-      await fetchUserInfo(); // GET /api/accounts/me
+      // 사용자 정보 조회
+      await fetchUserInfo();
 
       // Deploy 페이지로 이동
       navigate(PATHS.DEPLOY);
     } catch (error) {
       console.error('회원가입 실패:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const logout = async () => {
-    try {
-      // 로그아웃 API 호출 (Authorization 헤더로 Access Token 전달)
-      await axiosInstance.post(API_ENDPOINTS.LOGOUT);
-    } catch (error) {
-      console.error('로그아웃 API 호출 실패:', error);
-    } finally {
-      // 로컬 상태 클리어 (API 실패해도 실행)
-      storeLogout();
-      navigate(PATHS.AUTH);
-    }
-  };
-
+  // 사용자 정보 조회
   const fetchUserInfo = async () => {
-    setIsLoading(true);
     try {
-      // /api/accounts/me에서 사용자 정보 가져오기
       const { data } = await axiosInstance.get(API_ENDPOINTS.ME);
-      setUser(data);
+      useAuthStore.getState().setUser(data);
       return data;
     } catch (error) {
       console.error('사용자 정보 조회 실패:', error);
       throw error;
+    }
+  };
+
+  // 로그아웃
+  const logout = async () => {
+    try {
+      await axiosInstance.post(API_ENDPOINTS.LOGOUT);
+    } catch (error) {
+      console.error('로그아웃 API 호출 실패:', error);
     } finally {
-      setIsLoading(false);
+      // authStore 직접 클리어
+      useAuthStore.getState().logout();
+      navigate(PATHS.AUTH);
     }
   };
 
   return {
     loginWithGithub,
+    signin,
     completeRegistration,
     logout,
     fetchUserInfo,
-    isLoading,
   };
 };

@@ -2,30 +2,25 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 
 import * as S from './AuthCallback.styles';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
-  const { setTokens } = useAuthStore();
-
-  // URL Fragment를 즉시 읽어서 저장 (useEffect 실행 전에 Fragment가 사라지는 것 방지)
-  const [callbackData] = useState(() => {
-    const hash = window.location.hash.substring(1);
-    return hash;
-  });
+  const { signin } = useAuth();
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const handleCallback = () => {
+    const handleCallback = async () => {
       try {
-        // 저장된 Fragment 데이터 사용
-        if (!callbackData) {
+        // URL Fragment 파싱
+        const hash = window.location.hash.substring(1);
+        if (!hash) {
           throw new Error('콜백 데이터가 없습니다');
         }
 
-        const params = new URLSearchParams(callbackData);
+        const params = new URLSearchParams(hash);
 
         // 에러 체크
         const errorMessage = params.get('error');
@@ -38,32 +33,26 @@ export default function AuthCallback() {
         const requiresSignup = params.get('requires_signup') === 'true';
 
         if (requiresSignup) {
-          // 시나리오 2: 회원가입 필요
+          // 신규 사용자: 회원가입 필요
           const signToken = params.get('sign_token');
 
           if (!signToken) {
             throw new Error('SignToken을 찾을 수 없습니다');
           }
 
-          // SignToken을 sessionStorage에 임시 저장
+          // SignToken 저장 후 회원가입 폼으로 이동
           sessionStorage.setItem('sign_token', signToken);
-
-          // AuthPage Step 2 (회원가입 폼)로 이동
           navigate(PATHS.AUTH, { state: { step: 2, requiresSignup: true } });
         } else {
-          // 시나리오 1: 로그인 성공 (기존 회원)
-          const accessToken = params.get('access_token');
+          // 기존 사용자: 로그인
+          const code = params.get('code');
 
-          if (!accessToken) {
-            throw new Error('Access Token을 찾을 수 없습니다');
+          if (!code) {
+            throw new Error('Temporary Code를 찾을 수 없습니다');
           }
 
-          // Access Token 저장
-          setTokens(accessToken);
-
-          // 사용자 정보는 ProtectedRoute에서 fetchUserInfo로 자동 로드됨
-          // Deploy 페이지로 이동
-          navigate(PATHS.DEPLOY);
+          // 로그인 후 Deploy로 이동 (컴포넌트 언마운트되어 재실행 안 됨)
+          await signin(code);
         }
       } catch (err) {
         console.error('OAuth 콜백 처리 오류:', err);
@@ -73,7 +62,8 @@ export default function AuthCallback() {
     };
 
     handleCallback();
-  }, [callbackData, navigate, setTokens]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 마운트 시 1회만 실행 (navigate 후 언마운트됨)
 
   return (
     <S.Container>

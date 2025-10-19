@@ -37,6 +37,26 @@ axiosInstance.interceptors.request.use(
 );
 
 /**
+ * Refresh Token 갱신 중복 방지를 위한 전역 변수
+ */
+let isRefreshing = false;
+let failedQueue = [];
+
+/**
+ * 대기 중인 요청 큐 처리
+ */
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+/**
  * 응답 인터셉터
  * 401 에러 발생 시 자동으로 토큰 갱신 시도
  */
@@ -51,42 +71,61 @@ axiosInstance.interceptors.response.use(
       !originalRequest._retry &&
       originalRequest.url !== API_ENDPOINTS.REFRESH
     ) {
+      // Refresh 진행 중이면 큐에 추가
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return axiosInstance(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
-        const { accessToken } = useAuthStore.getState();
+        const { refreshToken } = useAuthStore.getState();
 
-        if (!accessToken) {
-          throw new Error('사용 가능한 Access Token이 없습니다');
+        if (!refreshToken) {
+          throw new Error('사용 가능한 Refresh Token이 없습니다');
         }
 
-        // 토큰 갱신 요청 (Authorization 헤더에 만료된 Access Token 전달)
+        // 토큰 갱신 요청 (Body에 refreshToken 전달)
         const { data } = await axios.post(
           `${API_BASE_URL}${API_ENDPOINTS.REFRESH}`,
-          null,
+          { refreshToken },
           {
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${accessToken}`,
             },
           },
         );
 
-        // 새 Access Token 저장
-        useAuthStore.getState().setTokens(data.accessToken);
+        // 새 Access Token & Refresh Token 저장 (Rotation)
+        useAuthStore.getState().setTokens(data.accessToken, data.refreshToken);
 
-        // 계정 정보는 ProtectedRoute에서 필요 시 로드됨
-        // Refresh는 토큰만 갱신 (네트워크 효율성)
+        // 대기 중인 요청들 처리
+        processQueue(null, data.accessToken);
 
         // 원래 요청 재시도 (새 토큰으로)
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
+        // 대기 중인 요청들 에러 처리
+        processQueue(refreshError, null);
+
         // 토큰 갱신 실패 → 로그아웃 처리
         console.error('토큰 갱신 실패:', refreshError);
         useAuthStore.getState().logout();
         window.location.href = '/auth';
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 

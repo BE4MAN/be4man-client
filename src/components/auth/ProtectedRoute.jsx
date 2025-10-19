@@ -1,54 +1,50 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
+import axiosInstance from '@/api/axios';
 import { PATHS } from '@/app/routes/paths';
 import PageSkeleton from '@/components/feedback/PageSkeleton';
-import { useAuth } from '@/hooks/useAuth';
+import { API_ENDPOINTS } from '@/config/api';
 import { useAuthStore } from '@/stores/authStore';
 
 export const ProtectedRoute = ({ children }) => {
-  const { accessToken, user, checkAuth } = useAuthStore();
-  const { fetchUserInfo } = useAuth();
+  const { accessToken, refreshToken, user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    let isMounted = true;
+  // Zustand persist hydration 체크 (localStorage 로드 완료 여부)
+  const hasHydrated = useAuthStore.persist.hasHydrated();
 
+  useEffect(() => {
     const loadUserIfNeeded = async () => {
-      // accessToken은 있지만 user가 없으면 서버에서 가져오기
-      if (accessToken && !user) {
+      // 토큰은 있지만 user가 없으면 서버에서 가져오기
+      if (accessToken && refreshToken && !user) {
         try {
-          await fetchUserInfo(); // GET /api/accounts/me
+          const { data } = await axiosInstance.get(API_ENDPOINTS.ME);
+          useAuthStore.getState().setUser(data);
         } catch (error) {
           console.error('사용자 정보 로드 실패:', error);
-          // 컴포넌트가 마운트된 상태에서만 로그아웃 처리
-          if (isMounted) {
-            useAuthStore.getState().logout();
-          }
+          useAuthStore.getState().logout();
         }
       }
-      // 컴포넌트가 마운트된 상태에서만 로딩 상태 변경
-      if (isMounted) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     };
 
     loadUserIfNeeded();
+  }, [accessToken, refreshToken, user]);
 
-    // cleanup: 컴포넌트 언마운트 시 플래그 변경
-    return () => {
-      isMounted = false;
-    };
-  }, [accessToken, user, fetchUserInfo]);
-
-  // 로딩 중
-  if (isLoading) {
+  // Hydration 대기 중 (localStorage에서 데이터 로드 중)
+  if (!hasHydrated || isLoading) {
     return <PageSkeleton />;
   }
 
-  // 인증 체크 실패
-  if (!checkAuth()) {
+  // 토큰 없으면 로그인 페이지로
+  if (!accessToken || !refreshToken) {
     return <Navigate to={PATHS.AUTH} replace />;
+  }
+
+  // user 로드 중
+  if (!user) {
+    return <PageSkeleton />;
   }
 
   return children;
