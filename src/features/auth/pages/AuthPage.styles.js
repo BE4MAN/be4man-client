@@ -8,7 +8,6 @@ export const PageContainer = styled.div`
   justify-content: center;
   font-family: Inter, sans-serif;
   position: relative;
-  overflow: hidden;
 `;
 
 export const GradientBackground = styled.div`
@@ -66,7 +65,6 @@ export const Card = styled.div`
   position: relative;
   border-radius: ${({ theme }) => theme.radius.lg};
   padding: ${({ theme }) => theme.spacing.md};
-  overflow: hidden;
   background: ${({ theme }) => theme.colors.surface};
   backdrop-filter: blur(14.4px);
   box-shadow: ${({ theme }) => theme.shadow.md};
@@ -78,11 +76,12 @@ export const Card = styled.div`
 
 export const WelcomeSection = styled.div`
   text-align: center;
-  margin-bottom: ${({ theme }) => theme.spacing.md};
+  margin-bottom: 24px;
+`;
 
-  ${({ theme }) => theme.mq.md`
-    margin-bottom: ${theme.spacing.lg};
-  `}
+export const GithubButtonWrapper = styled.div`
+  margin-top: 24px;
+  margin-bottom: 24px;
 `;
 
 export const WelcomeTitle = styled.h2`
@@ -173,16 +172,13 @@ export const ProgressLine = styled.div`
 
 export const FormSection = styled.div`
   text-align: center;
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-
-  ${({ theme }) => theme.mq.md`
-    margin-bottom: ${theme.spacing.lg};
-  `}
 `;
 
 export const FormTitle = styled.h2`
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: ${({ theme }) => theme.typography.fontSize.xl};
+  margin-top: 24px;
+  margin-bottom: 36px;
 
   ${({ theme }) => theme.mq.md`
     font-size: ${theme.typography.fontSize['2xl']};
@@ -250,11 +246,22 @@ export const ErrorMessage = styled.p`
   text-align: left;
 `;
 
+export const SubmitErrorMessage = styled.div`
+  color: ${({ theme }) => theme.colors.error};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  text-align: center;
+  padding: ${({ theme }) => theme.spacing.md};
+  background: ${({ theme }) => `${theme.colors.error}15`};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  margin-top: ${({ theme }) => theme.spacing.md};
+`;
+
 export const ButtonGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.sm};
-  padding-top: ${({ theme }) => theme.spacing.md};
+  margin-top: 48px;
+  margin-bottom: 24px;
   justify-content: center;
 
   & > * {

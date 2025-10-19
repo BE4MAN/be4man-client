@@ -1,14 +1,18 @@
-import { motion, AnimatePresence } from 'framer-motion';
 import { Github } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import logo from '/icons/logo.svg';
 
 import Button from '@/components/auth/Button';
+import CustomSelect from '@/components/auth/CustomSelect';
 import Input from '@/components/auth/Input';
 import Modal from '@/components/auth/Modal';
-import Select from '@/components/auth/Select';
-import { POSITION_OPTIONS } from '@/constants/accounts';
+import {
+  POSITION_OPTIONS,
+  DEPARTMENT_OPTIONS,
+  POSITION_MAP,
+  DEPARTMENT_MAP,
+} from '@/constants/accounts';
 
 import { useAuth } from '../hooks/useAuth';
 
@@ -22,19 +26,19 @@ export default function AuthPage() {
   const [signToken, setSignToken] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    position: '',
     department: '',
-    email: 'user@github.com',
+    position: '',
   });
   const [errors, setErrors] = useState({
     name: '',
+    department: '',
     position: '',
-    email: '',
+    submit: '',
   });
   const [touched, setTouched] = useState({
     name: false,
+    department: false,
     position: false,
-    email: false,
   });
 
   // AuthCallback에서 회원가입 필요 시 SignToken과 함께 리다이렉트
@@ -57,17 +61,13 @@ export default function AuthPage() {
     return '';
   };
 
-  const validatePosition = (position) => {
-    if (!position) return '직급을 선택해주세요';
-    if (position.length < 2 || position.length > 30)
-      return '직급은 2~30자 이내여야 합니다';
+  const validateDepartment = (department) => {
+    if (!department) return '부서를 선택해주세요';
     return '';
   };
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) return '이메일을 입력해주세요';
-    if (!emailRegex.test(email)) return '올바른 이메일 형식을 입력해주세요';
+  const validatePosition = (position) => {
+    if (!position) return '직급을 선택해주세요';
     return '';
   };
 
@@ -79,46 +79,68 @@ export default function AuthPage() {
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
 
+    // 실시간 validation (모든 키 입력마다)
     let error = '';
     if (field === 'name') error = validateName(value);
+    if (field === 'department') error = validateDepartment(value);
     if (field === 'position') error = validatePosition(value);
-    if (field === 'email') error = validateEmail(value);
 
     setErrors({ ...errors, [field]: error });
+
+    // 자동으로 touched 상태 업데이트
+    setTouched({ ...touched, [field]: true });
   };
 
   const handleBlur = (field) => {
+    // Blur 시에도 touched 업데이트 (이미 onChange에서 처리되지만 일관성 유지)
     setTouched({ ...touched, [field]: true });
   };
 
   const handleSubmit = async () => {
     const nameError = validateName(formData.name);
+    const departmentError = validateDepartment(formData.department);
     const positionError = validatePosition(formData.position);
-    const emailError = validateEmail(formData.email);
 
     setErrors({
       name: nameError,
+      department: departmentError,
       position: positionError,
-      email: emailError,
+      submit: '',
     });
 
     setTouched({
       name: true,
+      department: true,
       position: true,
-      email: true,
     });
 
-    if (!nameError && !positionError && !emailError) {
+    if (!nameError && !departmentError && !positionError) {
+      // SignToken 존재 확인
+      if (!signToken) {
+        setErrors({
+          ...errors,
+          submit: '인증 정보가 없습니다. 다시 로그인해주세요.',
+        });
+        setTimeout(() => {
+          setStep(1);
+          setErrors({ name: '', department: '', position: '', submit: '' });
+        }, 3000);
+        return;
+      }
+
       setShowLoadingModal(true);
 
       try {
+        // 한글 → 영문 매핑
+        const mappedPosition = POSITION_MAP[formData.position];
+        const mappedDepartment = DEPARTMENT_MAP[formData.department];
+
         // SignToken과 회원가입 정보로 실제 API 호출
         await completeRegistration(
           {
             name: formData.name,
-            position: formData.position,
-            department: formData.department,
-            email: formData.email,
+            department: mappedDepartment,
+            position: mappedPosition,
           },
           signToken,
         );
@@ -126,9 +148,38 @@ export default function AuthPage() {
         // 성공 시 sessionStorage의 signToken 제거
         sessionStorage.removeItem('sign_token');
       } catch (error) {
-        console.error('Registration error:', error);
+        console.error('회원가입 에러:', error);
         setShowLoadingModal(false);
-        // TODO: 사용자에게 에러 메시지 표시
+
+        // 401: SignToken 만료
+        if (error.response?.status === 401) {
+          sessionStorage.removeItem('sign_token');
+          setErrors({
+            name: '',
+            department: '',
+            position: '',
+            submit:
+              '인증 시간이 만료되었습니다. GitHub 로그인을 다시 진행해주세요.',
+          });
+          setTimeout(() => {
+            setStep(1);
+            setErrors({ name: '', department: '', position: '', submit: '' });
+          }, 3000);
+        }
+        // 400: 입력 데이터 오류
+        else if (error.response?.status === 400) {
+          setErrors({
+            ...errors,
+            submit: error.response.data?.message || '입력 정보를 확인해주세요.',
+          });
+        }
+        // 기타 에러
+        else {
+          setErrors({
+            ...errors,
+            submit: '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.',
+          });
+        }
       }
     }
   };
@@ -139,123 +190,98 @@ export default function AuthPage() {
 
       <S.MainContainer>
         <S.Card>
-          <AnimatePresence mode="wait">
-            {/* Step 1: GitHub OAuth */}
-            {step === 1 && (
-              <motion.div
-                key="step1"
-                initial={{ x: -600, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -600, opacity: 0 }}
-                transition={{ duration: 0.4, ease: 'easeInOut' }}
-              >
-                <S.StepContainer>
-                  <S.HeaderSection>
-                    <S.Logo src={logo} alt="BE4MAN Logo" />
-                  </S.HeaderSection>
+          {/* Step 1: GitHub OAuth */}
+          {step === 1 && (
+            <S.StepContainer>
+              <S.HeaderSection>
+                <S.Logo src={logo} alt="BE4MAN Logo" />
+              </S.HeaderSection>
 
-                  <S.WelcomeSection>
-                    <S.WelcomeTitle>배포맨</S.WelcomeTitle>
-                    <S.WelcomeText>
-                      안정적인 CI/CD 배포 환경 관리 서비스
-                    </S.WelcomeText>
-                  </S.WelcomeSection>
+              <S.WelcomeSection>
+                <S.WelcomeTitle>배포맨</S.WelcomeTitle>
+                <S.WelcomeText>
+                  안정적인 CI/CD 배포 환경 관리 서비스
+                </S.WelcomeText>
+              </S.WelcomeSection>
 
-                  <Button
-                    variant="github"
-                    size="lg"
-                    fullWidth
-                    onClick={handleGithubLogin}
-                  >
-                    <Github size={24} />
-                    깃허브 로그인
-                  </Button>
-                </S.StepContainer>
-              </motion.div>
-            )}
+              <S.GithubButtonWrapper>
+                <Button
+                  variant="github"
+                  size="lg"
+                  fullWidth
+                  onClick={handleGithubLogin}
+                >
+                  <Github size={24} />
+                  깃허브 로그인
+                </Button>
+              </S.GithubButtonWrapper>
+            </S.StepContainer>
+          )}
 
-            {/* Step 2: User Information Form */}
-            {step === 2 && (
-              <motion.div
-                key="step2"
-                initial={{ x: 600, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: 600, opacity: 0 }}
-                transition={{ duration: 0.4, ease: 'easeInOut' }}
-              >
-                <S.StepContainer>
-                  <S.FormSection>
-                    <S.FormTitle>회원가입</S.FormTitle>
-                  </S.FormSection>
+          {/* Step 2: User Information Form */}
+          {step === 2 && (
+            <S.StepContainer>
+              <S.FormSection>
+                <S.FormTitle>회원가입</S.FormTitle>
+              </S.FormSection>
 
-                  <S.FormFields>
-                    <Input
-                      label="이름"
-                      type="text"
-                      placeholder="홍길동"
-                      value={formData.name}
-                      onChange={(e) =>
-                        handleInputChange('name', e.target.value)
-                      }
-                      onBlur={() => handleBlur('name')}
-                      error={touched.name ? errors.name : ''}
-                      size="lg"
-                    />
+              <S.FormFields>
+                <Input
+                  label="이름"
+                  type="text"
+                  placeholder="홍길동"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  onBlur={() => handleBlur('name')}
+                  error={touched.name ? errors.name : ''}
+                  size="lg"
+                />
 
-                    <Select
-                      label="직급"
-                      placeholder="직급을 선택하세요"
-                      value={formData.position}
-                      onChange={(e) =>
-                        handleInputChange('position', e.target.value)
-                      }
-                      onBlur={() => handleBlur('position')}
-                      options={POSITION_OPTIONS}
-                      error={touched.position ? errors.position : ''}
-                      size="lg"
-                    />
+                <CustomSelect
+                  label="부서"
+                  value={formData.department}
+                  onChange={(value) => handleInputChange('department', value)}
+                  onBlur={() => handleBlur('department')}
+                  options={DEPARTMENT_OPTIONS}
+                  error={touched.department ? errors.department : ''}
+                  size="lg"
+                />
 
-                    <Input
-                      label="부서"
-                      type="text"
-                      placeholder="부서를 입력하세요"
-                      value={formData.department}
-                      onChange={(e) =>
-                        handleInputChange('department', e.target.value)
-                      }
-                      size="lg"
-                    />
+                <CustomSelect
+                  label="직급"
+                  value={formData.position}
+                  onChange={(value) => handleInputChange('position', value)}
+                  onBlur={() => handleBlur('position')}
+                  options={POSITION_OPTIONS}
+                  error={touched.position ? errors.position : ''}
+                  size="lg"
+                />
 
-                    <Input
-                      label="이메일"
-                      type="email"
-                      placeholder="example@gmail.com"
-                      value={formData.email}
-                      onChange={(e) =>
-                        handleInputChange('email', e.target.value)
-                      }
-                      onBlur={() => handleBlur('email')}
-                      error={touched.email ? errors.email : ''}
-                      size="lg"
-                    />
-                  </S.FormFields>
+                {/* Submit 에러 메시지 */}
+                {errors.submit && (
+                  <S.SubmitErrorMessage>{errors.submit}</S.SubmitErrorMessage>
+                )}
+              </S.FormFields>
 
-                  <S.ButtonGroup>
-                    <Button
-                      variant="cancel"
-                      size="lg"
-                      onClick={() => setStep(1)}
-                    >
-                      취소
-                    </Button>
-                    <Button variant="primary" size="lg" onClick={handleSubmit}>
-                      가입
-                    </Button>
-                  </S.ButtonGroup>
-                </S.StepContainer>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              <S.ButtonGroup>
+                <Button
+                  variant="cancel"
+                  size="lg"
+                  onClick={() => {
+                    // 취소 시 sessionStorage에서 signToken 제거
+                    sessionStorage.removeItem('sign_token');
+                    setSignToken(null);
+                    setStep(1);
+                  }}
+                >
+                  취소
+                </Button>
+                <Button variant="primary" size="lg" onClick={handleSubmit}>
+                  가입
+                </Button>
+              </S.ButtonGroup>
+            </S.StepContainer>
+          )}
         </S.Card>
       </S.MainContainer>
 

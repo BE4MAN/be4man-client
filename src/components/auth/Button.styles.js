@@ -28,19 +28,19 @@ export const StyledButton = styled.button`
     switch (size) {
       case 'sm':
         return `
-          height: 2rem;
+          height: 1.5rem;
           padding: 0 ${theme.spacing.sm};
           font-size: ${theme.typography.fontSize.sm};
         `;
       case 'lg':
         return `
-          height: 3.5rem;
-          padding: 0 2rem;
+          height: 2.625rem;
+          padding: 0 1.5rem;
           font-size: ${theme.typography.fontSize.lg};
         `;
       default:
         return `
-          height: 2.5rem;
+          height: 1.875rem;
           padding: 0 ${theme.spacing.md};
         `;
     }

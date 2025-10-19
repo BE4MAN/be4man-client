@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-import { isTokenValid } from '@/utils/jwt';
-
 export const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -12,11 +10,11 @@ export const useAuthStore = create(
       isAuthenticated: false,
       isLoading: false,
 
-      // 액션: Access Token 저장 (단순화)
+      // 액션: Access Token 저장
       setTokens: (accessToken) => {
         set({
           accessToken,
-          isAuthenticated: !!accessToken && isTokenValid(accessToken),
+          isAuthenticated: !!accessToken,
         });
       },
 
@@ -44,10 +42,10 @@ export const useAuthStore = create(
       // 액션: 로딩 상태
       setLoading: (isLoading) => set({ isLoading }),
 
-      // 헬퍼: 인증 여부 체크
+      // 헬퍼: 인증 여부 체크 (토큰과 사용자 정보 존재 확인)
       checkAuth: () => {
         const { accessToken, user } = get();
-        return !!accessToken && !!user && isTokenValid(accessToken);
+        return !!accessToken && !!user;
       },
     }),
     {

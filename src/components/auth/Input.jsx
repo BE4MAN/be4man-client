@@ -7,12 +7,19 @@ export const Input = React.forwardRef(
     const hasError = !!error;
 
     return (
-      <S.InputContainer>
-        {label && <S.Label>{label}</S.Label>}
-        <S.StyledInput ref={ref} $hasError={hasError} size={size} {...props} />
+      <S.InputWrapper>
+        <S.InputContainer>
+          {label && <S.Label>{label}</S.Label>}
+          <S.StyledInput
+            ref={ref}
+            $hasError={hasError}
+            size={size}
+            {...props}
+          />
+        </S.InputContainer>
         {error && <S.ErrorMessage>{error}</S.ErrorMessage>}
         {!error && helperText && <S.HelperText>{helperText}</S.HelperText>}
-      </S.InputContainer>
+      </S.InputWrapper>
     );
   },
 );

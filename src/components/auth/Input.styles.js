@@ -1,15 +1,23 @@
 import styled from '@emotion/styled';
 
-export const InputContainer = styled.div`
+export const InputWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.sm};
+  gap: ${({ theme }) => theme.spacing.xs};
+`;
+
+export const InputContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 
 export const Label = styled.label`
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: ${({ theme }) => theme.typography.fontSize.md};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  min-width: 80px;
+  flex-shrink: 0;
 `;
 
 export const StyledInput = styled.input`
@@ -27,11 +35,12 @@ export const StyledInput = styled.input`
   outline: none;
 
   &&::placeholder {
-    color: ${({ theme }) => theme.colors.textSecondary};
+    color: rgb(107 114 128 / 40%);
   }
 
   &&:focus {
-    border-color: ${({ theme }) => theme.colors.brand};
+    border-color: ${({ $hasError, theme }) =>
+      $hasError ? theme.colors.error : theme.colors.brand};
   }
 
   &&:disabled {
@@ -40,19 +49,19 @@ export const StyledInput = styled.input`
   }
 
   /* Size variants */
-  ${({ size }) => {
+  ${({ size, theme }) => {
     switch (size) {
       case 'sm':
         return `
-          height: 2rem;
-          padding: 0 ${({ theme }) => theme.spacing.sm};
-          font-size: ${({ theme }) => theme.typography.fontSize.sm};
+          height: 1.875rem;
+          padding: 0 ${theme.spacing.sm};
+          font-size: ${theme.typography.fontSize.sm};
         `;
       case 'lg':
         return `
-          height: 3rem;
-          padding: 0 ${({ theme }) => theme.spacing.lg};
-          font-size: ${({ theme }) => theme.typography.fontSize.lg};
+          height: 2.8125rem;
+          padding: 0 ${theme.spacing.lg};
+          font-size: ${theme.typography.fontSize.lg};
         `;
     }
   }}
@@ -61,11 +70,11 @@ export const StyledInput = styled.input`
 export const ErrorMessage = styled.span`
   color: ${({ theme }) => theme.colors.error};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  margin-top: ${({ theme }) => theme.spacing.xs};
+  margin-left: 96px;
 `;
 
 export const HelperText = styled.span`
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  margin-top: ${({ theme }) => theme.spacing.xs};
+  margin-left: 96px;
 `;
