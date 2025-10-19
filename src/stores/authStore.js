@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-import { extractUserFromToken, isTokenValid } from '@/utils/jwt';
+import { isTokenValid } from '@/utils/jwt';
 
 export const useAuthStore = create(
   persist(
@@ -9,18 +9,14 @@ export const useAuthStore = create(
       // 상태
       user: null,
       accessToken: null,
-      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
 
-      // 액션: 토큰 저장
-      setTokens: (accessToken, refreshToken) => {
-        const user = extractUserFromToken(accessToken);
+      // 액션: Access Token 저장 (단순화)
+      setTokens: (accessToken) => {
         set({
           accessToken,
-          refreshToken,
-          user,
-          isAuthenticated: !!user && isTokenValid(accessToken),
+          isAuthenticated: !!accessToken && isTokenValid(accessToken),
         });
       },
 
@@ -36,7 +32,6 @@ export const useAuthStore = create(
         set({
           user: null,
           accessToken: null,
-          refreshToken: null,
           isAuthenticated: false,
         }),
 
@@ -61,7 +56,6 @@ export const useAuthStore = create(
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
     },

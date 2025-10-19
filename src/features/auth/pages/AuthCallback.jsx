@@ -10,7 +10,7 @@ export default function AuthCallback() {
   const navigate = useNavigate();
   const { setTokens } = useAuthStore();
 
-  // Fragment를 즉시 읽어서 저장 (useEffect 전에!)
+  // URL Fragment를 즉시 읽어서 저장 (useEffect 실행 전에 Fragment가 사라지는 것 방지)
   const [callbackData] = useState(() => {
     const hash = window.location.hash.substring(1);
     return hash;
@@ -22,12 +22,12 @@ export default function AuthCallback() {
       try {
         // 저장된 Fragment 데이터 사용
         if (!callbackData) {
-          throw new Error('No callback data received');
+          throw new Error('콜백 데이터가 없습니다');
         }
 
         const params = new URLSearchParams(callbackData);
 
-        // Error 체크
+        // 에러 체크
         const errorMessage = params.get('error');
         if (errorMessage) {
           setError(decodeURIComponent(errorMessage));
@@ -38,34 +38,35 @@ export default function AuthCallback() {
         const requiresSignup = params.get('requires_signup') === 'true';
 
         if (requiresSignup) {
-          // Scenario 2: 회원가입 필요
+          // 시나리오 2: 회원가입 필요
           const signToken = params.get('sign_token');
+
           if (!signToken) {
-            throw new Error('SignToken not found');
+            throw new Error('SignToken을 찾을 수 없습니다');
           }
 
           // SignToken을 sessionStorage에 임시 저장
           sessionStorage.setItem('sign_token', signToken);
 
-          // AuthPage Step 2로 이동
+          // AuthPage Step 2 (회원가입 폼)로 이동
           navigate(PATHS.AUTH, { state: { step: 2, requiresSignup: true } });
         } else {
-          // Scenario 1: 로그인 성공
+          // 시나리오 1: 로그인 성공 (기존 회원)
           const accessToken = params.get('access_token');
-          const refreshToken = params.get('refresh_token');
 
-          if (!accessToken || !refreshToken) {
-            throw new Error('Tokens not found');
+          if (!accessToken) {
+            throw new Error('Access Token을 찾을 수 없습니다');
           }
 
-          // 토큰 저장 (authStore가 자동으로 user 정보 추출)
-          setTokens(accessToken, refreshToken);
+          // Access Token 저장
+          setTokens(accessToken);
 
+          // 사용자 정보는 ProtectedRoute에서 fetchUserInfo로 자동 로드됨
           // Deploy 페이지로 이동
           navigate(PATHS.DEPLOY);
         }
       } catch (err) {
-        console.error('OAuth callback error:', err);
+        console.error('OAuth 콜백 처리 오류:', err);
         setError(err.message);
         setTimeout(() => navigate(PATHS.AUTH), 3000);
       }
