@@ -13,7 +13,10 @@ export const Wrap = styled.div`
 
   @media (width <= 1200px) {
     grid-template-columns: 1fr;
-    height: calc(100dvh - var(--header-h));
+    height: auto;
+    overflow: visible;
+    width: 100%;
+    max-width: 100vw;
     margin: 0;
     padding: 0;
   }
@@ -23,25 +26,42 @@ export const Side = styled.aside`
   background: ${({ theme }) => theme.colors.surface};
   border-radius: ${(p) => R(p.theme)}px;
   border-right: 1px solid ${({ theme }) => theme.colors.border};
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   min-height: 0;
   height: 100%;
   align-self: stretch;
   overflow: hidden;
+
+  @media (width <= 1200px) {
+    height: auto;
+    align-self: auto;
+    border-right: none;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  }
 `;
 
 export const SideHeader = styled.div`
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 10px;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 15px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
   strong {
-    font-size: 14px;
+    font-size: 20px;
   }
+`;
+
+export const SideTop = styled.div`
+  display: flex;
+`;
+
+export const SideBottom = styled.div`
+  display: flex;
+  margin-left: -5px;
+  justify-content: space-between;
+  gap: 20px;
 `;
 
 export const SideTabs = styled.div`
@@ -53,30 +73,81 @@ export const SideTab = styled.button`
   height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  border: none;
   background: ${({ $active, theme }) =>
-    $active ? theme.colors.bg : 'transparent'};
-  color: ${({ theme }) => theme.colors.textSecondary};
+    $active ? theme.colors.tab.activeBg : theme.colors.tab.inactiveBg};
+  color: #fff;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 `;
 
 export const SideCount = styled.div`
   min-width: 24px;
-  text-align: right;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 14px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.onPrimary};
 `;
 
 export const List = styled.div`
-  display: grid;
   min-height: 0;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  @media (width <= 1200px) {
+    max-height: 40vh;
+  }
+`;
+
+export const SideBody = styled.div`
+  display: contents;
+`;
+
+export const SideFooter = styled.div`
+  margin-top: 12px;
+  padding: 12px 15px;
+  background: ${({ theme }) => theme.colors.surface};
+`;
+
+export const ApplyBtn = styled.button`
+  width: 100%;
+  height: 40px;
+  border-radius: 10px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.onPrimary};
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 `;
 
 export const ListItem = styled.article`
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) => theme.colors.bg};
   padding: 10px;
+  cursor: pointer;
+
+  &[data-active='true'] {
+    background: ${({ theme }) => theme.colors.surface};
+  }
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surface};
+  }
 `;
 
 export const ItemTop = styled.div`
@@ -87,8 +158,12 @@ export const ItemTop = styled.div`
 `;
 
 export const ItemBranch = styled.small`
-  color: ${({ theme }) => theme.colors.textSecondary};
   font-weight: 600;
+  color: ${({ theme, $status }) => {
+    if (!$status) return theme.colors.textSecondary;
+    const m = theme.colors.status[$status];
+    return m ? m.text : theme.colors.textSecondary;
+  }};
 `;
 
 export const Badge = styled.span`
@@ -105,27 +180,39 @@ export const ItemTitle = styled.div`
   font-weight: 600;
 `;
 
+export const ItemBottom = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  min-width: 0;
+`;
+
 export const ItemMeta = styled.div`
   display: inline-grid;
   grid-auto-flow: column;
   gap: 6px;
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: 12px;
+  min-width: 0;
 `;
 
 export const RiskChip = styled.span`
   display: inline-block;
-  margin-top: 6px;
+  margin-top: 0;
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 6px;
-  color: ${({ theme }) => theme.colors.text};
-  background: ${({ $risk }) =>
+  color: #000;
+  background: ${({ theme, $risk }) =>
     $risk === 'High'
-      ? 'rgb(255 100 100 / 14%)'
+      ? theme.colors.riskChipBg.high
       : $risk === 'Medium'
-        ? 'rgb(255 180 80 / 14%)'
-        : 'rgb(100 200 120 / 14%)'};
+        ? theme.colors.riskChipBg.medium
+        : theme.colors.riskChipBg.low};
+  align-self: flex-end;
+  white-space: nowrap;
 `;
 
 export const Main = styled.main`
@@ -134,12 +221,17 @@ export const Main = styled.main`
   min-height: 0;
   padding: 18px;
   height: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
 
   @media (width <= 1200px) {
-    overflow: auto;
+    border-left: none;
+    overflow: visible;
     overscroll-behavior: contain;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    height: auto;
   }
 
   @media (width <= 1200px) and (hover: none) {
@@ -153,7 +245,7 @@ export const Main = styled.main`
 export const Panel = styled.section`
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 0.5rem;
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${(p) => R(p.theme)}px;
@@ -161,6 +253,8 @@ export const Panel = styled.section`
   margin: 0;
   background-clip: padding-box;
   margin-bottom: 18px;
+  min-width: 0;
+  max-width: 100%;
 `;
 
 export const PanelHeader = styled.div`
@@ -169,6 +263,10 @@ export const PanelHeader = styled.div`
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 8px;
+
+  @media (width <= 1200px) {
+    flex-wrap: wrap;
+  }
 `;
 
 export const LabelBar = styled.div`
@@ -178,44 +276,78 @@ export const LabelBar = styled.div`
   padding: 0 2px;
 `;
 
-export const LabelRow = styled.div`
-  display: inline-flex;
-  gap: 6px;
+export const PRLabel = styled.span`
+  width: 4rem;
+  font-size: 13px;
+  padding: 4px 8px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-align: center;
+  background: ${({ theme }) => theme.colors.labels.pr.bg};
+  color: ${({ theme }) => theme.colors.labels.pr.text};
+  cursor: pointer;
+  opacity: ${({ $active }) => ($active ? 1 : 0.8)};
+  outline: none;
 `;
 
-export const Label = styled.span`
-  font-size: 11px;
+export const JenkinsLabel = styled.span`
+  width: 4rem;
+  font-size: 13px;
   padding: 4px 8px;
-  border-radius: 8px;
-  background: rgb(100 150 255 / 14%);
-  color: ${({ theme }) => theme.colors.brand};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-align: center;
+  background: ${({ theme }) => theme.colors.labels.jenkins.bg};
+  color: ${({ theme }) => theme.colors.labels.jenkins.text};
+  cursor: pointer;
+  opacity: ${({ $active }) => ($active ? 1 : 0.8)};
+  outline: none;
 `;
 
 export const ActionRow = styled.div`
   display: inline-flex;
   gap: 15px;
+
+  @media (width <= 1200px) {
+    display: flex;
+    width: 100%;
+    margin-top: 10px;
+    gap: 10px;
+    justify-content: stretch;
+    align-items: stretch;
+    flex-wrap: wrap;
+    & > button {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
 `;
 
 export const RejectBtn = styled.button`
+  width: 5rem;
   height: 36px;
   padding: 0 14px;
   border-radius: 8px;
   cursor: pointer;
-  border: 1px solid rgb(255 90 90 / 45%);
-  background: rgb(255 90 90 / 12%);
-  color: #ff6b6b;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  background: ${({ theme }) => theme.colors.btn.rejectBg};
+  color: ${({ theme }) => theme.colors.btn.rejectText};
   -webkit-tap-highlight-color: transparent;
 `;
 
 export const ApproveBtn = styled.button`
+  width: 5rem;
   height: 36px;
   padding: 0 14px;
   border-radius: 8px;
   cursor: pointer;
-  border: 1px solid rgb(80 200 120 / 45%);
-  background: rgb(80 200 120 / 14%);
-  color: #4ccc88;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  background: ${({ theme }) => theme.colors.btn.approveBg};
+  color: ${({ theme }) => theme.colors.btn.approveText};
   -webkit-tap-highlight-color: transparent;
 `;
 
@@ -233,28 +365,43 @@ export const TitleRow = styled.div`
   ${Badge} {
     font-size: 12px;
   }
+
+  @media (width <= 1200px) {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 `;
 
 export const TitleLeft = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
 `;
 
 export const TitleRight = styled.div`
   margin-right: 10px;
+
+  @media (width <= 1200px) {
+    order: 2;
+    width: 100%;
+    margin-right: 0;
+  }
 `;
 
 export const SubMeta = styled.div`
   display: flex;
   align-items: center;
-  gap: 130px;
+  gap: clamp(0.75rem, 7rem, 7rem);
   padding: 8px 0 2px;
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: 12px;
 
   @media (width <= 1200px) {
-    gap: 80px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
   }
 `;
 
@@ -287,18 +434,23 @@ export const MetaValue = styled.span`
 export const MetaRight = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: end;
   gap: 10px;
 `;
 
 export const StatusBadge = styled(Badge)`
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.text};
-
-  &[data-tone='success'] {
-    color: #4ccc88;
-  }
+  ${({ theme, $status }) => {
+    const map = theme.colors.status;
+    if (!$status || !map[$status]) return '';
+    const { bg, text } = map[$status];
+    return `
+      background: ${bg};
+      color: ${text};
+      border-color: ${bg};
+      font-weight: 600;
+    `;
+  }}
 `;
 
 export const MetaAvatar = styled.img`
@@ -348,7 +500,7 @@ export const MetricCard = styled.div`
   strong {
     display: block;
     margin-top: 6px;
-    font-size: 18px;
+    font-size: 14px;
   }
 `;
 
@@ -362,6 +514,7 @@ export const Row = styled.div`
   @media (width <= 1200px) {
     flex-direction: column;
     height: auto;
+    align-items: stretch;
   }
 `;
 
@@ -383,10 +536,12 @@ export const RightCol = styled.div`
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
+  flex-direction: column;
   align-items: stretch;
 
   @media (width <= 1200px) {
     flex: 1 1 auto;
+    width: 100%;
   }
 `;
 
@@ -403,6 +558,7 @@ export const Card = styled.section`
 
   @media (width <= 1200px) {
     height: auto;
+    align-self: stretch;
   }
 `;
 
@@ -412,88 +568,165 @@ export const CardTitle = styled.h3`
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
-export const RealatedProjectArea = styled.div`
+export const RelatedProjectArea = styled.div`
   height: 220px;
+  width: 100%;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 10px;
   background: ${({ theme }) => theme.colors.bg};
-  display: grid;
   place-items: center;
   position: relative;
+  align-self: stretch;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+`;
+
+export const DepTableInner = styled.div`
+  margin: 0;
+  border-radius: 12px;
+  background: ${({ theme }) => theme.colors.surface};
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+`;
+
+export const DepHeader = styled.div`
+  display: grid;
+  grid-template-columns: 30% 50% 20%;
+  padding: 10px 15px;
+  font-weight: 700;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  justify-items: center;
+  align-items: center;
+
+  & > div {
+    white-space: nowrap;
+    word-break: keep-all;
+  }
+`;
+
+export const DepBody = styled.div`
+  min-height: 0;
+`;
+
+export const DepRow = styled.div`
+  display: grid;
+  grid-template-columns: 30% 50% 20%;
+  padding: 16px 18px;
+  height: 1rem;
+  justify-items: center;
+  align-items: center;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+
+  &:last-child {
+    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  }
+`;
+
+export const DepCell = styled.div`
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  justify-content: center;
+  align-items: center;
+
+  &[data-col='status'] {
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+`;
+
+export const StatusDot = styled.span`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  background: ${({ $ok }) => ($ok ? '#22c55e' : '#ef4444')};
 `;
 
 export const RiskAnalystArea = styled.div`
   height: 220px;
+  width: 100%;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 10px;
   background: ${({ theme }) => theme.colors.bg};
-  display: grid;
-  place-items: center;
   position: relative;
-`;
+  align-self: stretch;
+  overflow: auto;
+  padding-left: 15px;
+  overscroll-behavior: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 
-export const RiskScore = styled.div`
-  display: grid;
-  gap: 8px;
-`;
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
 
-export const ScoreBar = styled.div`
-  height: 8px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: ${({ theme }) => theme.colors.bg};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-`;
-
-export const ScoreFill = styled.div`
-  height: 100%;
-  background: ${({ $tone }) =>
-    $tone === 'high'
-      ? 'linear-gradient(90deg,#ff6b6b,#ff8c6b)'
-      : $tone === 'medium'
-        ? 'linear-gradient(90deg,#ffb84d,#ffd24d)'
-        : 'linear-gradient(90deg,#4ccc88,#76e0b0)'};
-`;
-
-export const ScoreText = styled.div`
-  color: ${({ theme }) => theme.colors.textSecondary};
-`;
-
-export const KeyVals = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 8px;
-  min-height: 0;
-`;
-
-export const KV = styled.div`
-  background: ${({ theme }) => theme.colors.bg};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 8px;
-  padding: 8px 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  span {
-    color: ${({ theme }) => theme.colors.textSecondary};
+  @media (width <= 480px) {
+    height: auto;
+    max-height: 240px;
   }
 `;
 
-export const Divider = styled.hr`
-  border: none;
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
-  margin: 10px 0;
-`;
-
-export const Bullets = styled.ul`
+export const RiskList = styled.ol`
   margin: 0;
-  padding-left: 18px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   color: ${({ theme }) => theme.colors.textPrimary};
 
   li {
-    margin: 4px 0;
+    font-size: 14px;
+    line-height: 1.2;
   }
+`;
 
-  min-height: 0;
+export const RiskText = styled.div`
+  font-size: 14px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-break: anywhere;
+`;
+
+export const RiskSub = styled.div`
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-break: anywhere;
 `;
