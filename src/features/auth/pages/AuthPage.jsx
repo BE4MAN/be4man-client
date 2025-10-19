@@ -13,8 +13,7 @@ import {
   POSITION_MAP,
   DEPARTMENT_MAP,
 } from '@/constants/accounts';
-
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 
 import * as S from './AuthPage.styles';
 
