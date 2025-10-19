@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
 import PageSkeleton from '@/components/feedback/PageSkeleton';
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/stores/authStore';
 
 export const ProtectedRoute = ({ children }) => {
