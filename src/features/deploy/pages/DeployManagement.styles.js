@@ -286,8 +286,8 @@ export const PRLabel = styled.span`
   font-weight: 600;
   letter-spacing: 0.2px;
   text-align: center;
-  background: ${({ theme }) => theme.colors.labels.pr.bg};
-  color: ${({ theme }) => theme.colors.labels.pr.text};
+  background: ${({ $active, theme }) =>
+    $active ? theme.colors.btn.approveBg : theme.colors.tab.inactiveBg};
   cursor: pointer;
   opacity: ${({ $active }) => ($active ? 1 : 0.8)};
   outline: none;
@@ -300,8 +300,8 @@ export const JenkinsLabel = styled.span`
   font-weight: 600;
   letter-spacing: 0.2px;
   text-align: center;
-  background: ${({ theme }) => theme.colors.labels.jenkins.bg};
-  color: ${({ theme }) => theme.colors.labels.jenkins.text};
+  background: ${({ $active, theme }) =>
+    $active ? theme.colors.btn.approveBg : theme.colors.tab.inactiveBg};
   cursor: pointer;
   opacity: ${({ $active }) => ($active ? 1 : 0.8)};
   outline: none;
