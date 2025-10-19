@@ -6,7 +6,7 @@ export const useUIStore = create(
     (set) => ({
       sidebarOpen: false,
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
-      theme: 'dark',
+      theme: 'light',
       setTheme: (theme) => set({ theme }),
       service: 'Service A',
       setService: (service) => set({ service }),
