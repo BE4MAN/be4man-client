@@ -7,7 +7,6 @@ import logo from '/icons/logo.svg';
 import Button from '@/components/auth/Button';
 import CustomSelect from '@/components/auth/CustomSelect';
 import Input from '@/components/auth/Input';
-import Modal from '@/components/auth/Modal';
 import {
   POSITION_OPTIONS,
   DEPARTMENT_OPTIONS,
@@ -23,7 +22,6 @@ export default function AuthPage() {
   const location = useLocation();
   const { loginWithGithub, completeRegistration } = useAuth();
   const [step, setStep] = useState(1);
-  const [showLoadingModal, setShowLoadingModal] = useState(false);
   const [signToken, setSignToken] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -129,8 +127,6 @@ export default function AuthPage() {
         return;
       }
 
-      setShowLoadingModal(true);
-
       try {
         // 한글 → 영문 매핑
         const mappedPosition = POSITION_MAP[formData.position];
@@ -150,7 +146,6 @@ export default function AuthPage() {
         sessionStorage.removeItem('sign_token');
       } catch (error) {
         console.error('회원가입 에러:', error);
-        setShowLoadingModal(false);
 
         // 401: SignToken 만료
         if (error.response?.status === 401) {
@@ -286,18 +281,6 @@ export default function AuthPage() {
             )}
           </S.Card>
         </S.MainContainer>
-
-        {/* Loading Modal */}
-        <Modal
-          isOpen={showLoadingModal}
-          onClose={() => {}} // 모달을 닫지 않음
-          showCloseButton={false}
-          closeOnOverlayClick={false}
-        >
-          <S.LoadingSpinner />
-          <S.ModalTitle>가입 완료!</S.ModalTitle>
-          <S.ModalText>배포 페이지로 이동 중...</S.ModalText>
-        </Modal>
       </S.PageContainer>
     </ThemeProvider>
   );
