@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
 import { authAPI } from '@/api/auth';
+import { userAPI } from '@/api/user';
 import { PATHS } from '@/app/routes/paths';
 import { useAuthStore } from '@/stores/authStore';
 import { extractErrorInfo, getErrorMessage } from '@/utils/errorHandler';
@@ -17,7 +18,7 @@ export const useAuth = () => {
     useAuthStore.getState().setTokens(accessToken, refreshToken);
 
     // 2. 사용자 정보 로드
-    const userData = await authAPI.fetchUserInfo();
+    const userData = await userAPI.fetchUserInfo();
     useAuthStore.getState().setUser(userData);
 
     // 3. 페이지 이동
@@ -72,7 +73,7 @@ export const useAuth = () => {
    */
   const fetchUserInfo = async () => {
     try {
-      return await authAPI.fetchUserInfo();
+      return await userAPI.fetchUserInfo();
     } catch (error) {
       console.error('사용자 정보 조회 실패:', error);
       throw error;

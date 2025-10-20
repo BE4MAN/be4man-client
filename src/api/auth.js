@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
-
 import axiosInstance from './axios';
+import { API_BASE_URL, API_ENDPOINTS } from './endpoints';
 
 /**
  * 인증 관련 API 함수 모음
@@ -72,14 +71,5 @@ export const authAPI = {
    */
   logout: async () => {
     await axiosInstance.post(API_ENDPOINTS.LOGOUT);
-  },
-
-  /**
-   * 현재 사용자 정보 조회
-   * @returns {Promise<Object>} 사용자 정보
-   */
-  fetchUserInfo: async () => {
-    const { data } = await axiosInstance.get(API_ENDPOINTS.ME);
-    return data;
   },
 };

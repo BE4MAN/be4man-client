@@ -1,11 +1,11 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import PageSkeleton from '@/components/feedback/PageSkeleton';
 import AppLayout from '@/components/layout/AppLayout';
 
 import { PATHS } from './paths';
+import ProtectedRoute from './ProtectedRoute';
 
 const AuthPage = lazy(() => import('@/features/auth/pages/AuthPage'));
 const AuthCallback = lazy(() => import('@/features/auth/pages/AuthCallback'));

@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 
-import { authAPI } from '@/api/auth';
-import { PATHS } from '@/app/routes/paths';
+import { userAPI } from '@/api/user';
 import PageSkeleton from '@/components/feedback/PageSkeleton';
 import { useAuthStore } from '@/stores/authStore';
+
+import { PATHS } from './paths';
 
 export const ProtectedRoute = ({ children }) => {
   const { accessToken, refreshToken, user, isLoading } = useAuthStore();
@@ -15,7 +16,7 @@ export const ProtectedRoute = ({ children }) => {
       // 하지만 직접 URL 접근 시 필요하므로 유지
       if (!isLoading && accessToken && refreshToken && !user) {
         try {
-          const userData = await authAPI.fetchUserInfo();
+          const userData = await userAPI.fetchUserInfo();
           useAuthStore.getState().setUser(userData);
         } catch (error) {
           console.error('사용자 정보 로드 실패:', error);

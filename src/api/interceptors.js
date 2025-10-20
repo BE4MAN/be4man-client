@@ -1,8 +1,8 @@
-import { API_ENDPOINTS } from '@/config/api';
 import { useAuthStore } from '@/stores/authStore';
 import { extractErrorInfo } from '@/utils/errorHandler';
 
 import { authAPI } from './auth';
+import { API_ENDPOINTS } from './endpoints';
 
 /**
  * ⭐ Refresh 시도하면 안 되는 URL 목록
