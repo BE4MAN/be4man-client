@@ -140,3 +140,26 @@ export const buildDetailFromItem = (item, base = MOCK_DETAIL) => ({
   branchFrom: item?.branch?.split('/')[0] || base.branchFrom,
   branchTo: 'main',
 });
+
+export const MOCK_APPLY_LIST = [
+  {
+    id: 'ap-1',
+    branch: 'feature/new-payment',
+    title: '배포 작업 신청: 결제 모듈 추가',
+    votes: '+12',
+    comments: 3,
+    hours: '1 hour ago',
+    status: '신청전',
+    risk: 'Low',
+  },
+  {
+    id: 'ap-2',
+    branch: 'chore/log-rotation',
+    title: '배포 작업 신청: 로그 로테이션 주기 변경',
+    votes: '+3',
+    comments: 0,
+    hours: '5 hours ago',
+    status: '신청전',
+    risk: 'Low',
+  },
+];
