@@ -1,35 +1,44 @@
 import { useNavigate } from 'react-router-dom';
 
-import axiosInstance from '@/api/axios';
+import { authAPI } from '@/api/auth';
 import { PATHS } from '@/app/routes/paths';
-import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
 import { useAuthStore } from '@/stores/authStore';
 import { extractErrorInfo, getErrorMessage } from '@/utils/errorHandler';
 
 export const useAuth = () => {
   const navigate = useNavigate();
 
-  // GitHub OAuth 로그인
-  const loginWithGithub = () => {
-    window.location.href = `${API_BASE_URL}${API_ENDPOINTS.GITHUB_LOGIN}`;
+  /**
+   * 공통 로그인 후처리 로직
+   * (토큰 저장 → 사용자 정보 로드 → 페이지 이동)
+   */
+  const postLoginFlow = async (accessToken, refreshToken) => {
+    // 1. 토큰 저장
+    useAuthStore.getState().setTokens(accessToken, refreshToken);
+
+    // 2. 사용자 정보 로드
+    const userData = await authAPI.fetchUserInfo();
+    useAuthStore.getState().setUser(userData);
+
+    // 3. 페이지 이동
+    navigate(PATHS.DEPLOY, { replace: true });
   };
 
-  // 기존 사용자 로그인
+  /**
+   * GitHub OAuth 로그인
+   */
+  const loginWithGithub = () => {
+    authAPI.githubLogin();
+  };
+
+  /**
+   * 기존 사용자 로그인
+   * @param {string} code - GitHub OAuth Authorization Code
+   */
   const signin = async (code) => {
     try {
-      // 1. 토큰 발급
-      const { data } = await axiosInstance.post(API_ENDPOINTS.SIGNIN, {
-        code,
-      });
-
-      // 2. 토큰 저장
-      useAuthStore.getState().setTokens(data.accessToken, data.refreshToken);
-
-      // 3. 사용자 정보 로드 (signup과 동일)
-      await fetchUserInfo();
-
-      // 4. 페이지 이동 (replace: true로 뒤로가기 방지)
-      navigate(PATHS.DEPLOY, { replace: true });
+      const data = await authAPI.signin(code);
+      await postLoginFlow(data.accessToken, data.refreshToken);
     } catch (error) {
       console.error('로그인 실패:', error);
 
@@ -39,31 +48,15 @@ export const useAuth = () => {
     }
   };
 
-  // 회원가입
+  /**
+   * 회원가입
+   * @param {Object} userData - 사용자 정보 (name, department, position)
+   * @param {string} signToken - 임시 회원가입 토큰
+   */
   const completeRegistration = async (userData, signToken) => {
     try {
-      const { data } = await axiosInstance.post(
-        API_ENDPOINTS.SIGNUP,
-        {
-          name: userData.name,
-          department: userData.department,
-          position: userData.position,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${signToken}`,
-          },
-        },
-      );
-
-      // 2. 토큰 저장
-      useAuthStore.getState().setTokens(data.accessToken, data.refreshToken);
-
-      // 3. 사용자 정보 로드
-      await fetchUserInfo();
-
-      // 4. 페이지 이동
-      navigate(PATHS.DEPLOY, { replace: true });
+      const data = await authAPI.signup(userData, signToken);
+      await postLoginFlow(data.accessToken, data.refreshToken);
     } catch (error) {
       console.error('회원가입 실패:', error);
 
@@ -73,20 +66,25 @@ export const useAuth = () => {
     }
   };
 
+  /**
+   * 사용자 정보 조회
+   * @returns {Promise<Object>} 사용자 정보
+   */
   const fetchUserInfo = async () => {
     try {
-      const { data } = await axiosInstance.get(API_ENDPOINTS.ME);
-      useAuthStore.getState().setUser(data);
-      return data;
+      return await authAPI.fetchUserInfo();
     } catch (error) {
       console.error('사용자 정보 조회 실패:', error);
       throw error;
     }
   };
 
+  /**
+   * 로그아웃
+   */
   const logout = async () => {
     try {
-      await axiosInstance.post(API_ENDPOINTS.LOGOUT);
+      await authAPI.logout();
     } catch (error) {
       console.error('로그아웃 API 호출 실패:', error);
     } finally {

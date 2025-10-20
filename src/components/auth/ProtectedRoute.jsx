@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 
-import axiosInstance from '@/api/axios';
+import { authAPI } from '@/api/auth';
 import { PATHS } from '@/app/routes/paths';
 import PageSkeleton from '@/components/feedback/PageSkeleton';
-import { API_ENDPOINTS } from '@/config/api';
 import { useAuthStore } from '@/stores/authStore';
 
 export const ProtectedRoute = ({ children }) => {
@@ -16,8 +15,8 @@ export const ProtectedRoute = ({ children }) => {
       // 하지만 직접 URL 접근 시 필요하므로 유지
       if (!isLoading && accessToken && refreshToken && !user) {
         try {
-          const { data } = await axiosInstance.get(API_ENDPOINTS.ME);
-          useAuthStore.getState().setUser(data);
+          const userData = await authAPI.fetchUserInfo();
+          useAuthStore.getState().setUser(userData);
         } catch (error) {
           console.error('사용자 정보 로드 실패:', error);
           useAuthStore.getState().logout();
