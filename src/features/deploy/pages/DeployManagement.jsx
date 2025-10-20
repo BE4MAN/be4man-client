@@ -8,6 +8,7 @@ import {
 } from '../../..//mock/deploy';
 
 import * as S from './DeployManagement.styles';
+import JenkinsPanel from './JenkinsPanel';
 
 const TAB = { ALL: 'all', PENDING: 'pending', DEPLOYED: 'deployed' };
 
@@ -292,14 +293,7 @@ export default function DeployManagement({
             </S.Row>
           </>
         ) : (
-          <>
-            <S.Panel>
-              <S.Section>
-                <S.SectionTitle>Jenkins</S.SectionTitle>
-                <S.SectionBody>jenkins 화면입니다.</S.SectionBody>
-              </S.Section>
-            </S.Panel>
-          </>
+          <JenkinsPanel />
         )}
       </S.Main>
     </S.Wrap>
