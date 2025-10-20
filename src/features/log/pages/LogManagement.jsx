@@ -742,7 +742,7 @@ export default function LogManagement() {
         </div>
 
         {/* 필터 패널 (인라인 방식) */}
-        <div style={styles.filtersPanel()}>
+        <div style={styles.filtersPanel}>
           <div style={styles.filtersRow}>
             {/* 승인 여부 - 한글 옵션으로 변경 */}
             <div style={styles.filterRowItem}>

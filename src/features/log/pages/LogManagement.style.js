@@ -90,9 +90,10 @@ export const getStyles = (theme) => ({
     borderRadius: '4px',
   }),
 
-  //  // 필터 패널 - 절대 위치 제거 ← 수정
-  //  filtersPanel: () => ({
-  //  }),
+  // 필터 패널 - 절대 위치 제거 ← 수정
+  filtersPanel: {
+    //
+  },
 
   // 필터 행
   filtersRow: {
