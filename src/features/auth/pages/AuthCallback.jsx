@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
@@ -11,9 +11,21 @@ export default function AuthCallback() {
   const { signin } = useAuth();
   const [error, setError] = useState(null);
 
+  // ⭐ Strict Mode 2번째 실행 방지
+  const hasProcessed = useRef(false);
+
   useEffect(() => {
+    // ⭐ 이미 처리했으면 스킵
+    if (hasProcessed.current) {
+      console.log('[AuthCallback] 이미 처리됨 (Strict Mode 2번째 실행)');
+      return;
+    }
+
     const handleCallback = async () => {
       try {
+        // ⭐ 즉시 플래그 설정 (비동기 작업 전!)
+        hasProcessed.current = true;
+
         // URL Fragment 파싱
         const hash = window.location.hash.substring(1);
         if (!hash) {
@@ -26,7 +38,7 @@ export default function AuthCallback() {
         const errorMessage = params.get('error');
         if (errorMessage) {
           setError(decodeURIComponent(errorMessage));
-          setTimeout(() => navigate(PATHS.AUTH), 3000);
+          setTimeout(() => navigate(PATHS.AUTH, { replace: true }), 3000);
           return;
         }
 
@@ -42,7 +54,10 @@ export default function AuthCallback() {
 
           // SignToken 저장 후 회원가입 폼으로 이동
           sessionStorage.setItem('sign_token', signToken);
-          navigate(PATHS.AUTH, { state: { step: 2, requiresSignup: true } });
+          navigate(PATHS.AUTH, {
+            state: { step: 2, requiresSignup: true },
+            replace: true, // ⭐ 추가
+          });
         } else {
           // 기존 사용자: 로그인
           const code = params.get('code');
@@ -51,19 +66,19 @@ export default function AuthCallback() {
             throw new Error('Temporary Code를 찾을 수 없습니다');
           }
 
-          // 로그인 후 Deploy로 이동 (컴포넌트 언마운트되어 재실행 안 됨)
+          // ⭐ await으로 완료 보장 (signin 내부에서 navigate 실행)
           await signin(code);
         }
       } catch (err) {
         console.error('OAuth 콜백 처리 오류:', err);
         setError(err.message);
-        setTimeout(() => navigate(PATHS.AUTH), 3000);
+        setTimeout(() => navigate(PATHS.AUTH, { replace: true }), 3000);
       }
     };
 
     handleCallback();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 마운트 시 1회만 실행 (navigate 후 언마운트됨)
+  }, []); // 의존성 배열 비움 (1회만 실행 의도)
 
   return (
     <S.Container>

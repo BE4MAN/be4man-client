@@ -16,24 +16,37 @@ export const useAuth = () => {
   // 기존 사용자 로그인
   const signin = async (code) => {
     try {
+      // 1. 토큰 발급
       const { data } = await axiosInstance.post(API_ENDPOINTS.SIGNIN, {
         code,
       });
 
-      // authStore에 직접 저장
+      // 2. 토큰 저장
       useAuthStore.getState().setTokens(data.accessToken, data.refreshToken);
 
-      // Deploy 페이지로 이동 (ProtectedRoute에서 user 로드)
-      navigate(PATHS.DEPLOY);
+      // ⭐ 3. 사용자 정보 로드 (signup과 동일)
+      await fetchUserInfo();
+
+      // ⭐ 4. 페이지 이동 (replace: true로 뒤로가기 방지)
+      navigate(PATHS.DEPLOY, { replace: true });
     } catch (error) {
       console.error('로그인 실패:', error);
-      throw error;
+
+      // ⭐ 에러 상세 정보
+      if (error.response?.status === 401) {
+        throw new Error('인증 코드가 만료되었습니다. 다시 로그인해주세요.');
+      } else if (error.response?.status === 400) {
+        throw new Error('잘못된 요청입니다.');
+      } else {
+        throw new Error('로그인에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      }
     }
   };
 
   // 회원가입
   const completeRegistration = async (userData, signToken) => {
     try {
+      // 1. 회원가입 요청
       const { data } = await axiosInstance.post(
         API_ENDPOINTS.SIGNUP,
         {
@@ -48,14 +61,14 @@ export const useAuth = () => {
         },
       );
 
-      // authStore에 직접 저장
+      // 2. 토큰 저장
       useAuthStore.getState().setTokens(data.accessToken, data.refreshToken);
 
-      // 사용자 정보 조회
+      // ⭐ 3. 사용자 정보 로드
       await fetchUserInfo();
 
-      // Deploy 페이지로 이동
-      navigate(PATHS.DEPLOY);
+      // ⭐ 4. 페이지 이동 (replace: true로 뒤로가기 방지)
+      navigate(PATHS.DEPLOY, { replace: true });
     } catch (error) {
       console.error('회원가입 실패:', error);
       throw error;
@@ -81,9 +94,16 @@ export const useAuth = () => {
     } catch (error) {
       console.error('로그아웃 API 호출 실패:', error);
     } finally {
-      // authStore 직접 클리어
+      // ⭐ authStore 초기화
       useAuthStore.getState().logout();
-      navigate(PATHS.AUTH);
+
+      // ⭐ persist 클리어 (Zustand 제공 메서드)
+      if (useAuthStore.persist?.clearStorage) {
+        useAuthStore.persist.clearStorage();
+      }
+
+      // ⭐ replace: true로 히스토리 제거
+      navigate(PATHS.AUTH, { replace: true });
     }
   };
 

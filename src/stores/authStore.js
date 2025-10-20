@@ -9,7 +9,7 @@ export const useAuthStore = create(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
-      isLoading: false,
+      isLoading: true, // ⭐ 초기값 true (hydration 대기)
 
       // 액션: Access Token & Refresh Token 저장
       setTokens: (accessToken, refreshToken) => {
@@ -37,8 +37,8 @@ export const useAuthStore = create(
           isAuthenticated: false,
         });
 
-        // localStorage에서 auth-store 완전히 제거
-        localStorage.removeItem('auth-store');
+        // ⭐ localStorage.removeItem() 제거
+        // Zustand persist가 자동으로 동기화
       },
 
       // 액션: 사용자 정보 업데이트
@@ -71,7 +71,15 @@ export const useAuthStore = create(
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
+        // isLoading은 제외 (persist 안 함)
       }),
+
+      // ⭐ Hydration 완료 시 isLoading = false
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.isLoading = false;
+        }
+      },
     },
   ),
 );

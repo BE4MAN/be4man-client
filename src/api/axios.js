@@ -15,6 +15,17 @@ export const axiosInstance = axios.create({
 });
 
 /**
+ * ⭐ Refresh 시도하면 안 되는 URL 목록
+ * (로그인/회원가입 관련 API는 interceptor에서 제외)
+ */
+const NO_RETRY_URLS = [
+  API_ENDPOINTS.SIGNIN, // POST /api/auth/signin
+  API_ENDPOINTS.SIGNUP, // POST /api/auth/signup
+  API_ENDPOINTS.REFRESH, // POST /api/auth/refresh
+  API_ENDPOINTS.GITHUB_LOGIN, // GET /oauth2/authorization/github
+];
+
+/**
  * 요청 인터셉터
  * Access Token을 자동으로 Authorization 헤더에 추가
  */
@@ -65,12 +76,13 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // 401 에러 + 재시도 아님 + Refresh API 호출 아님
-    if (
-      error.response?.status === 401 &&
-      !originalRequest._retry &&
-      originalRequest.url !== API_ENDPOINTS.REFRESH
-    ) {
+    // ⭐ 1. 로그인/회원가입 관련 API는 interceptor 제외
+    if (NO_RETRY_URLS.includes(originalRequest.url)) {
+      return Promise.reject(error);
+    }
+
+    // ⭐ 2. 401 에러 + 재시도 아님
+    if (error.response?.status === 401 && !originalRequest._retry) {
       // Refresh 진행 중이면 큐에 추가
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -122,7 +134,11 @@ axiosInstance.interceptors.response.use(
         // 토큰 갱신 실패 → 로그아웃 처리
         console.error('토큰 갱신 실패:', refreshError);
         useAuthStore.getState().logout();
+
+        // ⭐ 라우팅 처리 (임시로 window.location 사용)
+        // TODO: 더 나은 방법으로 개선 필요
         window.location.href = '/auth';
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
