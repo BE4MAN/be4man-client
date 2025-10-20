@@ -55,6 +55,21 @@ export const SideHeader = styled.div`
 
 export const SideTop = styled.div`
   display: flex;
+  gap: 15px;
+`;
+
+export const TopTab = styled.button`
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-weight: 700;
+  font-size: 20px;
+  cursor: pointer;
+  color: ${({ theme, $active }) =>
+    $active ? theme.colors.textPrimary : '#8B95A8'};
+  -webkit-tap-highlight-color: transparent;
 `;
 
 export const SideBottom = styled.div`
@@ -729,4 +744,10 @@ export const RiskSub = styled.div`
   white-space: normal;
   overflow-wrap: anywhere;
   line-break: anywhere;
+`;
+
+export const Empty = styled.div`
+  padding: 12px 14px;
+  color: #8b95a8;
+  font-size: 14px;
 `;
