@@ -5,14 +5,14 @@ import { authAPI } from './auth';
 import { API_ENDPOINTS } from './endpoints';
 
 /**
- * ⭐ Refresh 시도하면 안 되는 URL 목록
- * (로그인/회원가입 관련 API는 interceptor에서 제외)
+ * Refresh 시도하면 안 되는 URL 목록
+ * 로그인/회원가입 관련 API는 interceptor에서 제외
  */
 const NO_RETRY_URLS = [
-  API_ENDPOINTS.SIGNIN, // POST /api/auth/signin
-  API_ENDPOINTS.SIGNUP, // POST /api/auth/signup
-  API_ENDPOINTS.REFRESH, // POST /api/auth/refresh
-  API_ENDPOINTS.GITHUB_LOGIN, // GET /oauth2/authorization/github
+  API_ENDPOINTS.SIGNIN,
+  API_ENDPOINTS.SIGNUP,
+  API_ENDPOINTS.REFRESH,
+  API_ENDPOINTS.GITHUB_LOGIN,
 ];
 
 /**
@@ -46,12 +46,10 @@ export const setupAuthInterceptors = (axiosInstance) => {
    */
   axiosInstance.interceptors.request.use(
     (config) => {
-      // Authorization 헤더가 이미 설정되어 있으면 건너뛰기 (Signup API 등)
       if (config.headers.Authorization) {
         return config;
       }
 
-      // accessToken이 있으면 자동으로 추가
       const { accessToken } = useAuthStore.getState();
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
@@ -71,14 +69,11 @@ export const setupAuthInterceptors = (axiosInstance) => {
     async (error) => {
       const originalRequest = error.config;
 
-      // ⭐ 1. 로그인/회원가입 관련 API는 interceptor 제외
       if (NO_RETRY_URLS.includes(originalRequest.url)) {
         return Promise.reject(error);
       }
 
-      // ⭐ 2. 401 에러 + 재시도 아님
       if (error.response?.status === 401 && !originalRequest._retry) {
-        // Refresh 진행 중이면 큐에 추가
         if (isRefreshing) {
           return new Promise((resolve, reject) => {
             failedQueue.push({ resolve, reject });
@@ -102,22 +97,17 @@ export const setupAuthInterceptors = (axiosInstance) => {
             throw new Error('사용 가능한 Refresh Token이 없습니다');
           }
 
-          // 토큰 갱신 요청 (authAPI 사용)
           const data = await authAPI.refresh(refreshToken);
 
-          // 새 Access Token & Refresh Token 저장 (Rotation)
           useAuthStore
             .getState()
             .setTokens(data.accessToken, data.refreshToken);
 
-          // 대기 중인 요청들 처리
           processQueue(null, data.accessToken);
 
-          // 원래 요청 재시도 (새 토큰으로)
           originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
           return axiosInstance(originalRequest);
         } catch (refreshError) {
-          // 대기 중인 요청들 에러 처리
           processQueue(refreshError, null);
 
           const errorInfo = extractErrorInfo(refreshError);

@@ -20,7 +20,7 @@ export default function AuthCallback() {
 
   useEffect(() => {
     if (hasProcessed.current) {
-      console.log('[AuthCallback] 이미 처리됨 (Strict Mode 2번째 실행)');
+      console.log('[AuthCallback] 이미 처리됨');
       return;
     }
 
@@ -28,7 +28,6 @@ export default function AuthCallback() {
       try {
         hasProcessed.current = true;
 
-        // URL Fragment 파싱
         const hash = window.location.hash.substring(1);
         if (!hash) {
           throw new Error('콜백 데이터가 없습니다');
@@ -36,7 +35,6 @@ export default function AuthCallback() {
 
         const params = new URLSearchParams(hash);
 
-        // 에러 체크
         const errorMessage = params.get('error');
         if (errorMessage) {
           setError(decodeURIComponent(errorMessage));
@@ -47,21 +45,18 @@ export default function AuthCallback() {
         const requiresSignup = params.get('requires_signup') === 'true';
 
         if (requiresSignup) {
-          // 신규 사용자: 회원가입 필요
           const signToken = params.get('sign_token');
 
           if (!signToken) {
             throw new Error('SignToken을 찾을 수 없습니다');
           }
 
-          // SignToken 저장 후 회원가입 폼으로 이동
           sessionStorage.setItem('sign_token', signToken);
           navigate(PATHS.AUTH, {
             state: { step: 2, requiresSignup: true },
             replace: true,
           });
         } else {
-          // 기존 사용자: 로그인
           const code = params.get('code');
 
           if (!code) {
@@ -81,46 +76,40 @@ export default function AuthCallback() {
 
     handleCallback();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 의존성 배열 비움 (1회만 실행 의도)
+  }, []);
 
   const handleConfirm = () => {
     navigate(PATHS.AUTH, { replace: true });
   };
 
+  if (!error) {
+    return null;
+  }
+
   return (
     <ThemeProvider theme={light}>
       <S.Container>
         <S.Content>
-          {error ? (
-            <>
-              <S.ErrorIcon>⚠️</S.ErrorIcon>
-              <S.Title>인증 오류</S.Title>
-              <S.Message>{error}</S.Message>
+          <S.ErrorIcon>⚠️</S.ErrorIcon>
+          <S.Title>인증 오류</S.Title>
+          <S.Message>{error}</S.Message>
 
-              {errorDetails && (
-                <S.ErrorDetails>
-                  <S.ErrorCode>코드: {errorDetails.code}</S.ErrorCode>
-                  <S.ErrorPath>경로: {errorDetails.path}</S.ErrorPath>
-                  <S.ErrorTime>시간: {errorDetails.timestamp}</S.ErrorTime>
-                </S.ErrorDetails>
-              )}
-
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleConfirm}
-                style={{ marginTop: '24px' }}
-              >
-                확인
-              </Button>
-            </>
-          ) : (
-            <>
-              <S.Spinner />
-              <S.Title>인증 처리 중...</S.Title>
-              <S.Message>잠시만 기다려주세요</S.Message>
-            </>
+          {errorDetails && (
+            <S.ErrorDetails>
+              <S.ErrorCode>코드: {errorDetails.code}</S.ErrorCode>
+              <S.ErrorPath>경로: {errorDetails.path}</S.ErrorPath>
+              <S.ErrorTime>시간: {errorDetails.timestamp}</S.ErrorTime>
+            </S.ErrorDetails>
           )}
+
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={handleConfirm}
+            style={{ marginTop: '24px' }}
+          >
+            확인
+          </Button>
         </S.Content>
       </S.Container>
     </ThemeProvider>

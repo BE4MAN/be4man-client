@@ -11,17 +11,13 @@ export const useAuth = () => {
 
   /**
    * 공통 로그인 후처리 로직
-   * (토큰 저장 → 사용자 정보 로드 → 페이지 이동)
    */
   const postLoginFlow = async (accessToken, refreshToken) => {
-    // 1. 토큰 저장
     useAuthStore.getState().setTokens(accessToken, refreshToken);
 
-    // 2. 사용자 정보 로드
     const userData = await userAPI.fetchUserInfo();
     useAuthStore.getState().setUser(userData);
 
-    // 3. 페이지 이동
     navigate(PATHS.DEPLOY, { replace: true });
   };
 

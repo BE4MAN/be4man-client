@@ -12,8 +12,8 @@ export const ProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     const loadUserIfNeeded = async () => {
-      // ⭐ signin()에서 이미 user 로드하므로 거의 실행 안 됨
-      // 하지만 직접 URL 접근 시 필요하므로 유지
+      // signin에서 이미 user 로드하므로 거의 실행 안 됨
+      // 직접 URL 접근 시 필요하므로 유지
       if (!isLoading && accessToken && refreshToken && !user) {
         try {
           const userData = await userAPI.fetchUserInfo();
@@ -28,7 +28,7 @@ export const ProtectedRoute = ({ children }) => {
     loadUserIfNeeded();
   }, [accessToken, refreshToken, user, isLoading]);
 
-  // ⭐ Hydration 대기 중 (isLoading === true)
+  // Hydration 대기 중
   if (isLoading) {
     return <PageSkeleton />;
   }
@@ -38,7 +38,7 @@ export const ProtectedRoute = ({ children }) => {
     return <Navigate to={PATHS.AUTH} replace />;
   }
 
-  // user 로드 중 (거의 발생 안 함, signin에서 이미 로드)
+  // user 로드 중
   if (!user) {
     return <PageSkeleton />;
   }
