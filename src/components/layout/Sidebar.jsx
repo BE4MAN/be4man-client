@@ -1,4 +1,5 @@
 import { PATHS } from '@/app/routes/paths';
+import { useAuth } from '@/hooks/useAuth';
 import { useUIStore } from '@/stores/uiStore';
 
 import DeploymngIcon from '/icons/deploymng.svg';
@@ -20,6 +21,7 @@ import * as S from './Sidebar.styles';
 
 export default function Sidebar() {
   const { sidebarOpen, theme } = useUIStore();
+  const { logout } = useAuth();
   const isDark = theme === 'dark';
 
   const pickIcon = (isActive, darkSrc, lightSrc, activeSrc) =>
@@ -75,7 +77,7 @@ export default function Sidebar() {
         </S.Item>
       </S.MenuWrap>
 
-      <S.LogoutBtn type="button">
+      <S.LogoutBtn type="button" onClick={logout}>
         <S.IconImg src={isDark ? LogoutIcon : LogoutDayIcon} alt="Logout" />
         로그아웃
       </S.LogoutBtn>

@@ -113,7 +113,7 @@ export const MOCK_DETAIL = {
     { name: 'billing-api', active: true },
     { name: 'notification', active: true },
     { name: 'legacy-', time: '16:00 - 18:00', active: false },
-    { name: 'Project B', active: false },
+    { name: 'Project B', time: '17:00 - 19:00', active: false },
   ],
   risks: MOCK_RISKS,
 };
