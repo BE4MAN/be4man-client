@@ -1,6 +1,6 @@
 import { ThemeProvider } from '@emotion/react';
 import { Github } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import logo from '/icons/logo.svg';
 
@@ -21,8 +21,12 @@ import * as S from './AuthPage.styles';
 export default function AuthPage() {
   const location = useLocation();
   const { loginWithGithub, completeRegistration } = useAuth();
-  const [step, setStep] = useState(1);
-  const [signToken, setSignToken] = useState(null);
+  const [step, setStep] = useState(location.state?.requiresSignup ? 2 : 1);
+  const [signToken, setSignToken] = useState(
+    location.state?.requiresSignup
+      ? sessionStorage.getItem('sign_token')
+      : null,
+  );
   const [formData, setFormData] = useState({
     name: '',
     department: '',
@@ -39,18 +43,6 @@ export default function AuthPage() {
     department: false,
     position: false,
   });
-
-  // AuthCallback에서 회원가입 필요 시 SignToken과 함께 리다이렉트
-  useEffect(() => {
-    // URL state에서 회원가입 필요 여부 확인
-    if (location.state?.requiresSignup) {
-      const token = sessionStorage.getItem('sign_token');
-      if (token) {
-        setSignToken(token);
-        setStep(2);
-      }
-    }
-  }, [location]);
 
   const validateName = (name) => {
     const nameRegex = /^[a-zA-Z가-힣\s]{2,30}$/;
