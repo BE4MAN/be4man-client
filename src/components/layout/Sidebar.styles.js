@@ -3,20 +3,23 @@ import { NavLink } from 'react-router-dom';
 
 export const Aside = styled.aside`
   grid-area: sidebar;
-  width: 208px;
+  width: var(--sidebar-w);
   box-sizing: border-box;
-  padding: 14px 0;
   border-right: 1px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) => theme.colors.surface};
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 100%;
+  position: sticky;
+  top: var(--header-h);
+  height: calc(100dvh - var(--header-h));
+  overflow: auto;
+  z-index: 15;
 
   @media (width <= 767px) {
     position: fixed;
-    inset: 56px auto auto 0;
-    height: calc(100dvh - 56px);
+    inset: var(--header-h) auto auto 0;
+    height: calc(100dvh - var(--header-h));
     width: min(80vw, 240px);
     transform: translateX(${({ open }) => (open ? '0' : '-105%')});
     transition: transform 0.2s ease;
@@ -28,6 +31,9 @@ export const Aside = styled.aside`
 export const MenuWrap = styled.div`
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 `;
 
 export const Item = styled(NavLink)`

@@ -1,11 +1,13 @@
 {
+  "files.eol": "\n",
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true,
-    "source.fixAll.stylelint": true
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.stylelint": "explicit"
   },
   "eslint.validate": ["javascript", "javascriptreact"],
   "stylelint.validate": ["css", "javascript", "javascriptreact"],
-  "prettier.requireConfig": true
+  "prettier.requireConfig": true,
+  "prettier.endOfLine": "lf"
 }

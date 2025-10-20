@@ -1,24 +1,27 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 import logo from '/icons/logo.svg';
 import { PATHS } from '@/app/routes/paths';
+import { POSITION_REVERSE_MAP } from '@/constants/accounts';
+import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 
 import * as S from './Header.styles';
 
-import defaultAvatar from '/icons/rose.jpeg';
-
 export default function Header() {
-  const navigate = useNavigate();
-  const { setTheme, theme, service, setService, user } = useUIStore();
+  const { setTheme, theme, service, setService } = useUIStore();
+  const { user } = useAuthStore();
+  const { logout } = useAuth();
   const isDark = theme === 'dark';
   const nextTheme = isDark ? 'light' : 'dark';
 
-  const displayName = user?.name ?? '로제';
-  const title = user?.title ?? '사원';
-  const avatar = user?.avatar ?? defaultAvatar;
+  // 실제 사용자 정보 사용 (ProtectedRoute에서 이미 user 로드 보장)
+  const displayName = user?.name;
+  const position = user?.position ? POSITION_REVERSE_MAP[user.position] : null;
+  const avatar = user?.profileImageUrl;
 
   const options = useMemo(
     () => ['Project A', 'Project B', 'Project Jenkins CI/CD'],
@@ -144,8 +147,8 @@ export default function Header() {
 
   const onLogout = useCallback(async () => {
     setMobileOpen(false);
-    navigate(PATHS.DEPLOY);
-  }, [navigate]);
+    await logout();
+  }, [logout]);
 
   return (
     <S.Bar>
@@ -214,7 +217,7 @@ export default function Header() {
           <S.Avatar src={avatar} alt={`${displayName} 프로필`} />
           <S.NameTitle>
             <strong>{displayName}</strong>
-            <small>{title}</small>
+            <small>{position}</small>
           </S.NameTitle>
         </S.User>
 

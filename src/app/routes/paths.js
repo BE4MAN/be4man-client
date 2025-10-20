@@ -1,6 +1,8 @@
 export const PATHS = {
   ROOT: '/',
-  DEPLOY: '/deploy',
-  DASHBOARD: '/dashboard',
+  AUTH: '/auth',
+  AUTH_CALLBACK: '/auth/callback',
+  DEPLOY: '/deploys',
+  DASHBOARD: '/dashboards',
   LOGS: '/logs',
 };

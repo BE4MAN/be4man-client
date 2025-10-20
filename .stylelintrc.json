@@ -23,7 +23,10 @@
       "customSyntax": "postcss-scss"
     },
     {
-      "files": ["**/*.styles.{js,jsx,ts,tsx}"],
+      "files": [
+        "**/*.styles.{js,jsx,ts,tsx}",
+        "**/components/**/*.{js,jsx,ts,tsx}"
+      ],
       "customSyntax": "@stylelint/postcss-css-in-js",
       "rules": {
         "no-invalid-position-declaration": null,

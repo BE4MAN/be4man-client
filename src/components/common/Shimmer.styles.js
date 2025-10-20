@@ -9,7 +9,7 @@ const shimmer = keyframes`
 `;
 
 export const Shimmer = styled.div`
-  --h: ${({ height }) => height || '0.75rem'}; /* 12px */
+  --h: ${({ height }) => height || '0.75rem'};
 
   height: var(--h);
   border-radius: ${({ theme }) => theme.radius.md};
