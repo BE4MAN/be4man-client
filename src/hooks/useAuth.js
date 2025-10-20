@@ -4,6 +4,7 @@ import axiosInstance from '@/api/axios';
 import { PATHS } from '@/app/routes/paths';
 import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
 import { useAuthStore } from '@/stores/authStore';
+import { extractErrorInfo, getErrorMessage } from '@/utils/errorHandler';
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -24,29 +25,23 @@ export const useAuth = () => {
       // 2. 토큰 저장
       useAuthStore.getState().setTokens(data.accessToken, data.refreshToken);
 
-      // ⭐ 3. 사용자 정보 로드 (signup과 동일)
+      // 3. 사용자 정보 로드 (signup과 동일)
       await fetchUserInfo();
 
-      // ⭐ 4. 페이지 이동 (replace: true로 뒤로가기 방지)
+      // 4. 페이지 이동 (replace: true로 뒤로가기 방지)
       navigate(PATHS.DEPLOY, { replace: true });
     } catch (error) {
       console.error('로그인 실패:', error);
 
-      // ⭐ 에러 상세 정보
-      if (error.response?.status === 401) {
-        throw new Error('인증 코드가 만료되었습니다. 다시 로그인해주세요.');
-      } else if (error.response?.status === 400) {
-        throw new Error('잘못된 요청입니다.');
-      } else {
-        throw new Error('로그인에 실패했습니다. 잠시 후 다시 시도해주세요.');
-      }
+      const errorInfo = extractErrorInfo(error);
+      const userMessage = getErrorMessage(errorInfo);
+      throw new Error(userMessage);
     }
   };
 
   // 회원가입
   const completeRegistration = async (userData, signToken) => {
     try {
-      // 1. 회원가입 요청
       const { data } = await axiosInstance.post(
         API_ENDPOINTS.SIGNUP,
         {
@@ -64,18 +59,20 @@ export const useAuth = () => {
       // 2. 토큰 저장
       useAuthStore.getState().setTokens(data.accessToken, data.refreshToken);
 
-      // ⭐ 3. 사용자 정보 로드
+      // 3. 사용자 정보 로드
       await fetchUserInfo();
 
-      // ⭐ 4. 페이지 이동 (replace: true로 뒤로가기 방지)
+      // 4. 페이지 이동
       navigate(PATHS.DEPLOY, { replace: true });
     } catch (error) {
       console.error('회원가입 실패:', error);
-      throw error;
+
+      const errorInfo = extractErrorInfo(error);
+      const userMessage = getErrorMessage(errorInfo);
+      throw new Error(userMessage);
     }
   };
 
-  // 사용자 정보 조회
   const fetchUserInfo = async () => {
     try {
       const { data } = await axiosInstance.get(API_ENDPOINTS.ME);
@@ -87,22 +84,18 @@ export const useAuth = () => {
     }
   };
 
-  // 로그아웃
   const logout = async () => {
     try {
       await axiosInstance.post(API_ENDPOINTS.LOGOUT);
     } catch (error) {
       console.error('로그아웃 API 호출 실패:', error);
     } finally {
-      // ⭐ authStore 초기화
       useAuthStore.getState().logout();
 
-      // ⭐ persist 클리어 (Zustand 제공 메서드)
       if (useAuthStore.persist?.clearStorage) {
         useAuthStore.persist.clearStorage();
       }
 
-      // ⭐ replace: true로 히스토리 제거
       navigate(PATHS.AUTH, { replace: true });
     }
   };

@@ -1,3 +1,4 @@
+import { ThemeProvider } from '@emotion/react';
 import { Github } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -14,6 +15,7 @@ import {
   DEPARTMENT_MAP,
 } from '@/constants/accounts';
 import { useAuth } from '@/hooks/useAuth';
+import { light } from '@/styles/theme';
 
 import * as S from './AuthPage.styles';
 
@@ -184,117 +186,119 @@ export default function AuthPage() {
   };
 
   return (
-    <S.PageContainer>
-      <S.GradientBackground />
+    <ThemeProvider theme={light}>
+      <S.PageContainer>
+        <S.GradientBackground />
 
-      <S.MainContainer>
-        <S.Card>
-          {/* Step 1: GitHub OAuth */}
-          {step === 1 && (
-            <S.StepContainer>
-              <S.HeaderSection>
-                <S.Logo src={logo} alt="BE4MAN Logo" />
-              </S.HeaderSection>
+        <S.MainContainer>
+          <S.Card>
+            {/* Step 1: GitHub OAuth */}
+            {step === 1 && (
+              <S.StepContainer>
+                <S.HeaderSection>
+                  <S.Logo src={logo} alt="BE4MAN Logo" />
+                </S.HeaderSection>
 
-              <S.WelcomeSection>
-                <S.WelcomeTitle>배포맨</S.WelcomeTitle>
-                <S.WelcomeText>
-                  안정적인 CI/CD 배포 환경 관리 서비스
-                </S.WelcomeText>
-              </S.WelcomeSection>
+                <S.WelcomeSection>
+                  <S.WelcomeTitle>배포맨</S.WelcomeTitle>
+                  <S.WelcomeText>
+                    안정적인 CI/CD 배포 환경 관리 서비스
+                  </S.WelcomeText>
+                </S.WelcomeSection>
 
-              <S.GithubButtonWrapper>
-                <Button
-                  variant="github"
-                  size="lg"
-                  fullWidth
-                  onClick={handleGithubLogin}
-                >
-                  <Github size={24} />
-                  깃허브 로그인
-                </Button>
-              </S.GithubButtonWrapper>
-            </S.StepContainer>
-          )}
+                <S.GithubButtonWrapper>
+                  <Button
+                    variant="github"
+                    size="lg"
+                    fullWidth
+                    onClick={handleGithubLogin}
+                  >
+                    <Github size={24} />
+                    깃허브 로그인
+                  </Button>
+                </S.GithubButtonWrapper>
+              </S.StepContainer>
+            )}
 
-          {/* Step 2: User Information Form */}
-          {step === 2 && (
-            <S.StepContainer>
-              <S.FormSection>
-                <S.FormTitle>회원가입</S.FormTitle>
-              </S.FormSection>
+            {/* Step 2: User Information Form */}
+            {step === 2 && (
+              <S.StepContainer>
+                <S.FormSection>
+                  <S.FormTitle>회원가입</S.FormTitle>
+                </S.FormSection>
 
-              <S.FormFields>
-                <Input
-                  label="이름"
-                  type="text"
-                  placeholder="홍길동"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  onBlur={() => handleBlur('name')}
-                  error={touched.name ? errors.name : ''}
-                  size="lg"
-                />
+                <S.FormFields>
+                  <Input
+                    label="이름"
+                    type="text"
+                    placeholder="홍길동"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    onBlur={() => handleBlur('name')}
+                    error={touched.name ? errors.name : ''}
+                    size="lg"
+                  />
 
-                <CustomSelect
-                  label="부서"
-                  value={formData.department}
-                  onChange={(value) => handleInputChange('department', value)}
-                  onBlur={() => handleBlur('department')}
-                  options={DEPARTMENT_OPTIONS}
-                  error={touched.department ? errors.department : ''}
-                  size="lg"
-                />
+                  <CustomSelect
+                    label="부서"
+                    value={formData.department}
+                    onChange={(value) => handleInputChange('department', value)}
+                    onBlur={() => handleBlur('department')}
+                    options={DEPARTMENT_OPTIONS}
+                    error={touched.department ? errors.department : ''}
+                    size="lg"
+                  />
 
-                <CustomSelect
-                  label="직급"
-                  value={formData.position}
-                  onChange={(value) => handleInputChange('position', value)}
-                  onBlur={() => handleBlur('position')}
-                  options={POSITION_OPTIONS}
-                  error={touched.position ? errors.position : ''}
-                  size="lg"
-                />
+                  <CustomSelect
+                    label="직급"
+                    value={formData.position}
+                    onChange={(value) => handleInputChange('position', value)}
+                    onBlur={() => handleBlur('position')}
+                    options={POSITION_OPTIONS}
+                    error={touched.position ? errors.position : ''}
+                    size="lg"
+                  />
 
-                {/* Submit 에러 메시지 */}
-                {errors.submit && (
-                  <S.SubmitErrorMessage>{errors.submit}</S.SubmitErrorMessage>
-                )}
-              </S.FormFields>
+                  {/* Submit 에러 메시지 */}
+                  {errors.submit && (
+                    <S.SubmitErrorMessage>{errors.submit}</S.SubmitErrorMessage>
+                  )}
+                </S.FormFields>
 
-              <S.ButtonGroup>
-                <Button
-                  variant="cancel"
-                  size="lg"
-                  onClick={() => {
-                    // 취소 시 sessionStorage에서 signToken 제거
-                    sessionStorage.removeItem('sign_token');
-                    setSignToken(null);
-                    setStep(1);
-                  }}
-                >
-                  취소
-                </Button>
-                <Button variant="primary" size="lg" onClick={handleSubmit}>
-                  가입
-                </Button>
-              </S.ButtonGroup>
-            </S.StepContainer>
-          )}
-        </S.Card>
-      </S.MainContainer>
+                <S.ButtonGroup>
+                  <Button
+                    variant="cancel"
+                    size="lg"
+                    onClick={() => {
+                      // 취소 시 sessionStorage에서 signToken 제거
+                      sessionStorage.removeItem('sign_token');
+                      setSignToken(null);
+                      setStep(1);
+                    }}
+                  >
+                    취소
+                  </Button>
+                  <Button variant="primary" size="lg" onClick={handleSubmit}>
+                    가입
+                  </Button>
+                </S.ButtonGroup>
+              </S.StepContainer>
+            )}
+          </S.Card>
+        </S.MainContainer>
 
-      {/* Loading Modal */}
-      <Modal
-        isOpen={showLoadingModal}
-        onClose={() => {}} // 모달을 닫지 않음
-        showCloseButton={false}
-        closeOnOverlayClick={false}
-      >
-        <S.LoadingSpinner />
-        <S.ModalTitle>가입 완료!</S.ModalTitle>
-        <S.ModalText>배포 페이지로 이동 중...</S.ModalText>
-      </Modal>
-    </S.PageContainer>
+        {/* Loading Modal */}
+        <Modal
+          isOpen={showLoadingModal}
+          onClose={() => {}} // 모달을 닫지 않음
+          showCloseButton={false}
+          closeOnOverlayClick={false}
+        >
+          <S.LoadingSpinner />
+          <S.ModalTitle>가입 완료!</S.ModalTitle>
+          <S.ModalText>배포 페이지로 이동 중...</S.ModalText>
+        </Modal>
+      </S.PageContainer>
+    </ThemeProvider>
   );
 }

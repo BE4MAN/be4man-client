@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
 import { useAuthStore } from '@/stores/authStore';
+import { extractErrorInfo } from '@/utils/errorHandler';
 
 /**
  * 토큰 자동 주입 기능이 포함된 axios 인스턴스
@@ -131,13 +132,20 @@ axiosInstance.interceptors.response.use(
         // 대기 중인 요청들 에러 처리
         processQueue(refreshError, null);
 
-        // 토큰 갱신 실패 → 로그아웃 처리
-        console.error('토큰 갱신 실패:', refreshError);
-        useAuthStore.getState().logout();
+        const errorInfo = extractErrorInfo(refreshError);
+        const isRefreshTokenError =
+          errorInfo.code === 'REFRESH_TOKEN_NOT_FOUND' ||
+          errorInfo.code === 'INVALID_REFRESH_TOKEN' ||
+          errorInfo.code === 'EXPIRED_REFRESH_TOKEN' ||
+          errorInfo.code === 'REFRESH_TOKEN_MISMATCH';
 
-        // ⭐ 라우팅 처리 (임시로 window.location 사용)
-        // TODO: 더 나은 방법으로 개선 필요
-        window.location.href = '/auth';
+        if (isRefreshTokenError) {
+          console.error('토큰 갱신 실패:', errorInfo);
+          useAuthStore.getState().logout();
+          window.location.href = '/auth';
+        } else {
+          console.error('토큰 갱신 중 예상치 못한 오류:', errorInfo);
+        }
 
         return Promise.reject(refreshError);
       } finally {

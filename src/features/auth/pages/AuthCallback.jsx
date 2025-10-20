@@ -1,8 +1,12 @@
+import { ThemeProvider } from '@emotion/react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
+import Button from '@/components/auth/Button';
 import { useAuth } from '@/hooks/useAuth';
+import { light } from '@/styles/theme';
+import { extractErrorInfo } from '@/utils/errorHandler';
 
 import * as S from './AuthCallback.styles';
 
@@ -10,12 +14,11 @@ export default function AuthCallback() {
   const navigate = useNavigate();
   const { signin } = useAuth();
   const [error, setError] = useState(null);
+  const [errorDetails, setErrorDetails] = useState(null);
 
-  // ⭐ Strict Mode 2번째 실행 방지
   const hasProcessed = useRef(false);
 
   useEffect(() => {
-    // ⭐ 이미 처리했으면 스킵
     if (hasProcessed.current) {
       console.log('[AuthCallback] 이미 처리됨 (Strict Mode 2번째 실행)');
       return;
@@ -23,7 +26,6 @@ export default function AuthCallback() {
 
     const handleCallback = async () => {
       try {
-        // ⭐ 즉시 플래그 설정 (비동기 작업 전!)
         hasProcessed.current = true;
 
         // URL Fragment 파싱
@@ -56,7 +58,7 @@ export default function AuthCallback() {
           sessionStorage.setItem('sign_token', signToken);
           navigate(PATHS.AUTH, {
             state: { step: 2, requiresSignup: true },
-            replace: true, // ⭐ 추가
+            replace: true,
           });
         } else {
           // 기존 사용자: 로그인
@@ -66,13 +68,14 @@ export default function AuthCallback() {
             throw new Error('Temporary Code를 찾을 수 없습니다');
           }
 
-          // ⭐ await으로 완료 보장 (signin 내부에서 navigate 실행)
           await signin(code);
         }
       } catch (err) {
         console.error('OAuth 콜백 처리 오류:', err);
+
+        const errorInfo = extractErrorInfo(err);
+        setErrorDetails(errorInfo);
         setError(err.message);
-        setTimeout(() => navigate(PATHS.AUTH, { replace: true }), 3000);
       }
     };
 
@@ -80,24 +83,46 @@ export default function AuthCallback() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 의존성 배열 비움 (1회만 실행 의도)
 
+  const handleConfirm = () => {
+    navigate(PATHS.AUTH, { replace: true });
+  };
+
   return (
-    <S.Container>
-      <S.Content>
-        {error ? (
-          <>
-            <S.ErrorIcon>⚠️</S.ErrorIcon>
-            <S.Title>인증 오류</S.Title>
-            <S.Message>{error}</S.Message>
-            <S.SubMessage>잠시 후 로그인 페이지로 이동합니다...</S.SubMessage>
-          </>
-        ) : (
-          <>
-            <S.Spinner />
-            <S.Title>인증 처리 중...</S.Title>
-            <S.Message>잠시만 기다려주세요</S.Message>
-          </>
-        )}
-      </S.Content>
-    </S.Container>
+    <ThemeProvider theme={light}>
+      <S.Container>
+        <S.Content>
+          {error ? (
+            <>
+              <S.ErrorIcon>⚠️</S.ErrorIcon>
+              <S.Title>인증 오류</S.Title>
+              <S.Message>{error}</S.Message>
+
+              {errorDetails && (
+                <S.ErrorDetails>
+                  <S.ErrorCode>코드: {errorDetails.code}</S.ErrorCode>
+                  <S.ErrorPath>경로: {errorDetails.path}</S.ErrorPath>
+                  <S.ErrorTime>시간: {errorDetails.timestamp}</S.ErrorTime>
+                </S.ErrorDetails>
+              )}
+
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleConfirm}
+                style={{ marginTop: '24px' }}
+              >
+                확인
+              </Button>
+            </>
+          ) : (
+            <>
+              <S.Spinner />
+              <S.Title>인증 처리 중...</S.Title>
+              <S.Message>잠시만 기다려주세요</S.Message>
+            </>
+          )}
+        </S.Content>
+      </S.Container>
+    </ThemeProvider>
   );
 }
