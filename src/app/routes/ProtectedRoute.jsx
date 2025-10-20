@@ -12,8 +12,6 @@ export const ProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     const loadUserIfNeeded = async () => {
-      // signin에서 이미 user 로드하므로 거의 실행 안 됨
-      // 직접 URL 접근 시 필요하므로 유지
       if (!isLoading && accessToken && refreshToken && !user) {
         try {
           const userData = await userAPI.fetchUserInfo();
@@ -36,11 +34,6 @@ export const ProtectedRoute = ({ children }) => {
   // 토큰 없으면 로그인 페이지로
   if (!accessToken || !refreshToken) {
     return <Navigate to={PATHS.AUTH} replace />;
-  }
-
-  // user 로드 중
-  if (!user) {
-    return <PageSkeleton />;
   }
 
   return children;

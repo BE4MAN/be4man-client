@@ -15,10 +15,16 @@ export const useAuth = () => {
   const postLoginFlow = async (accessToken, refreshToken) => {
     useAuthStore.getState().setTokens(accessToken, refreshToken);
 
-    const userData = await userAPI.fetchUserInfo();
-    useAuthStore.getState().setUser(userData);
-
     navigate(PATHS.DEPLOY, { replace: true });
+
+    userAPI
+      .fetchUserInfo()
+      .then((userData) => {
+        useAuthStore.getState().setUser(userData);
+      })
+      .catch((error) => {
+        console.error('사용자 정보 로드 실패:', error);
+      });
   };
 
   /**
