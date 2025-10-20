@@ -576,7 +576,7 @@ export default function LogManagement() {
   const theme = useTheme();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  //   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     승인여부: '전체',
     결과: '전체',
@@ -589,7 +589,7 @@ export default function LogManagement() {
   const PAGE_SIZE = 10;
 
   // Hover states
-  const [filterBtnHovered, setFilterBtnHovered] = useState(false);
+  //   const [filterBtnHovered, setFilterBtnHovered] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [clearBtnHovered, setClearBtnHovered] = useState(false);
   const [resetBtnHovered, setResetBtnHovered] = useState(false);
@@ -638,7 +638,7 @@ export default function LogManagement() {
     Failed: '실패',
   };
 
-  // 필터링 로직 (한글 기반)
+  // 필터링 로직 (이전 답변에서 수정한 부분)
   const filteredData = mockData
     .filter((item) => {
       const matchesSearch =
@@ -646,28 +646,25 @@ export default function LogManagement() {
         item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.branch.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // 승인여부 필터링 (영어 → 한글 변환)
       const statusLabel = STATUS_LABEL[item.status];
       const matchesStatus =
         filters.승인여부 === '전체' || statusLabel === filters.승인여부;
 
-      // 결과 필터링 (영어 → 한글 변환)
       const resultLabel = item.result ? RESULT_LABEL[item.result] : null;
       const matchesResult =
         filters.결과 === '전체' || resultLabel === filters.결과;
 
-      const itemDate = new Date(item.deployTime.replace(/\./g, '-'));
-      const matchesStartDate =
-        !filters.시작일 || itemDate >= new Date(filters.시작일);
-      const matchesEndDate =
-        !filters.종료일 || itemDate <= new Date(filters.종료일 + ' 23:59:59');
+      // ⭐ 핵심: 시작일과 종료일이 둘 다 있을 때만 날짜 필터링
+      let matchesDateRange = true; // 기본값: 통과
+      if (filters.시작일 && filters.종료일) {
+        const itemDate = new Date(item.deployTime.replace(/\./g, '-'));
+        const startDate = new Date(filters.시작일);
+        const endDate = new Date(filters.종료일 + ' 23:59:59');
+        matchesDateRange = itemDate >= startDate && itemDate <= endDate;
+      }
 
       return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesResult &&
-        matchesStartDate &&
-        matchesEndDate
+        matchesSearch && matchesStatus && matchesResult && matchesDateRange
       );
     })
     .sort((a, b) => {
@@ -706,37 +703,6 @@ export default function LogManagement() {
       <div style={styles.searchFilterSection}>
         {/* 상단: 필터 버튼 + 검색 바 */}
         <div style={styles.topControls}>
-          <button
-            style={styles.filterToggleButton(showFilters, filterBtnHovered)}
-            onClick={() => setShowFilters(!showFilters)}
-            onMouseEnter={() => setFilterBtnHovered(true)}
-            onMouseLeave={() => setFilterBtnHovered(false)}
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path
-                d="M2 4.5h14M5 9h8M7.5 13.5h3"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-            필터
-            <svg
-              style={styles.toggleArrow(showFilters)}
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              fill="none"
-            >
-              <path
-                d="M3 4.5L6 7.5L9 4.5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-
           <div style={styles.searchBar}>
             <svg
               style={styles.searchIcon}
@@ -776,7 +742,7 @@ export default function LogManagement() {
         </div>
 
         {/* 필터 패널 (인라인 방식) */}
-        <div style={styles.filtersPanel(showFilters)}>
+        <div style={styles.filtersPanel()}>
           <div style={styles.filtersRow}>
             {/* 승인 여부 - 한글 옵션으로 변경 */}
             <div style={styles.filterRowItem}>
@@ -819,10 +785,9 @@ export default function LogManagement() {
               <label style={styles.filterLabel}>시작일</label>
               <input
                 type="date"
-                value={filters.시작일}
+                value={filters.시작일 || ''} // 명시적으로 빈 문자열 처리
                 onChange={(e) => handleFilter('시작일', e.target.value)}
                 style={styles.dateInput}
-                placeholder="연도-월-일"
               />
             </div>
 
@@ -830,10 +795,9 @@ export default function LogManagement() {
               <label style={styles.filterLabel}>종료일</label>
               <input
                 type="date"
-                value={filters.종료일}
+                value={filters.종료일 || ''} // 명시적으로 빈 문자열 처리
                 onChange={(e) => handleFilter('종료일', e.target.value)}
                 style={styles.dateInput}
-                placeholder="연도-월-일"
               />
             </div>
 
@@ -921,16 +885,15 @@ export default function LogManagement() {
           &lt;
         </button>
 
-        {/* 페이지 번호 계산 (최대 5개만 표시) */}
+        {/* 페이지 번호 계산 (5개 단위 그룹) */}
         {(() => {
-          const maxVisible = 5;
-          let startPage = Math.max(1, currentPage - 2);
-          let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+          const pageSize = 5;
+          // 현재 페이지가 속한 그룹 계산 (0부터 시작)
+          const currentGroup = Math.floor((currentPage - 1) / pageSize);
 
-          // 끝에서 5개 미만일 때 보정
-          if (endPage - startPage < maxVisible - 1) {
-            startPage = Math.max(1, endPage - maxVisible + 1);
-          }
+          // 그룹의 시작 페이지와 끝 페이지
+          const startPage = currentGroup * pageSize + 1;
+          const endPage = Math.min(startPage + pageSize - 1, totalPages);
 
           const pages = [];
           for (let i = startPage; i <= endPage; i++) {
@@ -957,11 +920,11 @@ export default function LogManagement() {
         {/* 오른쪽 화살표 */}
         <button
           style={styles.paginationArrow(
-            start + PAGE_SIZE >= filteredData.length,
+            currentPage === totalPages,
             hoveredPaginationBtn === 'next',
           )}
           onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-          disabled={start + PAGE_SIZE >= filteredData.length}
+          disabled={currentPage === totalPages}
           onMouseEnter={() => setHoveredPaginationBtn('next')}
           onMouseLeave={() => setHoveredPaginationBtn(null)}
         >

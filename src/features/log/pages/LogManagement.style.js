@@ -16,9 +16,9 @@ export const getStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     gap: '12px',
-    marginLeft: '20px',
-    marginTop: '32px',
-    marginBottom: '10px',
+    marginLeft: '12px',
+    marginTop: '8px',
+    marginBottom: '18px',
     flex: '0 0 auto',
   },
 
@@ -29,43 +29,9 @@ export const getStyles = (theme) => ({
     height: '48px',
   },
 
-  filterToggleButton: (isActive, isHovered) => ({
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '0 16px',
-    height: '40px',
-    background:
-      theme.mode === 'dark'
-        ? isActive
-          ? '#1E3A8A'
-          : isHovered
-            ? '#374151'
-            : '#1F2937'
-        : isActive
-          ? '#EFF6FF'
-          : isHovered
-            ? '#F3F4F6'
-            : '#F9FAFB',
-    border:
-      theme.mode === 'dark'
-        ? `1px solid ${isActive ? '#60A5FA' : '#374151'}`
-        : `1px solid ${isActive ? '#3B82F6' : isHovered ? '#D1D5DB' : '#E5E7EB'}`,
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '500',
-    color:
-      theme.mode === 'dark'
-        ? isActive
-          ? '#60A5FA'
-          : '#F9FAFB'
-        : isActive
-          ? '#3B82F6'
-          : '#374151',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    whiteSpace: 'nowrap',
-  }),
+  //  filterToggleButton: () => ({
+  //
+  //  }),
 
   toggleArrow: (isOpen) => ({
     transition: 'transform 0.2s ease',
@@ -101,11 +67,7 @@ export const getStyles = (theme) => ({
       theme.mode === 'dark' ? '#1F2937' : isFocused ? '#FFFFFF' : '#F9FAFB',
     color: theme.colors.text,
     transition: 'border 0.2s, box-shadow 0.2s',
-    boxShadow: isFocused
-      ? theme.mode === 'dark'
-        ? '0 0 0 3px rgba(96,165,250,0.1)'
-        : '0 0 0 3px rgba(59,130,246,0.1)'
-      : 'none',
+    boxShadow: 'none', // ← 이렇게 수정
     outline: 'none',
   }),
 
@@ -128,13 +90,9 @@ export const getStyles = (theme) => ({
     borderRadius: '4px',
   }),
 
-  // 필터 패널 - 절대 위치 제거 ← 수정
-  filtersPanel: (isOpen) => ({
-    maxHeight: isOpen ? '120px' : '0',
-    overflow: isOpen ? 'visible' : 'hidden', // ← 수정
-    transition: 'max-height 0.3s ease, opacity 0.3s ease',
-    opacity: isOpen ? 1 : 0,
-  }),
+  //  // 필터 패널 - 절대 위치 제거 ← 수정
+  //  filtersPanel: () => ({
+  //  }),
 
   // 필터 행
   filtersRow: {
@@ -318,7 +276,7 @@ export const getStyles = (theme) => ({
         ? '0 1px 3px rgba(0,0,0,0.3)'
         : '0 1px 3px rgba(0,0,0,0.1)',
     marginBottom: '16px',
-    marginLeft: '24px',
+    marginLeft: '12px',
   },
 
   table: {
