@@ -16,7 +16,9 @@ export const getStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     gap: '12px',
-    marginBottom: '16px',
+    marginLeft: '20px',
+    marginTop: '32px',
+    marginBottom: '10px',
     flex: '0 0 auto',
   },
 
@@ -25,8 +27,6 @@ export const getStyles = (theme) => ({
     alignItems: 'center',
     gap: '12px',
     height: '48px',
-    // position: 'relative', ← 제거
-    // zIndex: 101, ← 제거
   },
 
   filterToggleButton: (isActive, isHovered) => ({
@@ -146,7 +146,6 @@ export const getStyles = (theme) => ({
     background: theme.mode === 'dark' ? '#111827' : '#F9FAFB',
     border: theme.mode === 'dark' ? '1px solid #374151' : '1px solid #E5E7EB',
     borderRadius: '8px',
-    // boxShadow 제거 가능 (선택)
   },
 
   // 필터 행 아이템
@@ -319,6 +318,7 @@ export const getStyles = (theme) => ({
         ? '0 1px 3px rgba(0,0,0,0.3)'
         : '0 1px 3px rgba(0,0,0,0.1)',
     marginBottom: '16px',
+    marginLeft: '24px',
   },
 
   table: {
