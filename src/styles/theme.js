@@ -52,6 +52,35 @@ const palette = {
     brandText: '#2b5fe3',
     skeletonBase: 'rgba(0,0,0,0.06)',
     skeletonHi: 'rgba(0,0,0,0.12)',
+
+    primary: '#2563EB',
+    onPrimary: '#ffffff',
+    gray900: '#1F2937',
+    tab: {
+      activeBg: '#2563EB',
+      inactiveBg: '#7894BC',
+    },
+    status: {
+      pending: { bg: '#86EFAC', text: '#14532D' },
+      approved: { bg: '#FDE047', text: '#713F12' },
+      rejected: { bg: '#FCA5A5', text: '#7F1D1D' },
+      deployed: { bg: '#93C5FD', text: '#1E3A8A' },
+    },
+    btn: {
+      approveBg: '#4ccc88',
+      approveText: '#000',
+      rejectBg: '#ff6b6b',
+      rejectText: '#000',
+    },
+    riskChipBg: {
+      high: '#ff6b6b',
+      medium: '#ffb84d',
+      low: '#4ccc88',
+    },
+    labels: {
+      pr: { bg: '#447B58', text: '#E6EEFF' },
+      jenkins: { bg: '#374764', text: '#E6EEFF' },
+    },
   },
   dark: {
     bg: '#0e1116',
@@ -63,6 +92,35 @@ const palette = {
     brandText: '#ffffff',
     skeletonBase: 'rgba(255,255,255,0.06)',
     skeletonHi: 'rgba(255,255,255,0.22)',
+
+    primary: '#2563EB',
+    onPrimary: '#ffffff',
+    gray900: '#1F2937',
+    tab: {
+      activeBg: '#2563EB',
+      inactiveBg: '#1F2937',
+    },
+    status: {
+      pending: { bg: '#14532D', text: '#86EFAC' },
+      approved: { bg: '#713F12', text: '#FDE047' },
+      rejected: { bg: '#7F1D1D', text: '#FCA5A5' },
+      deployed: { bg: '#1E3A8A', text: '#93C5FD' },
+    },
+    btn: {
+      approveBg: 'rgb(80 200 120 / 14%)',
+      approveText: '#4ccc88',
+      rejectBg: 'rgb(255 90 90 / 12%)',
+      rejectText: '#ff6b6b',
+    },
+    riskChipBg: {
+      high: '#ff6b6b',
+      medium: '#ffb84d',
+      low: '#4ccc88',
+    },
+    labels: {
+      pr: { bg: '#035421', text: '#86EFAC' },
+      jenkins: { bg: '#647895', text: '#E6EEFF' },
+    },
   },
 };
 
