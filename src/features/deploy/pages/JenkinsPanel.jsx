@@ -9,7 +9,7 @@ const stages = [
   { name: 'Checkout', status: 'success' },
   { name: 'Build', status: 'success' },
   { name: 'Test', status: 'success' },
-  { name: 'Package and\nPush to Docker\nHub', status: 'success' },
+  { name: 'Package and Push to Docker Hub', status: 'success' },
   { name: 'Deploy to VM', status: 'failed' },
   { name: 'Post Actions', status: 'success' },
   { name: 'End', status: 'success' },
@@ -28,7 +28,7 @@ const logs = [
   [2025-01-15 14:32:15] Started by user admin
   [2025-01-15 14:32:16] Building in workspace /var/jenkins_home/workspace/main
   [2025-01-15 14:32:17] Cloning repository https://github.com/company/project.git`,
-  `Package and\nPush to Docker\nHub
+  `Package and Push to Docker Hub
   [2025-01-15 14:32:15] Started by user admin
   [2025-01-15 14:32:16] Building in workspace /var/jenkins_home/workspace/main
   [2025-01-15 14:32:17] Cloning repository https://github.com/company/project.git`,
@@ -48,7 +48,7 @@ function getStatusSymbol(status) {
   return null;
 }
 
-function truncateLabelByWidth(name, max = 20) {
+function truncateLabelByWidth(name, max = 10) {
   if (!name) return name;
 
   if (computeWidth(name) <= max) return name;
@@ -200,7 +200,7 @@ export default function JenkinsPanel() {
                     {getStatusSymbol(s.status)}
                   </S.StageCircle>
                   <S.StageLabel>
-                    {truncateLabelByWidth(s.name, 20)}
+                    {truncateLabelByWidth(s.name, 10)}
                   </S.StageLabel>
                 </S.Stage>
                 {i < stages.length - 1 && (

@@ -131,8 +131,13 @@ export const PipelineConnector = styled.div`
 
   /* choose color from prop when available; default to black */
   background: ${({ $isDark }) => ($isDark ? '#fff' : '#000')};
-  flex: 0 0 24px;
-  align-self: center;
+
+  /* make the connector longer (horizontal gap) so it comes closer to icons */
+  flex: 0 0 36px;
+
+  /* raise the connector so it crosses the center of the stage circle */
+  align-self: flex-start;
+  margin-top: 17px; /* approx (circle-height/2) - (connector-thickness/2) */
 
   /* If prop not used, prefer system-level dark mode as a fallback */
   @media (prefers-color-scheme: dark) {
@@ -145,7 +150,8 @@ export const PipelineConnector = styled.div`
   }
 
   @media (width <= 800px) {
-    flex: 0 0 12px;
+    flex: 0 0 20px;
+    margin-top: 14px;
   }
 `;
 
@@ -154,6 +160,11 @@ export const JenkinsStats = styled.div`
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
   flex: 0 0 auto;
+
+  @media (width <= 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
 `;
 
 export const StatCard = styled.div`
@@ -210,7 +221,19 @@ export const ConsoleWrapper = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 0; /* 내부 스크롤 정상작동용 */
-  overflow: hidden;
+
+  /* allow the wrapper to scroll so the visible scrollbar is on the wrapper */
+  overflow: auto;
+
+  /* Hide native scrollbars but preserve scroll functionality */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
 `;
 
 export const ConsoleHeader = styled.div`
@@ -220,6 +243,12 @@ export const ConsoleHeader = styled.div`
   gap: 12px;
   padding: 24px 32px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+
+  /* keep header visible while the wrapper scrolls */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: ${({ theme }) => theme.colors.surface};
 
   h3 {
     margin: 0;
@@ -244,7 +273,9 @@ export const ConsoleHeader = styled.div`
 export const ConsoleContent = styled.div`
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+
+  /* no internal scrolling; wrapper handles scroll */
+  overflow: visible;
   padding: 24px 32px;
   background: ${({ theme }) => theme.colors.bg};
   color: ${({ theme }) => theme.colors.textSecondary};
