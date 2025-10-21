@@ -24,7 +24,6 @@ export default function DeployManagement({
   const [topTab, setTopTab] = useState(TOP.DEPLOY);
   const [items, setItems] = useState(listProp);
   const [applyItems, setApplyItems] = useState(applyListProp);
-  const [showApplyPage, setShowApplyPage] = useState(false);
   const sourceItems = topTab === TOP.DEPLOY ? items : applyItems;
   const [activeTab, setActiveTab] = useState(TAB.ALL);
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? null);
@@ -48,7 +47,6 @@ export default function DeployManagement({
     (item) => {
       setSelectedId(item.id);
       setDetail(buildDetailFromItem(item, detailProp));
-      if (topTab === TOP.APPLY) setShowApplyPage(false);
     },
     [detailProp, topTab],
   );
@@ -56,7 +54,6 @@ export default function DeployManagement({
   const handleTopTab = useCallback(
     (tab) => {
       setTopTab(tab);
-      setShowApplyPage(false);
       setView('pr');
       const base = tab === TOP.DEPLOY ? items : applyItems;
       setActiveTab(TAB.ALL);
@@ -65,7 +62,7 @@ export default function DeployManagement({
         setDetail(buildDetailFromItem(base[0], detailProp));
       } else {
         setSelectedId(null);
-        setDetail(detailProp);
+        setDetail(null);
       }
     },
     [items, applyItems, detailProp],
@@ -74,7 +71,6 @@ export default function DeployManagement({
   const handleTab = useCallback(
     (tab) => {
       setActiveTab(tab);
-      setShowApplyPage(false);
       const list = sourceItems;
       const next =
         tab === TAB.ALL
@@ -87,7 +83,7 @@ export default function DeployManagement({
         setDetail(buildDetailFromItem(next[0], detailProp));
       } else {
         setSelectedId(null);
-        setDetail(detailProp);
+        setDetail(null);
       }
     },
     [sourceItems, detailProp],
@@ -219,21 +215,18 @@ export default function DeployManagement({
             </S.List>
           )}
         </S.SideBody>
-        <S.SideFooter>
-          <S.ApplyBtn
-            type="button"
-            onClick={() => {
-              if (topTab !== TOP.APPLY) handleTopTab(TOP.APPLY);
-              setShowApplyPage(true);
-            }}
-          >
-            배포 작업 신청
-          </S.ApplyBtn>
-        </S.SideFooter>
       </S.Side>
 
       <S.Main>
-        {topTab === TOP.DEPLOY ? (
+        {!selectedId || !detail ? (
+          <S.Panel>
+            <S.Empty>
+              {topTab === TOP.APPLY
+                ? '신청 대상이 없습니다.'
+                : '배포 대상이 없습니다.'}
+            </S.Empty>
+          </S.Panel>
+        ) : topTab === TOP.DEPLOY ? (
           <>
             <S.LabelBar>
               <S.PRLabel
@@ -261,14 +254,16 @@ export default function DeployManagement({
                 <S.Panel>
                   <S.TitleRow>
                     <S.TitleLeft>
-                      <h2>{detail.title}</h2>
+                      <h2>{detail.deployTitle || detail.title}</h2>
                       <S.MetaLabel>
-                        {detail.branchFrom} → {detail.branchTo}
+                        배포 대상: {detail.branchFrom} → {detail.branchTo}
                       </S.MetaLabel>
                     </S.TitleLeft>
                     <S.TitleRight>
                       <S.PanelHeader>
                         <S.ActionRow>
+                          <S.HistoryBtn>내역</S.HistoryBtn>
+
                           <S.ApproveBtn type="button" onClick={approveSelected}>
                             승인
                           </S.ApproveBtn>
@@ -282,15 +277,19 @@ export default function DeployManagement({
 
                   <S.SubMeta>
                     <S.MetaItem>
-                      <S.MetaLabel>Author</S.MetaLabel>
+                      <S.MetaLabel>요청자</S.MetaLabel>
                       <S.MetaValue>{detail.author}</S.MetaValue>
                     </S.MetaItem>
+
                     <S.MetaItem>
-                      <S.MetaLabel>Created</S.MetaLabel>
-                      <S.MetaValue as="time">{detail.createdAt}</S.MetaValue>
+                      <S.MetaLabel>배포 예정 시간</S.MetaLabel>
+                      <S.MetaValue as="time">
+                        {detail.scheduledAt || '-'}
+                      </S.MetaValue>
                     </S.MetaItem>
+
                     <S.MetaRight>
-                      <S.MetaLabel>Status</S.MetaLabel>
+                      <S.MetaLabel>상태</S.MetaLabel>
                       <S.StatusBadge $status={statusKey(detail.status)}>
                         {detail.status}
                       </S.StatusBadge>
@@ -298,12 +297,14 @@ export default function DeployManagement({
                   </S.SubMeta>
 
                   <S.Section>
-                    <S.SectionTitle>Description</S.SectionTitle>
-                    <S.SectionBody>{detail.description}</S.SectionBody>
+                    <S.SectionTitle>배포 신청 내용</S.SectionTitle>
+                    <S.SectionBody>
+                      {detail.deployBody || detail.description}
+                    </S.SectionBody>
                   </S.Section>
 
                   <S.Metrics>
-                    {detail.metrics.map((m) => (
+                    {detail.deployMetrics.map((m) => (
                       <S.MetricCard key={m.label}>
                         <small>{m.label}</small>
                         <strong>{m.value}</strong>
@@ -381,23 +382,119 @@ export default function DeployManagement({
             )}
           </>
         ) : (
-          <>
-            {showApplyPage ? (
-              <S.Panel>
-                <S.Section>
-                  <S.SectionTitle>작업 신청</S.SectionTitle>
-                  <S.SectionBody>작업 신청 페이지 입니다.</S.SectionBody>
-                </S.Section>
-              </S.Panel>
-            ) : (
-              <S.Panel>
-                <S.Section>
-                  <S.SectionTitle>작업 상세</S.SectionTitle>
-                  <S.SectionBody>작업 상세 페이지 입니다.</S.SectionBody>
-                </S.Section>
-              </S.Panel>
-            )}
-          </>
+          <S.Section>
+            <S.Panel>
+              <S.TitleRow>
+                <S.TitleLeft>
+                  <h2>{detail.title}</h2>
+                  <S.MetaLabel>
+                    {detail.branchFrom} → {detail.branchTo}
+                  </S.MetaLabel>
+                </S.TitleLeft>
+                <S.TitleRight>
+                  <S.PanelHeader>
+                    <S.ActionRow>
+                      <S.ApproveBtn type="button" onClick={approveSelected}>
+                        승인
+                      </S.ApproveBtn>
+                      <S.RejectBtn type="button" onClick={rejectSelected}>
+                        거절
+                      </S.RejectBtn>
+                    </S.ActionRow>
+                  </S.PanelHeader>
+                </S.TitleRight>
+              </S.TitleRow>
+
+              <S.SubMeta>
+                <S.MetaItem>
+                  <S.MetaLabel>요청자</S.MetaLabel>
+                  <S.MetaValue>{detail.author}</S.MetaValue>
+                </S.MetaItem>
+                <S.MetaItem>
+                  <S.MetaLabel>생성일</S.MetaLabel>
+                  <S.MetaValue as="time">{detail.createdAt}</S.MetaValue>
+                </S.MetaItem>
+                <S.MetaRight>
+                  <S.MetaLabel>상태</S.MetaLabel>
+                  <S.StatusBadge $status={statusKey(detail.status)}>
+                    {detail.status}
+                  </S.StatusBadge>
+                </S.MetaRight>
+              </S.SubMeta>
+
+              <S.Section>
+                <S.SectionTitle>내용</S.SectionTitle>
+                <S.SectionBody>{detail.description}</S.SectionBody>
+              </S.Section>
+              <S.SectionTitle>코드 변경 내용</S.SectionTitle>
+              <S.Metrics>
+                {detail.metrics.map((m) => (
+                  <S.MetricCard key={m.label}>
+                    <small>{m.label}</small>
+                    <strong>{m.value}</strong>
+                  </S.MetricCard>
+                ))}
+              </S.Metrics>
+            </S.Panel>
+
+            <S.Panel>
+              {(detail.reviewSummary?.approvers?.length ?? 0) > 0 && (
+                <S.MetaGrid>
+                  <S.MetaCol>
+                    <S.SectionTitle>PR 승인자</S.SectionTitle>
+                    <S.Chips>
+                      {detail.reviewSummary.approvers.map((u) => (
+                        <S.Chip key={u.login} title={u.login}>
+                          {u.login}
+                        </S.Chip>
+                      ))}
+                    </S.Chips>
+
+                    <S.SectionTitle>최근 승인</S.SectionTitle>
+                    <S.TimeEl>
+                      {detail.reviewSummary?.latestApprovalAt || '-'}
+                    </S.TimeEl>
+                  </S.MetaCol>
+
+                  <S.StatCol>
+                    <S.StatRow3>
+                      <S.StatOk>
+                        <div className="tit">
+                          <span>승인</span>
+                        </div>
+                        <strong>{detail.reviewSummary?.approved ?? 0}</strong>
+                      </S.StatOk>
+
+                      <S.StatWarn>
+                        <div className="tit">
+                          <span>변경요청</span>
+                        </div>
+                        <strong>
+                          {detail.reviewSummary?.changesRequested ?? 0}
+                        </strong>
+                      </S.StatWarn>
+
+                      <S.StatInfo>
+                        <div className="tit">
+                          <span>코멘트</span>
+                        </div>
+                        <strong>{detail.reviewSummary?.commented ?? 0}</strong>
+                      </S.StatInfo>
+                    </S.StatRow3>
+                  </S.StatCol>
+                </S.MetaGrid>
+              )}
+            </S.Panel>
+
+            <S.ApplyBtn
+              type="button"
+              onClick={() => {
+                if (topTab !== TOP.APPLY) handleTopTab(TOP.APPLY);
+              }}
+            >
+              배포 작업 신청
+            </S.ApplyBtn>
+          </S.Section>
         )}
       </S.Main>
     </S.Wrap>
