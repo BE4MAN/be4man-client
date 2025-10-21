@@ -253,6 +253,9 @@ export default function AuthPage() {
                 </S.FormFields>
 
                 <S.ButtonGroup>
+                  <Button variant="primary" size="lg" onClick={handleSubmit}>
+                    가입
+                  </Button>
                   <Button
                     variant="cancel"
                     size="lg"
@@ -264,9 +267,6 @@ export default function AuthPage() {
                     }}
                   >
                     취소
-                  </Button>
-                  <Button variant="primary" size="lg" onClick={handleSubmit}>
-                    가입
                   </Button>
                 </S.ButtonGroup>
               </S.StepContainer>
