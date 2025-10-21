@@ -7,14 +7,14 @@ export const JenkinsWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
-
-  /* fill the parent area managed by DeployManagement.Wrap / Main */
-
-  /* when a card is intended to fill remaining space (like console), pass $fill */
   min-height: 0;
   padding: 2px 12px 12px 0;
   box-sizing: border-box;
-  overflow: hidden; /* 내부 스크롤만 허용 */
+  overflow: hidden;
+
+  @media (width <= 800px) {
+    gap: 8px;
+  }
 `;
 
 export const Card = styled.section`
@@ -26,12 +26,11 @@ export const Card = styled.section`
   flex-direction: column;
   gap: 12px;
 
-  /* when a card is intended to fill remaining space (like console), pass $fill */
   ${({ $fill }) =>
     $fill &&
     `
     flex: 1 1 auto;
-    min-height: 0;
+    min-height: 0; /* 중요한 부분: wrap되어도 아래 카드 잘림 방지 */
   `}
 `;
 
@@ -39,6 +38,11 @@ export const CardTitle = styled.h3`
   margin: 0 0 10px;
   font-size: 14px;
   color: ${({ theme }) => theme.colors.textSecondary};
+
+  @media (width <= 800px) {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
 `;
 
 export const PipelineArea = styled.div`
@@ -46,25 +50,40 @@ export const PipelineArea = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${(p) => R(p.theme)}px;
   padding: 18px 18px 12px;
-  overflow-x: hidden; /* prevent horizontal overflow, allow internal wrap */
-  flex: 0 0 auto; /* 내용 크기만큼 높이 차지 */
+  overflow-x: hidden;
+  flex: 0 0 auto;
   box-sizing: border-box;
 
   @media (width <= 800px) {
-    padding: 20px;
+    padding: 14px 12px 10px;
   }
 `;
 
 export const PipelineStages = styled.div`
   display: flex;
-
-  /* align items at the top so circles are on the same baseline; labels sit below
-    and won't push the circle vertically when they wrap or have multiple lines */
   align-items: flex-start;
-  justify-content: center; /* center horizontally */
+  justify-content: flex-start;
   gap: 12px 20px;
   padding: 6px 8px;
-  flex-wrap: wrap; /* allow stages to wrap onto multiple rows instead of forcing horizontal scroll */
+
+  /* 항상 줄바꿈 허용 */
+  flex-wrap: wrap;
+
+  /* 스테이지가 길면 자연스럽게 줄바꿈 */
+  width: 100%;
+
+  /* 스크롤 필요 없음 */
+  overflow-x: visible;
+  -webkit-overflow-scrolling: auto;
+
+  @media (width <= 1200px) {
+    gap: 10px 16px;
+  }
+
+  @media (width <= 800px) {
+    gap: 8px 12px;
+    padding: 4px;
+  }
 `;
 
 export const Stage = styled.div`
@@ -74,10 +93,7 @@ export const Stage = styled.div`
   gap: 6px;
   min-width: 64px;
 
-  /* ensure the circle is not nudged by multi-line labels: give the circle a fixed
-    margin-top offset area and allow the label to grow independently */
   & > div:first-of-type {
-    /* StageCircle wrapper - keep it aligned */
     margin-bottom: 6px;
     flex: 0 0 auto;
   }
@@ -109,9 +125,14 @@ export const StageCircle = styled.div`
       return 'transparent';
     }};
 
+  @media (width <= 1200px) {
+    width: 32px;
+    height: 32px;
+  }
+
   @media (width <= 800px) {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
   }
 `;
 
@@ -121,49 +142,42 @@ export const StageLabel = styled.div`
   color: ${({ theme }) => theme.colors.textSecondary};
   white-space: pre-line;
 
-  @media (width <= 800px) {
+  @media (width <= 1200px) {
     font-size: 13px;
+  }
+
+  @media (width <= 800px) {
+    font-size: 12px;
   }
 `;
 
 export const PipelineConnector = styled.div`
+  width: 24px;
   height: 2px;
-
-  /* choose color from prop when available; default to black */
-  background: ${({ $isDark }) => ($isDark ? '#fff' : '#000')};
-
-  /* make the connector longer (horizontal gap) so it comes closer to icons */
-  flex: 0 0 36px;
-
-  /* raise the connector so it crosses the center of the stage circle */
-  align-self: flex-start;
-  margin-top: 17px; /* approx (circle-height/2) - (connector-thickness/2) */
-
-  /* If prop not used, prefer system-level dark mode as a fallback */
-  @media (prefers-color-scheme: dark) {
-    background: #fff;
-  }
-
-  /* Some apps toggle theme with a data attribute on body — handle that too */
-  body[data-theme='dark'] & {
-    background: #fff;
-  }
+  background: ${({ $isDark, theme }) =>
+    $isDark ? theme.colors.textSecondary : '#999'};
+  margin: 0 4px;
+  align-self: center;
 
   @media (width <= 800px) {
-    flex: 0 0 20px;
-    margin-top: 14px;
+    width: 16px;
+    margin: 0 2px;
   }
 `;
 
 export const JenkinsStats = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  flex: 0 0 auto;
+  gap: 4px 8px; /* row gap 4px, column gap 8px로 줄임 */
 
   @media (width <= 1200px) {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 3px 6px;
+  }
+
+  @media (width <= 800px) {
+    grid-template-columns: 1fr;
+    gap: 2px 4px;
   }
 `;
 
@@ -171,67 +185,50 @@ export const StatCard = styled.div`
   background: ${({ theme }) => theme.colors.bg};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 10px;
-  padding: 24px;
+  padding: 6px 8px; /* 기존 12px -> 6px로 절반으로 줄임 */
   display: flex;
-  gap: 12px;
+  gap: 4px; /* 기존 8px -> 4px로 줄임 */
   align-items: center;
 
   .icon-wrap {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
     display: grid;
     place-items: center;
     background: ${({ theme }) => theme.colors.bg};
     border: 1px solid ${({ theme }) => theme.colors.surface};
-    font-weight: 700;
     img {
-      max-width: 22px;
-      max-height: 22px;
+      max-width: 18px;
+      max-height: 18px;
       display: block;
     }
   }
 
   .stat-label {
     color: ${({ theme }) => theme.colors.textSecondary};
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .stat-value {
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
   }
-`;
-
-export const StatNote = styled.div`
-  margin-top: 8px;
-  padding: 4px 0;
-  font-size: 12px;
-  line-height: 1.2;
-  color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
 export const ConsoleWrapper = styled.div`
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 10px;
-
-  /* 핵심 */
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* 내부 스크롤 정상작동용 */
-
-  /* allow the wrapper to scroll so the visible scrollbar is on the wrapper */
+  min-height: 0;
   overflow: auto;
-
-  /* Hide native scrollbars but preserve scroll functionality */
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 
   &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
     display: none;
   }
 `;
@@ -241,10 +238,8 @@ export const ConsoleHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 24px 32px;
+  padding: 12px 16px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-
-  /* keep header visible while the wrapper scrolls */
   position: sticky;
   top: 0;
   z-index: 2;
@@ -264,19 +259,29 @@ export const ConsoleHeader = styled.div`
     background: ${({ theme }) => theme.colors.bg};
     border: 1px solid ${({ theme }) => theme.colors.border};
     color: ${({ theme }) => theme.colors.textPrimary};
-    padding: 6px 10px;
+    padding: 4px 8px;
     border-radius: 6px;
     cursor: pointer;
+    font-size: 12px;
+  }
+
+  @media (width <= 800px) {
+    padding: 8px 10px;
+    h3 {
+      font-size: 13px;
+    }
+    button {
+      padding: 4px 6px;
+      font-size: 11px;
+    }
   }
 `;
 
 export const ConsoleContent = styled.div`
   flex: 1 1 auto;
   min-height: 0;
-
-  /* no internal scrolling; wrapper handles scroll */
   overflow: visible;
-  padding: 24px 32px;
+  padding: 12px 16px;
   background: ${({ theme }) => theme.colors.bg};
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: 13px;
@@ -287,6 +292,11 @@ export const ConsoleContent = styled.div`
     opacity: 0.9;
     margin-right: 8px;
   }
+
+  @media (width <= 800px) {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
 `;
 
 export const ProblemArea = styled.div`
@@ -294,21 +304,16 @@ export const ProblemArea = styled.div`
   background: ${({ theme }) => theme.colors.bg};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 8px;
-  padding: 14px;
+  padding: 10px;
   color: ${({ theme }) => theme.colors.textPrimary};
 
   h4 {
-    margin: 0 0 8px;
+    margin: 0 0 6px;
   }
 
-  p {
-    margin: 0 0 10px;
-    color: ${({ theme }) => theme.colors.textSecondary};
-  }
-
+  p,
   ul {
-    margin: 0;
-    padding-left: 18px;
+    margin: 0 0 6px;
     color: ${({ theme }) => theme.colors.textSecondary};
   }
 `;
