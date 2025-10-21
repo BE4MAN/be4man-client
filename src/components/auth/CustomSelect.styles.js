@@ -75,7 +75,9 @@ export const SelectButton = styled.button`
   }}
 `;
 
-export const ChevronIcon = styled(ChevronDown)`
+export const ChevronIcon = styled(ChevronDown, {
+  shouldForwardProp: (prop) => !prop.startsWith('$'),
+})`
   position: absolute;
   right: ${({ theme }) => theme.spacing.md};
   top: 50%;

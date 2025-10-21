@@ -23,14 +23,6 @@ export const CustomSelect = React.forwardRef(
     const selected = options.find((opt) => opt.value === value);
     const hasValue = !!value && value !== '';
 
-    // 디버깅용 로그
-    console.log('CustomSelect Debug:', {
-      value,
-      selected,
-      hasValue,
-      options: options.map((opt) => ({ value: opt.value, label: opt.label })),
-    });
-
     return (
       <S.SelectOuterWrapper ref={ref}>
         <S.SelectContainer>
