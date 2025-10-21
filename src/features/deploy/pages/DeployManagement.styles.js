@@ -55,6 +55,21 @@ export const SideHeader = styled.div`
 
 export const SideTop = styled.div`
   display: flex;
+  gap: 15px;
+`;
+
+export const TopTab = styled.button`
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-weight: 700;
+  font-size: 20px;
+  cursor: pointer;
+  color: ${({ theme, $active }) =>
+    $active ? theme.colors.textPrimary : '#8B95A8'};
+  -webkit-tap-highlight-color: transparent;
 `;
 
 export const SideBottom = styled.div`
@@ -114,12 +129,6 @@ export const List = styled.div`
 
 export const SideBody = styled.div`
   display: contents;
-`;
-
-export const SideFooter = styled.div`
-  margin-top: 12px;
-  padding: 12px 15px;
-  background: ${({ theme }) => theme.colors.surface};
 `;
 
 export const ApplyBtn = styled.button`
@@ -351,6 +360,20 @@ export const ApproveBtn = styled.button`
   -webkit-tap-highlight-color: transparent;
 `;
 
+export const HistoryBtn = styled.button`
+  width: 5rem;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  background: ${({ theme }) => theme.colors.btn.historyBg};
+  color: ${({ theme }) => theme.colors.btn.historyText};
+  -webkit-tap-highlight-color: transparent;
+`;
+
 export const TitleRow = styled.div`
   display: flex;
   align-items: center;
@@ -440,6 +463,8 @@ export const MetaRight = styled.div`
 `;
 
 export const StatusBadge = styled(Badge)`
+  margin-left: -5px;
+
   ${({ theme, $status }) => {
     const map = theme.colors.status;
     if (!$status || !map[$status]) return '';
@@ -488,6 +513,9 @@ export const Metrics = styled.div`
 `;
 
 export const MetricCard = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background: ${({ theme }) => theme.colors.bg};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 10px;
@@ -495,12 +523,15 @@ export const MetricCard = styled.div`
 
   small {
     color: ${({ theme }) => theme.colors.textSecondary};
+    line-height: 1;
   }
 
   strong {
     display: block;
     margin-top: 6px;
     font-size: 14px;
+    line-height: 1;
+    transform: translateY(-2px);
   }
 `;
 
@@ -729,4 +760,119 @@ export const RiskSub = styled.div`
   white-space: normal;
   overflow-wrap: anywhere;
   line-break: anywhere;
+`;
+
+export const Empty = styled.div`
+  padding: 12px 14px;
+  color: #8b95a8;
+  font-size: 14px;
+`;
+
+export const MetaGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+
+  @media (width <= 900px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const MetaCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+export const StatCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin: auto 0;
+`;
+
+export const Chips = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+  margin-left: -5px;
+`;
+
+export const Chip = styled.span`
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: ${({ theme }) => theme.colors.bg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: 14px;
+  font-weight: 600;
+`;
+
+export const TimeEl = styled.time`
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+export const StatRow3 = styled.div`
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+`;
+
+const CardBase = styled.div`
+  border-radius: 16px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 130px;
+
+  .tit {
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.2px;
+  }
+
+  strong {
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1;
+  }
+`;
+
+export const StatOk = styled(CardBase)`
+  background: rgb(34 197 94 / 8%);
+  border: 1px solid rgb(34 197 94 / 25%);
+
+  .tit,
+  strong {
+    color: #16a34a;
+  }
+`;
+
+export const StatWarn = styled(CardBase)`
+  background: rgb(239 68 68 / 8%);
+  border: 1px solid rgb(239 68 68 / 25%);
+
+  .tit,
+  strong {
+    color: #ef4444;
+  }
+`;
+
+export const StatInfo = styled(CardBase)`
+  background: rgb(59 130 246 / 8%);
+  border: 1px solid rgb(59 130 246 / 25%);
+
+  .tit,
+  strong {
+    color: #3b82f6;
+  }
 `;

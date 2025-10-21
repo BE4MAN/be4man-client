@@ -4,14 +4,12 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 export const useAuthStore = create(
   persist(
     (set, get) => ({
-      // 상태
       user: null,
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
-      isLoading: false,
+      isLoading: true,
 
-      // 액션: Access Token & Refresh Token 저장
       setTokens: (accessToken, refreshToken) => {
         set({
           accessToken,
@@ -20,7 +18,6 @@ export const useAuthStore = create(
         });
       },
 
-      // 액션: 사용자 정보 설정
       setUser: (user) =>
         set({
           user,
@@ -28,7 +25,6 @@ export const useAuthStore = create(
             !!user && !!get().accessToken && !!get().refreshToken,
         }),
 
-      // 액션: 로그아웃
       logout: () => {
         set({
           user: null,
@@ -36,25 +32,18 @@ export const useAuthStore = create(
           refreshToken: null,
           isAuthenticated: false,
         });
-
-        // localStorage에서 auth-store 완전히 제거
-        localStorage.removeItem('auth-store');
       },
 
-      // 액션: 사용자 정보 업데이트
       updateUser: (updates) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...updates } : null,
         })),
 
-      // 액션: 로딩 상태
       setLoading: (isLoading) => set({ isLoading }),
 
-      // 헬퍼: 인증 여부 체크 (토큰과 사용자 정보 존재 확인)
       checkAuth: () => {
         const { accessToken, refreshToken, user } = get();
 
-        // 마이그레이션: refreshToken 없으면 강제 로그아웃
         if (accessToken && !refreshToken) {
           get().logout();
           return false;
@@ -72,6 +61,12 @@ export const useAuthStore = create(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.isLoading = false;
+        }
+      },
     },
   ),
 );
