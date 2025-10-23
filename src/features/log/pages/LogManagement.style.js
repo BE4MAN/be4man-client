@@ -4,21 +4,20 @@ export const getStyles = (theme) => ({
   container: {
     display: 'flex',
     flexDirection: 'column',
-    flex: '1 1 auto',
     minHeight: 0,
     overflow: 'hidden',
-    padding: '24px',
+    padding: '16px',
     backgroundColor: theme.colors.background,
+    boxSizing: 'border-box', // ✅ 추가: padding 포함 계산
   },
 
   searchFilterSection: {
-    // position: 'relative', ← 제거
     display: 'flex',
     flexDirection: 'column',
     gap: '12px',
-    marginLeft: '12px',
-    marginTop: '8px',
-    marginBottom: '18px',
+    marginLeft: '0',
+    marginTop: '0',
+    marginBottom: '12px',
     flex: '0 0 auto',
   },
 
@@ -28,15 +27,6 @@ export const getStyles = (theme) => ({
     gap: '12px',
     height: '48px',
   },
-
-  //  filterToggleButton: () => ({
-  //
-  //  }),
-
-  toggleArrow: (isOpen) => ({
-    transition: 'transform 0.2s ease',
-    transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-  }),
 
   searchBar: {
     position: 'relative',
@@ -65,9 +55,8 @@ export const getStyles = (theme) => ({
     fontSize: '14px',
     background:
       theme.mode === 'dark' ? '#1F2937' : isFocused ? '#FFFFFF' : '#F9FAFB',
-    color: theme.colors.text,
-    transition: 'border 0.2s, box-shadow 0.2s',
-    boxShadow: 'none', // ← 이렇게 수정
+    color: theme.mode === 'dark' ? '#F9FAFB' : '#111827',
+    boxShadow: 'none',
     outline: 'none',
   }),
 
@@ -86,16 +75,11 @@ export const getStyles = (theme) => ({
     fontSize: '16px',
     cursor: 'pointer',
     padding: '4px',
-    transition: 'color 0.2s, background 0.2s',
     borderRadius: '4px',
   }),
 
-  // 필터 패널 - 절대 위치 제거 ← 수정
-  filtersPanel: {
-    //
-  },
+  filtersPanel: {},
 
-  // 필터 행
   filtersRow: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -107,7 +91,6 @@ export const getStyles = (theme) => ({
     borderRadius: '8px',
   },
 
-  // 필터 행 아이템
   filterRowItem: {
     display: 'flex',
     flexDirection: 'column',
@@ -116,11 +99,10 @@ export const getStyles = (theme) => ({
     flex: '0 0 auto',
   },
 
-  // 필터 라벨
   filterLabel: {
     fontSize: '12px',
     fontWeight: '500',
-    color: theme.mode === 'dark' ? '#D1D5DB' : theme.colors.textSecondary, // ← 수정
+    color: theme.mode === 'dark' ? '#D1D5DB' : theme.colors.textSecondary,
   },
 
   customDropdown: {
@@ -138,18 +120,17 @@ export const getStyles = (theme) => ({
       theme.mode === 'dark'
         ? isHovered
           ? '#374151'
-          : '#1F2937' // ← 더 밝은 배경
+          : '#1F2937'
         : isHovered
           ? '#F9FAFB'
           : '#FFFFFF',
     border:
       theme.mode === 'dark'
-        ? `1px solid ${isFocused ? '#60A5FA' : '#4B5563'}` // ← 더 밝은 테두리
+        ? `1px solid ${isFocused ? '#60A5FA' : '#4B5563'}`
         : `1px solid ${isFocused ? '#3B82F6' : isHovered ? '#D1D5DB' : '#E5E7EB'}`,
     borderRadius: '6px',
     fontSize: '13px',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
     boxShadow: isFocused
       ? theme.mode === 'dark'
         ? '0 0 0 2px rgba(96,165,250,0.1)'
@@ -166,13 +147,12 @@ export const getStyles = (theme) => ({
   dropdownValue: {
     flex: 1,
     textAlign: 'left',
-    color: theme.mode === 'dark' ? '#F9FAFB' : theme.colors.text, // ← 수정
+    color: theme.mode === 'dark' ? '#F9FAFB' : theme.colors.text,
     fontWeight: '500',
   },
 
   dropdownArrow: (isOpen) => ({
     color: '#9CA3AF',
-    transition: 'transform 0.2s ease',
     transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
   }),
 
@@ -188,7 +168,7 @@ export const getStyles = (theme) => ({
       theme.mode === 'dark'
         ? '0 4px 12px rgba(0,0,0,0.3)'
         : '0 4px 12px rgba(0,0,0,0.1)',
-    zIndex: 1000, // ← 충분히 높은 값으로 변경
+    zIndex: 1000,
     maxHeight: '200px',
     overflowY: 'auto',
   },
@@ -200,7 +180,6 @@ export const getStyles = (theme) => ({
     padding: '8px 12px',
     fontSize: '13px',
     cursor: 'pointer',
-    transition: 'background 0.15s',
     background:
       theme.mode === 'dark'
         ? isSelected
@@ -226,14 +205,13 @@ export const getStyles = (theme) => ({
 
   dateInput: {
     padding: '8px 12px',
-    border: theme.mode === 'dark' ? '1px solid #4B5563' : '1px solid #E5E7EB', // ← 수정
+    border: theme.mode === 'dark' ? '1px solid #4B5563' : '1px solid #E5E7EB',
     borderRadius: '6px',
-    background: theme.mode === 'dark' ? '#1F2937' : '#FFFFFF', // ← 수정
+    background: theme.mode === 'dark' ? '#1F2937' : '#FFFFFF',
     fontSize: '13px',
-    color: theme.mode === 'dark' ? '#F9FAFB' : theme.colors.text, // ← 수정
     cursor: 'pointer',
     width: '100%',
-    transition: 'border 0.2s',
+    colorScheme: theme.mode === 'dark' ? 'dark' : 'light',
   },
 
   resetButton: (isHovered) => ({
@@ -262,7 +240,6 @@ export const getStyles = (theme) => ({
         ? '#9CA3AF'
         : '#6B7280',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
     whiteSpace: 'nowrap',
   }),
 
@@ -271,13 +248,14 @@ export const getStyles = (theme) => ({
     minHeight: 0,
     overflowY: 'auto',
     background: theme.colors.surface,
+    border: theme.mode === 'dark' ? '1px solid #374151' : '1px solid #E5E7EB', // ✅ 추가
     borderRadius: '12px',
     boxShadow:
       theme.mode === 'dark'
         ? '0 1px 3px rgba(0,0,0,0.3)'
         : '0 1px 3px rgba(0,0,0,0.1)',
-    marginBottom: '16px',
-    marginLeft: '12px',
+    marginBottom: '12px',
+    marginLeft: '0',
   },
 
   table: {
@@ -308,7 +286,6 @@ export const getStyles = (theme) => ({
 
   tr: (isHovered) => ({
     borderBottom: theme.mode === 'dark' ? 'none' : '1px solid #F3F4F6',
-    transition: 'background 0.15s',
     background:
       theme.mode === 'dark'
         ? isHovered
@@ -391,11 +368,10 @@ export const getStyles = (theme) => ({
     height: 'auto',
   },
 
-  // 페이지 버튼 스타일 (border 제거)
   paginationButton: (isActive, isDisabled, isHovered) => ({
     padding: '8px 12px',
-    background: 'transparent', // 배경 투명
-    border: 'none', // border 완전 제거
+    background: 'transparent',
+    border: 'none',
     borderRadius: '6px',
     fontSize: '14px',
     fontWeight: isActive ? '600' : '400',
@@ -408,11 +384,9 @@ export const getStyles = (theme) => ({
           ? '#3B82F6'
           : '#6B7280',
     cursor: isDisabled ? 'not-allowed' : 'pointer',
-    transition: 'all 0.2s ease',
     opacity: isDisabled ? 0.4 : 1,
     minWidth: '36px',
 
-    // hover 효과
     ...(isHovered &&
       !isDisabled &&
       !isActive && {
@@ -420,14 +394,12 @@ export const getStyles = (theme) => ({
         color: theme.mode === 'dark' ? '#60A5FA' : '#3B82F6',
       }),
 
-    // 활성 페이지 스타일
     ...(isActive && {
       background: theme.mode === 'dark' ? '#1E40AF' : '#DBEAFE',
       color: theme.mode === 'dark' ? '#FFFFFF' : '#1E40AF',
     }),
   }),
 
-  // 화살표 버튼 스타일 (새로 추가)
   paginationArrow: (isDisabled, isHovered) => ({
     display: 'flex',
     alignItems: 'center',
@@ -440,11 +412,9 @@ export const getStyles = (theme) => ({
     fontWeight: '600',
     color: theme.mode === 'dark' ? '#9CA3AF' : '#6B7280',
     cursor: isDisabled ? 'not-allowed' : 'pointer',
-    transition: 'all 0.2s ease',
     opacity: isDisabled ? 0.3 : 1,
     minWidth: '36px',
 
-    // hover 효과
     ...(isHovered &&
       !isDisabled && {
         background: theme.mode === 'dark' ? '#374151' : '#F3F4F6',

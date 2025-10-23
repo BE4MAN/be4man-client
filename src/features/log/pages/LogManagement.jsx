@@ -2,486 +2,9 @@
 import { useTheme } from '@emotion/react';
 import React, { useState, useEffect, useRef } from 'react';
 
-import { getStyles } from './LogManagement.style';
+import { getLogs } from '@/api/logService';
 
-const mockData = [
-  {
-    id: '#247',
-    branch: 'feature/auth-improvements',
-    status: 'Deployed',
-    deployTime: '2025.07.25 14:32',
-    result: 'Success',
-  },
-  {
-    id: '#246',
-    branch: 'feature/ui-update',
-    status: 'Deployed',
-    deployTime: '2025.07.24 19:20',
-    result: 'Failed',
-  },
-  {
-    id: '#245',
-    branch: 'develop',
-    status: 'Deployed',
-    deployTime: '2025.07.24 10:51',
-    result: 'Success',
-  },
-  {
-    id: '#244',
-    branch: 'feature/auth-improvements',
-    status: 'Rejected',
-    deployTime: '2025.07.24 09:02',
-    result: null,
-  },
-  {
-    id: '#243',
-    branch: 'feature/ui-update',
-    status: 'Pending',
-    deployTime: '2025.07.22 14:15',
-    result: null,
-  },
-  {
-    id: '#242',
-    branch: 'feature/auth-improvements',
-    status: 'Deployed',
-    deployTime: '2025.07.20 17:25',
-    result: 'Failed',
-  },
-  {
-    id: '#241',
-    branch: 'develop',
-    status: 'Deployed',
-    deployTime: '2025.07.18 15:42',
-    result: 'Success',
-  },
-  {
-    id: '#240',
-    branch: 'feature/api-v2',
-    status: 'Approved',
-    deployTime: '2025.07.14 14:22',
-    result: null,
-  },
-  {
-    id: '#239',
-    branch: 'develop',
-    status: 'Deployed',
-    deployTime: '2025.07.18 15:42',
-    result: 'Success',
-  },
-  {
-    id: '#238',
-    branch: 'feature/api-v2',
-    status: 'Approved',
-    deployTime: '2025.07.14 14:22',
-    result: null,
-  },
-  {
-    id: '#237',
-    branch: 'develop',
-    status: 'Deployed',
-    deployTime: '2025.07.18 15:42',
-    result: 'Success',
-  },
-  {
-    id: '#236',
-    branch: 'feature/ui-update',
-    status: 'Deployed',
-    deployTime: '2025.07.10 14:20',
-    result: 'Failed',
-  },
-  {
-    id: '#235',
-    branch: 'feature/auth-improvements',
-    status: 'Deployed',
-    deployTime: '2025.07.12 12:20',
-    result: 'Success',
-  },
-  {
-    id: '#234',
-    branch: 'hotfix/db-fix',
-    status: 'Approved',
-    deployTime: '2025.07.24 18:12',
-    result: null,
-  },
-  {
-    id: '#233',
-    branch: 'feature/api-v2',
-    status: 'Rejected',
-    deployTime: '2025.07.21 10:15',
-    result: null,
-  },
-  {
-    id: '#232',
-    branch: 'develop',
-    status: 'Pending',
-    deployTime: '2025.07.24 19:12',
-    result: null,
-  },
-  {
-    id: '#231',
-    branch: 'feature/ui-update',
-    status: 'Pending',
-    deployTime: '2025.07.22 12:12',
-    result: null,
-  },
-  {
-    id: '#230',
-    branch: 'feature/auth-improvements',
-    status: 'Rejected',
-    deployTime: '2025.07.23 10:30',
-    result: null,
-  },
-  {
-    id: '#229',
-    branch: 'hotfix/db-fix',
-    status: 'Pending',
-    deployTime: '2025.07.22 16:20',
-    result: null,
-  },
-  {
-    id: '#228',
-    branch: 'feature/api-v2',
-    status: 'Deployed',
-    deployTime: '2025.07.24 13:12',
-    result: 'Failed',
-  },
-  {
-    id: '#227',
-    branch: 'develop',
-    status: 'Pending',
-    deployTime: '2025.07.11 13:20',
-    result: null,
-  },
-  {
-    id: '#226',
-    branch: 'feature/ui-update',
-    status: 'Deployed',
-    deployTime: '2025.07.23 09:12',
-    result: 'Failed',
-  },
-  {
-    id: '#225',
-    branch: 'feature/auth-improvements',
-    status: 'Pending',
-    deployTime: '2025.07.13 12:25',
-    result: null,
-  },
-  {
-    id: '#224',
-    branch: 'hotfix/db-fix',
-    status: 'Pending',
-    deployTime: '2025.07.06 12:30',
-    result: null,
-  },
-  {
-    id: '#223',
-    branch: 'feature/api-v2',
-    status: 'Pending',
-    deployTime: '2025.07.21 14:25',
-    result: null,
-  },
-  {
-    id: '#222',
-    branch: 'develop',
-    status: 'Deployed',
-    deployTime: '2025.07.14 12:25',
-    result: null,
-  },
-  {
-    id: '#221',
-    branch: 'feature/ui-update',
-    status: 'Approved',
-    deployTime: '2025.07.20 15:30',
-    result: null,
-  },
-  {
-    id: '#220',
-    branch: 'feature/auth-improvements',
-    status: 'Pending',
-    deployTime: '2025.07.16 11:20',
-    result: null,
-  },
-  {
-    id: '#219',
-    branch: 'hotfix/db-fix',
-    status: 'Pending',
-    deployTime: '2025.07.13 16:25',
-    result: null,
-  },
-  {
-    id: '#218',
-    branch: 'feature/api-v2',
-    status: 'Deployed',
-    deployTime: '2025.07.07 17:30',
-    result: 'Success',
-  },
-  {
-    id: '#217',
-    branch: 'develop',
-    status: 'Rejected',
-    deployTime: '2025.07.18 11:12',
-    result: null,
-  },
-  {
-    id: '#216',
-    branch: 'feature/ui-update',
-    status: 'Rejected',
-    deployTime: '2025.07.18 13:20',
-    result: null,
-  },
-  {
-    id: '#215',
-    branch: 'feature/auth-improvements',
-    status: 'Pending',
-    deployTime: '2025.07.13 16:20',
-    result: null,
-  },
-  {
-    id: '#214',
-    branch: 'hotfix/db-fix',
-    status: 'Approved',
-    deployTime: '2025.07.13 13:12',
-    result: null,
-  },
-  {
-    id: '#213',
-    branch: 'feature/api-v2',
-    status: 'Rejected',
-    deployTime: '2025.07.16 10:20',
-    result: null,
-  },
-  {
-    id: '#212',
-    branch: 'develop',
-    status: 'Deployed',
-    deployTime: '2025.07.23 19:20',
-    result: null,
-  },
-  {
-    id: '#211',
-    branch: 'feature/ui-update',
-    status: 'Rejected',
-    deployTime: '2025.07.11 15:25',
-    result: null,
-  },
-  {
-    id: '#210',
-    branch: 'feature/auth-improvements',
-    status: 'Pending',
-    deployTime: '2025.07.12 15:12',
-    result: null,
-  },
-  {
-    id: '#209',
-    branch: 'hotfix/db-fix',
-    status: 'Rejected',
-    deployTime: '2025.07.24 10:30',
-    result: null,
-  },
-  {
-    id: '#208',
-    branch: 'feature/api-v2',
-    status: 'Approved',
-    deployTime: '2025.07.16 15:12',
-    result: null,
-  },
-  {
-    id: '#207',
-    branch: 'develop',
-    status: 'Approved',
-    deployTime: '2025.07.09 11:25',
-    result: null,
-  },
-  {
-    id: '#206',
-    branch: 'feature/ui-update',
-    status: 'Pending',
-    deployTime: '2025.07.20 17:15',
-    result: null,
-  },
-  {
-    id: '#205',
-    branch: 'feature/auth-improvements',
-    status: 'Approved',
-    deployTime: '2025.07.19 13:12',
-    result: null,
-  },
-  {
-    id: '#204',
-    branch: 'hotfix/db-fix',
-    status: 'Approved',
-    deployTime: '2025.07.17 09:12',
-    result: null,
-  },
-  {
-    id: '#203',
-    branch: 'feature/api-v2',
-    status: 'Pending',
-    deployTime: '2025.07.17 15:30',
-    result: null,
-  },
-  {
-    id: '#202',
-    branch: 'develop',
-    status: 'Rejected',
-    deployTime: '2025.07.22 11:20',
-    result: null,
-  },
-  {
-    id: '#201',
-    branch: 'feature/ui-update',
-    status: 'Approved',
-    deployTime: '2025.07.25 17:15',
-    result: null,
-  },
-  {
-    id: '#200',
-    branch: 'feature/auth-improvements',
-    status: 'Approved',
-    deployTime: '2025.07.12 13:12',
-    result: null,
-  },
-  {
-    id: '#199',
-    branch: 'hotfix/db-fix',
-    status: 'Approved',
-    deployTime: '2025.07.20 17:30',
-    result: null,
-  },
-  {
-    id: '#198',
-    branch: 'feature/api-v2',
-    status: 'Deployed',
-    deployTime: '2025.07.23 13:15',
-    result: 'Failed',
-  },
-  {
-    id: '#197',
-    branch: 'develop',
-    status: 'Rejected',
-    deployTime: '2025.07.23 18:12',
-    result: null,
-  },
-  {
-    id: '#196',
-    branch: 'feature/ui-update',
-    status: 'Pending',
-    deployTime: '2025.07.13 09:15',
-    result: null,
-  },
-  {
-    id: '#195',
-    branch: 'feature/auth-improvements',
-    status: 'Rejected',
-    deployTime: '2025.07.14 10:30',
-    result: null,
-  },
-  {
-    id: '#194',
-    branch: 'hotfix/db-fix',
-    status: 'Approved',
-    deployTime: '2025.07.23 13:30',
-    result: null,
-  },
-  {
-    id: '#193',
-    branch: 'feature/api-v2',
-    status: 'Rejected',
-    deployTime: '2025.07.09 19:25',
-    result: null,
-  },
-  {
-    id: '#192',
-    branch: 'develop',
-    status: 'Approved',
-    deployTime: '2025.07.23 10:12',
-    result: null,
-  },
-  {
-    id: '#191',
-    branch: 'feature/ui-update',
-    status: 'Pending',
-    deployTime: '2025.07.19 16:12',
-    result: null,
-  },
-  {
-    id: '#190',
-    branch: 'feature/auth-improvements',
-    status: 'Approved',
-    deployTime: '2025.07.24 17:20',
-    result: null,
-  },
-  {
-    id: '#189',
-    branch: 'hotfix/db-fix',
-    status: 'Approved',
-    deployTime: '2025.07.11 19:15',
-    result: null,
-  },
-  {
-    id: '#188',
-    branch: 'feature/api-v2',
-    status: 'Pending',
-    deployTime: '2025.07.09 12:12',
-    result: null,
-  },
-  {
-    id: '#187',
-    branch: 'develop',
-    status: 'Approved',
-    deployTime: '2025.07.17 17:25',
-    result: null,
-  },
-  {
-    id: '#186',
-    branch: 'feature/ui-update',
-    status: 'Pending',
-    deployTime: '2025.07.15 18:30',
-    result: null,
-  },
-  {
-    id: '#185',
-    branch: 'feature/auth-improvements',
-    status: 'Deployed',
-    deployTime: '2025.07.09 18:12',
-    result: 'Failed',
-  },
-  {
-    id: '#184',
-    branch: 'hotfix/db-fix',
-    status: 'Deployed',
-    deployTime: '2025.07.13 13:30',
-    result: 'Success',
-  },
-  {
-    id: '#183',
-    branch: 'feature/api-v2',
-    status: 'Approved',
-    deployTime: '2025.07.19 17:30',
-    result: null,
-  },
-  {
-    id: '#182',
-    branch: 'develop',
-    status: 'Deployed',
-    deployTime: '2025.07.23 09:30',
-    result: 'Success',
-  },
-  {
-    id: '#181',
-    branch: 'feature/ui-update',
-    status: 'Approved',
-    deployTime: '2025.07.24 15:30',
-    result: null,
-  },
-  {
-    id: '#180',
-    branch: 'feature/auth-improvements',
-    status: 'Approved',
-    deployTime: '2025.07.08 15:20',
-    result: null,
-  },
-];
+import { getStyles } from './LogManagement.style';
 
 // 커스텀 드롭다운 컴포넌트
 function CustomDropdown({ label, options, value, onChange }) {
@@ -575,10 +98,11 @@ function CustomDropdown({ label, options, value, onChange }) {
 export default function LogManagement() {
   const theme = useTheme();
 
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  //   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    승인여부: '전체',
+    작업상태: '전체',
     결과: '전체',
     순서: '최신순',
     시작일: '',
@@ -589,14 +113,117 @@ export default function LogManagement() {
   const PAGE_SIZE = 10;
 
   // Hover states
-  //   const [filterBtnHovered, setFilterBtnHovered] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [clearBtnHovered, setClearBtnHovered] = useState(false);
   const [resetBtnHovered, setResetBtnHovered] = useState(false);
+  //   const [refreshBtnHovered, setRefreshBtnHovered] = useState(false);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [hoveredPaginationBtn, setHoveredPaginationBtn] = useState(null);
 
   const styles = getStyles(theme);
+
+  // ✅ 백엔드 상태값 → 프론트 표준 형식 매핑
+  const STATUS_MAP = {
+    // 백엔드에서 올 수 있는 모든 케이스
+    PENDING: 'pending',
+    APPROVED: 'approved',
+    REJECTED: 'rejected',
+    DEPLOYED: 'deployed',
+    SUCCESS: 'deployed', // SUCCESS는 배포로 취급
+    FAILURE: 'rejected', // FAILURE는 반려로 취급
+    // 소문자도 대비
+    pending: 'pending',
+    approved: 'approved',
+    rejected: 'rejected',
+    deployed: 'deployed',
+    success: 'deployed',
+    failure: 'rejected',
+  };
+
+  // ✅ 상태 → 한글 라벨
+  const STATUS_LABEL = {
+    pending: '대기',
+    approved: '승인완료',
+    rejected: '반려',
+    deployed: '배포',
+  };
+
+  // ✅ 결과 → 한글 라벨
+  const RESULT_LABEL = {
+    success: '성공',
+    failure: '실패',
+    deployed: '성공',
+  };
+
+  // ✅ 백엔드 데이터를 프론트 형식으로 변환
+  const transformLogData = (backendData) => {
+    return backendData.map((item, index) => {
+      // 백엔드 상태를 표준 형식으로 변환
+      const rawStatus = item.status || item.approvalStatus || 'PENDING';
+      const normalizedStatus =
+        STATUS_MAP[rawStatus] ||
+        STATUS_MAP[rawStatus?.toUpperCase()] ||
+        'pending';
+
+      console.log(`📝 항목 ${index + 1}:`, {
+        원본상태: rawStatus,
+        변환된상태: normalizedStatus,
+        전체데이터: item,
+      });
+
+      return {
+        id: `#${item.prNumber || item.buildNumber || item.id}`,
+        branch: item.branch || '-',
+        status: normalizedStatus,
+        deployTime: formatDateTime(item.scheduledAt || item.createdAt),
+        // deployed 상태면 success, 아니면 null
+        result: normalizedStatus === 'deployed' ? 'success' : null,
+      };
+    });
+  };
+
+  // ✅ 날짜 포맷팅 함수
+  const formatDateTime = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+  };
+
+  // ✅ 로그 데이터 가져오기 함수
+  const fetchLogs = () => {
+    setLoading(true);
+
+    getLogs()
+      .then((response) => {
+        console.log('🔍 원본 API 응답:', response);
+        const logsData = response.content || response;
+        console.log('🔍 추출한 로그 데이터:', logsData);
+
+        // 첫 번째 데이터 상세 확인
+        if (logsData && logsData.length > 0) {
+          console.log('🔍 첫 번째 로그 항목:', logsData[0]);
+        }
+
+        const transformedData = transformLogData(logsData);
+        console.log('✅ 변환된 데이터:', transformedData);
+        setLogs(transformedData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('로그 가져오기 실패:', err);
+        setLoading(false);
+      });
+  };
+
+  // ✅ 컴포넌트 마운트 시 데이터 로드
+  useEffect(() => {
+    fetchLogs();
+  }, []);
 
   // main 태그의 padding 제거
   useEffect(() => {
@@ -616,7 +243,7 @@ export default function LogManagement() {
   const resetFilters = () => {
     setSearchQuery('');
     setFilters({
-      승인여부: '전체',
+      작업상태: '전체',
       결과: '전체',
       순서: '최신순',
       시작일: '',
@@ -625,37 +252,24 @@ export default function LogManagement() {
     setSortOrder('desc');
   };
 
-  // 영어 → 한글 매핑
-  const STATUS_LABEL = {
-    Pending: '대기',
-    Approved: '승인완료',
-    Rejected: '반려',
-    Deployed: '배포',
-  };
-
-  const RESULT_LABEL = {
-    Success: '성공',
-    Failed: '실패',
-  };
-
-  // 필터링 로직 (이전 답변에서 수정한 부분)
-  const filteredData = mockData
+  // ✅ 필터링 로직 - 한글 라벨로 비교
+  const filteredData = logs
     .filter((item) => {
       const matchesSearch =
         searchQuery === '' ||
         item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.branch.toLowerCase().includes(searchQuery.toLowerCase());
 
+      // 한글 라벨로 변환해서 비교
       const statusLabel = STATUS_LABEL[item.status];
       const matchesStatus =
-        filters.승인여부 === '전체' || statusLabel === filters.승인여부;
+        filters.승인여부 === '전체' || statusLabel === filters.작업상태;
 
       const resultLabel = item.result ? RESULT_LABEL[item.result] : null;
       const matchesResult =
         filters.결과 === '전체' || resultLabel === filters.결과;
 
-      // ⭐ 핵심: 시작일과 종료일이 둘 다 있을 때만 날짜 필터링
-      let matchesDateRange = true; // 기본값: 통과
+      let matchesDateRange = true;
       if (filters.시작일 && filters.종료일) {
         const itemDate = new Date(item.deployTime.replace(/\./g, '-'));
         const startDate = new Date(filters.시작일);
@@ -676,17 +290,93 @@ export default function LogManagement() {
   const start = (currentPage - 1) * PAGE_SIZE;
   const pageData = filteredData.slice(start, start + PAGE_SIZE);
 
-  const renderBadge = (text, type) => {
-    const label =
-      type === 'status'
-        ? STATUS_LABEL[text] || text
-        : RESULT_LABEL[text] || text;
-    return <span style={styles.badge(type, text)}>{label}</span>;
+  // ✅ 배지 렌더링 - theme.js의 색상 사용
+  const renderBadge = (status) => {
+    const label = STATUS_LABEL[status] || status;
+    const colors = theme.colors.status?.[status];
+
+    console.log(`🎨 배지 렌더링:`, {
+      status,
+      label,
+      colors,
+      theme: theme.colors.status,
+    });
+
+    // theme.colors.status가 없으면 기본 색상 사용
+    const defaultColors = {
+      pending: {
+        bg: theme.mode === 'dark' ? '#14532D' : '#86EFAC',
+        text: theme.mode === 'dark' ? '#86EFAC' : '#14532D',
+      },
+      approved: {
+        bg: theme.mode === 'dark' ? '#713F12' : '#FDE047',
+        text: theme.mode === 'dark' ? '#FDE047' : '#713F12',
+      },
+      rejected: {
+        bg: theme.mode === 'dark' ? '#7F1D1D' : '#FCA5A5',
+        text: theme.mode === 'dark' ? '#FCA5A5' : '#7F1D1D',
+      },
+      deployed: {
+        bg: theme.mode === 'dark' ? '#1E3A8A' : '#DBEAFE',
+        text: theme.mode === 'dark' ? '#60A5FA' : '#1E40AF',
+      },
+    };
+
+    const finalColors = colors ||
+      defaultColors[status] || { bg: '#E5E7EB', text: '#000000' };
+
+    return (
+      <span
+        style={{
+          display: 'inline-block',
+          padding: '4px 10px',
+          borderRadius: '12px',
+          fontSize: '11px',
+          fontWeight: '600',
+          background: finalColors.bg,
+          color: finalColors.text,
+        }}
+      >
+        {label}
+      </span>
+    );
+  };
+
+  // ✅ 결과 배지 렌더링
+  const renderResultBadge = (result) => {
+    const label = RESULT_LABEL[result] || result;
+
+    const colors =
+      result === 'success'
+        ? {
+            bg: theme.mode === 'dark' ? '#059669' : '#D1FAE5',
+            text: theme.mode === 'dark' ? '#FFFFFF' : '#065F46',
+          }
+        : {
+            bg: theme.mode === 'dark' ? '#DC2626' : '#FEE2E2',
+            text: theme.mode === 'dark' ? '#FFFFFF' : '#991B1B',
+          };
+
+    return (
+      <span
+        style={{
+          display: 'inline-block',
+          padding: '4px 10px',
+          borderRadius: '12px',
+          fontSize: '11px',
+          fontWeight: '600',
+          background: colors.bg,
+          color: colors.text,
+        }}
+      >
+        {label}
+      </span>
+    );
   };
 
   const renderResult = (status, result) => {
-    if (status === 'Deployed' && result) {
-      return renderBadge(result, 'result');
+    if (status === 'deployed' && result) {
+      return renderResultBadge(result);
     }
     return <span style={{ color: theme.colors.textSecondary }}>-</span>;
   };
@@ -701,7 +391,6 @@ export default function LogManagement() {
     <div style={styles.container}>
       {/* 검색 및 필터 영역 */}
       <div style={styles.searchFilterSection}>
-        {/* 상단: 필터 버튼 + 검색 바 */}
         <div style={styles.topControls}>
           <div style={styles.searchBar}>
             <svg
@@ -741,21 +430,19 @@ export default function LogManagement() {
           </div>
         </div>
 
-        {/* 필터 패널 (인라인 방식) */}
+        {/* 필터 패널 */}
         <div style={styles.filtersPanel}>
           <div style={styles.filtersRow}>
-            {/* 승인 여부 - 한글 옵션으로 변경 */}
             <div style={styles.filterRowItem}>
-              <label style={styles.filterLabel}>승인여부</label>
+              <label style={styles.filterLabel}>작업 상태</label>
               <CustomDropdown
                 label=""
                 options={['전체', '대기', '승인완료', '반려', '배포']}
-                value={filters.승인여부}
-                onChange={(val) => handleFilter('승인여부', val)}
+                value={filters.작업상태}
+                onChange={(val) => handleFilter('작업상태', val)}
               />
             </div>
 
-            {/* 결과 - 한글 옵션으로 변경 */}
             <div style={styles.filterRowItem}>
               <label style={styles.filterLabel}>결과</label>
               <CustomDropdown
@@ -766,9 +453,8 @@ export default function LogManagement() {
               />
             </div>
 
-            {/* 배포 시간 정렬 - 새로 추가 */}
             <div style={styles.filterRowItem}>
-              <label style={styles.filterLabel}>배포 시간</label>
+              <label style={styles.filterLabel}>처리 시각</label>
               <CustomDropdown
                 label=""
                 options={['최신순', '오래된순']}
@@ -780,13 +466,13 @@ export default function LogManagement() {
               />
             </div>
 
-            {/* 날짜 범위 */}
             <div style={styles.filterRowItem}>
               <label style={styles.filterLabel}>시작일</label>
               <input
                 type="date"
-                value={filters.시작일 || ''} // 명시적으로 빈 문자열 처리
+                value={filters.시작일 || ''}
                 onChange={(e) => handleFilter('시작일', e.target.value)}
+                onClick={(e) => e.target.showPicker && e.target.showPicker()}
                 style={styles.dateInput}
               />
             </div>
@@ -795,13 +481,13 @@ export default function LogManagement() {
               <label style={styles.filterLabel}>종료일</label>
               <input
                 type="date"
-                value={filters.종료일 || ''} // 명시적으로 빈 문자열 처리
+                value={filters.종료일 || ''}
                 onChange={(e) => handleFilter('종료일', e.target.value)}
+                onClick={(e) => e.target.showPicker && e.target.showPicker()}
                 style={styles.dateInput}
               />
             </div>
 
-            {/* 초기화 버튼 */}
             <button
               style={styles.resetButton(resetBtnHovered)}
               onClick={resetFilters}
@@ -827,13 +513,19 @@ export default function LogManagement() {
             <tr>
               <th style={styles.th}>PR 번호</th>
               <th style={styles.th}>브랜치명</th>
-              <th style={styles.th}>승인 여부</th>
-              <th style={styles.th}>배포 시간</th>
+              <th style={styles.th}>작업 상태</th>
+              <th style={styles.th}>처리 시각</th>
               <th style={styles.th}>결과</th>
             </tr>
           </thead>
           <tbody>
-            {pageData.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="5" style={{ ...styles.td, padding: '40px' }}>
+                  로딩 중...
+                </td>
+              </tr>
+            ) : pageData.length > 0 ? (
               pageData.map((pr) => (
                 <tr
                   key={pr.id}
@@ -851,7 +543,7 @@ export default function LogManagement() {
                     {pr.id}
                   </td>
                   <td style={styles.td}>{pr.branch}</td>
-                  <td style={styles.td}>{renderBadge(pr.status, 'status')}</td>
+                  <td style={styles.td}>{renderBadge(pr.status)}</td>
                   <td style={styles.td}>{pr.deployTime}</td>
                   <td style={styles.td}>
                     {renderResult(pr.status, pr.result)}
@@ -861,7 +553,7 @@ export default function LogManagement() {
             ) : (
               <tr>
                 <td colSpan="5" style={{ ...styles.td, padding: '40px' }}>
-                  검색 결과가 없습니다.
+                  등록된 로그가 없습니다.
                 </td>
               </tr>
             )}
@@ -870,67 +562,60 @@ export default function LogManagement() {
       </div>
 
       {/* 페이지네이션 */}
-      <div style={styles.pagination}>
-        {/* 왼쪽 화살표 */}
-        <button
-          style={styles.paginationArrow(
-            currentPage === 1,
-            hoveredPaginationBtn === 'prev',
-          )}
-          onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-          disabled={currentPage === 1}
-          onMouseEnter={() => setHoveredPaginationBtn('prev')}
-          onMouseLeave={() => setHoveredPaginationBtn(null)}
-        >
-          &lt;
-        </button>
+      {totalPages > 0 && (
+        <div style={styles.pagination}>
+          <button
+            style={styles.paginationArrow(
+              currentPage === 1,
+              hoveredPaginationBtn === 'prev',
+            )}
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            onMouseEnter={() => setHoveredPaginationBtn('prev')}
+            onMouseLeave={() => setHoveredPaginationBtn(null)}
+          >
+            &lt;
+          </button>
 
-        {/* 페이지 번호 계산 (5개 단위 그룹) */}
-        {(() => {
-          const pageSize = 5;
-          // 현재 페이지가 속한 그룹 계산 (0부터 시작)
-          const currentGroup = Math.floor((currentPage - 1) / pageSize);
+          {(() => {
+            const pageSize = 5;
+            const currentGroup = Math.floor((currentPage - 1) / pageSize);
+            const startPage = currentGroup * pageSize + 1;
+            const endPage = Math.min(startPage + pageSize - 1, totalPages);
 
-          // 그룹의 시작 페이지와 끝 페이지
-          const startPage = currentGroup * pageSize + 1;
-          const endPage = Math.min(startPage + pageSize - 1, totalPages);
+            const pages = [];
+            for (let i = startPage; i <= endPage; i++) {
+              pages.push(i);
+            }
 
-          const pages = [];
-          for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-          }
+            return pages.map((page) => (
+              <button
+                key={page}
+                style={styles.paginationButton(
+                  page === currentPage,
+                  false,
+                  hoveredPaginationBtn === page,
+                )}
+                onClick={() => setCurrentPage(page)}
+                onMouseEnter={() => setHoveredPaginationBtn(page)}
+                onMouseLeave={() => setHoveredPaginationBtn(null)}
+              >
+                {page}
+              </button>
+            ));
+          })()}
 
-          return pages.map((page) => (
-            <button
-              key={page}
-              style={styles.paginationButton(
-                page === currentPage,
-                false,
-                hoveredPaginationBtn === page,
-              )}
-              onClick={() => setCurrentPage(page)}
-              onMouseEnter={() => setHoveredPaginationBtn(page)}
-              onMouseLeave={() => setHoveredPaginationBtn(null)}
-            >
-              {page}
-            </button>
-          ));
-        })()}
-
-        {/* 오른쪽 화살표 */}
-        <button
-          style={styles.paginationArrow(
-            currentPage === totalPages,
-            hoveredPaginationBtn === 'next',
-          )}
-          onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          onMouseEnter={() => setHoveredPaginationBtn('next')}
-          onMouseLeave={() => setHoveredPaginationBtn(null)}
-        >
-          &gt;
-        </button>
-      </div>
+          <button
+            style={styles.paginationArrow(currentPage === totalPages)}
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            onMouseEnter={() => setHoveredPaginationBtn('next')}
+            onMouseLeave={() => setHoveredPaginationBtn(null)}
+          >
+            &gt;
+          </button>
+        </div>
+      )}
     </div>
   );
 }
