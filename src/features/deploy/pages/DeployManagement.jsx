@@ -8,6 +8,7 @@ import {
   buildDetailFromItem,
 } from '../../../mock/deploy';
 
+import ApplyForm from './ApplyForm';
 import * as S from './DeployManagement.styles';
 import JenkinsPanel from './JenkinsPanel';
 
@@ -27,6 +28,8 @@ export default function DeployManagement({
   const sourceItems = topTab === TOP.DEPLOY ? items : applyItems;
   const [activeTab, setActiveTab] = useState(TAB.ALL);
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? null);
+  const [showApplyForm, setShowApplyForm] = useState(false);
+
   const [detail, setDetail] = useState(
     buildDetailFromItem(items[0] ?? {}, detailProp),
   );
@@ -124,6 +127,23 @@ export default function DeployManagement({
     setDetail((d) => ({ ...d, status: '반려' }));
     onReject(selectedId);
   }, [selectedId, topTab, onReject]);
+
+  if (showApplyForm) {
+    return (
+      <S.ApplyShell>
+        <S.ApplyMain>
+          <S.ApplyWrap>
+            <ApplyForm
+              defaultPR={
+                detail?.title ? { id: selectedId, title: detail.title } : null
+              }
+              onCancel={() => setShowApplyForm(false)}
+            />
+          </S.ApplyWrap>
+        </S.ApplyMain>
+      </S.ApplyShell>
+    );
+  }
 
   return (
     <S.Wrap>
@@ -486,12 +506,7 @@ export default function DeployManagement({
               )}
             </S.Panel>
 
-            <S.ApplyBtn
-              type="button"
-              onClick={() => {
-                if (topTab !== TOP.APPLY) handleTopTab(TOP.APPLY);
-              }}
-            >
+            <S.ApplyBtn type="button" onClick={() => setShowApplyForm(true)}>
               배포 작업 신청
             </S.ApplyBtn>
           </S.Section>
