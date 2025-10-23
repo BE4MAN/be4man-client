@@ -5,7 +5,8 @@ const R = (t, key = 'lg', def = 12) =>
 
 export const Wrap = styled.div`
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: ${({ $full }) =>
+    $full ? '1fr' : '320px minmax(0,1fr)'};
   height: calc(100dvh - var(--header-h));
   min-height: 0;
   padding: 0;
@@ -875,4 +876,261 @@ export const StatInfo = styled(CardBase)`
   strong {
     color: #3b82f6;
   }
+`;
+
+// 신청 화면 전용 바깥 래퍼: 사이드 없음, 한 칼럼 풀-높이
+export const ApplyShell = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  height: calc(100dvh - var(--header-h));
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+
+  @media (width <= 1200px) {
+    height: auto;
+    overflow: visible;
+    width: 100%;
+    max-width: 100vw;
+  }
+`;
+
+// 신청 화면 전용 메인 영역(패딩/스크롤 등 기존 Main 톤 차용)
+export const ApplyMain = styled.main`
+  display: block;
+  min-height: 0;
+  height: 100%;
+  padding: 16px;
+
+  @media (width <= 1200px) {
+    height: auto;
+    overflow: visible;
+  }
+`;
+
+export const ApplyWrap = styled.section`
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+
+  @media (width <= 1200px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+`;
+
+export const ApplyLeft = styled.div`
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${(p) => R(p.theme)}px;
+  padding: 20px;
+`;
+
+export const ApplyRight = styled.aside`
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${(p) => R(p.theme)}px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+`;
+
+export const RightTitle = styled.h3`
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+export const ServiceWrap = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+/* ====== 폼 필드 공통 ====== */
+export const Field = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+`;
+
+export const Label = styled.label`
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+export const Grid2 = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (width <= 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const Input = styled.input`
+  height: 35px;
+  padding: 0 12px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  color: ${({ theme }) => theme.colors.textPrimary};
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textSecondary};
+  }
+`;
+
+export const Select = styled.select`
+  height: 35px;
+  padding: 0 12px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  border-radius: 10px;
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+export const Textarea = styled.textarea`
+  padding: 12px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  border-radius: 10px;
+  font-size: 14px;
+  height: 7rem;
+  resize: none;
+  color: ${({ theme }) => theme.colors.textPrimary};
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textSecondary};
+  }
+`;
+
+/* react-datepicker를 Input 룩으로 감쌈(스코프드) */
+export const DateField = styled.div`
+  .react-datepicker-wrapper,
+  [class*='react-datepicker__input-container'] {
+    display: block;
+    width: 100%;
+  }
+
+  [class*='react-datepicker__input-container'] input {
+    width: 100%;
+    height: 35px;
+    padding: 0 12px;
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    background: ${({ theme }) => theme.colors.bg};
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    color: ${({ theme }) => theme.colors.textPrimary};
+    &::placeholder {
+      color: ${({ theme }) => theme.colors.textSecondary};
+    }
+  }
+`;
+
+export const TagWrap = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start; /* 여러 줄 묶음 정렬 */
+  align-items: flex-start;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 10px;
+  background: ${({ theme }) => theme.colors.bg};
+  gap: 8px;
+  padding: 10px;
+  width: 100%;
+  min-width: 0; /* 컨테이너 수축 허용(overflow 방지) */
+  overflow-x: hidden;
+`;
+
+/* 태그/칩, 버튼 */
+export const TagArea = styled.div`
+  display: flex;
+  flex-wrap: wrap; /* ↓ 줄바꿈 */
+  align-items: flex-start;
+  gap: 8px; /* 행/열 간격 */
+  width: 100%;
+  min-width: 0;
+`;
+
+export const TagPill = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: ${({ theme }) => theme.colors.bg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: 12px;
+  flex: 0 0 auto; /* 칩이 자기 크기만큼만 차지 → 다음 줄로 자연스레 */
+  max-width: 100%; /* 긴 텍스트가 있을 때 컨테이너 넘어가지 않게 */
+  white-space: nowrap; /* 칩 내부는 한 줄 유지 */
+  overflow: hidden; /* 너무 길면 ... 처리 */
+  text-overflow: ellipsis;
+
+  button {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    line-height: 1;
+    color: inherit;
+  }
+`;
+
+export const SmallBtn = styled.button`
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+export const ApproverBox = styled.div`
+  margin-top: 8px;
+  flex: 1;
+  min-height: 280px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 10px;
+  background: ${({ theme }) => theme.colors.bg};
+  padding: 12px;
+  overflow: auto;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+export const FlexRow = styled.div`
+  display: flex;
+  gap: ${({ gap }) => gap ?? 12}px;
+`;
+
+export const PrimaryBtn = styled.button`
+  flex: 1;
+  height: 48px;
+  border: none;
+  border-radius: 10px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.onPrimary};
+  font-weight: 700;
+  cursor: pointer;
+`;
+
+export const SecondaryBtn = styled.button`
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.textPrimary};
 `;

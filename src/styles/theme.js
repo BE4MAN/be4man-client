@@ -62,8 +62,8 @@ const typography = {
 
 const palette = {
   light: {
-    bg: '#ffffff',
-    surface: '#f8f9fb',
+    bg: '#fff',
+    surface: '#FDFDFD',
     textPrimary: '#0f1115',
     textSecondary: '#5b6270',
     border: '#e8e8ef',
