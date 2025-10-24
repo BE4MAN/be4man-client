@@ -18,6 +18,36 @@ export const MOCK_LIST = [
     hours: '2 hours ago',
     status: '승인대기',
     risk: 'Low',
+    deployTitle: '인증 모듈 신규 배포',
+    deployBody: 'OAuth 2.0 기반 인증 모듈을 서비스에 반영합니다.',
+    scheduledAt: '2025-10-21 22:00',
+    expectedDuration: '30분',
+
+    deployMetrics: [
+      { label: '배포 전략', value: 'Canary' },
+      { label: '예상 다운타임', value: '0분' },
+      { label: '배포 상태', value: '긴급' },
+      { label: '버전', value: 'v1.2.3' },
+    ],
+
+    reviewSummary: {
+      approved: 2,
+      changesRequested: 1,
+      commented: 5,
+      dismissed: 0,
+      latestApprovalAt: '2025-10-19T12:30:00Z',
+      approvers: [
+        {
+          login: 'alice',
+          avatarUrl: 'https://avatars.githubusercontent.com/u/1?v=4',
+        },
+        {
+          login: 'bob',
+          avatarUrl: 'https://avatars.githubusercontent.com/u/2?v=4',
+        },
+      ],
+      requestedReviewers: ['carol', 'dave'],
+    },
   },
   {
     id: '2',
@@ -28,56 +58,35 @@ export const MOCK_LIST = [
     hours: '4 hours ago',
     status: '승인완료',
     risk: 'Medium',
-  },
-  {
-    id: '3',
-    branch: 'hotfix/security-patch',
-    title: 'feat: 스프링 시큐리티 구현',
-    votes: '+12',
-    comments: 2,
-    hours: '6 hours ago',
-    status: '반려',
-    risk: 'High',
-  },
-  {
-    id: '4',
-    branch: 'feature/api-optimization',
-    title: 'feat: api 최적화',
-    votes: '+67',
-    comments: 1,
-    hours: '8 hours ago',
-    status: '배포완료',
-    risk: 'Low',
-  },
-  {
-    id: '5',
-    branch: 'feature/api-optimization',
-    title: 'feat: api 최적화',
-    votes: '+67',
-    comments: 1,
-    hours: '8 hours ago',
-    status: '배포완료',
-    risk: 'Low',
-  },
-  {
-    id: '6',
-    branch: 'feature/api-optimization',
-    title: 'feat: api 최적화',
-    votes: '+67',
-    comments: 1,
-    hours: '8 hours ago',
-    status: '배포완료',
-    risk: 'Low',
-  },
-  {
-    id: '7',
-    branch: 'feature/api-optimization',
-    title: 'feat: api 최적화',
-    votes: '+67',
-    comments: 1,
-    hours: '8 hours ago',
-    status: '배포완료',
-    risk: 'Low',
+    deployTitle: '대시보드 UI 개편 배포',
+    deployBody: '신규 위젯/차트 추가 및 레이아웃 개선 반영.',
+    scheduledAt: '2025-10-22 01:00',
+    expectedDuration: '45분',
+
+    deployMetrics: [
+      { label: '배포 전략', value: 'Rolling' },
+      { label: '예상 다운타임', value: '0분' },
+      { label: '빌드 번호', value: '#146' },
+      { label: '릴리스 태그', value: 'v1.2.4' },
+    ],
+    reviewSummary: {
+      approved: 2,
+      changesRequested: 1,
+      commented: 5,
+      dismissed: 0,
+      latestApprovalAt: '2025-10-19T12:30:00Z',
+      approvers: [
+        {
+          login: 'alice',
+          avatarUrl: 'https://avatars.githubusercontent.com/u/1?v=4',
+        },
+        {
+          login: 'bob',
+          avatarUrl: 'https://avatars.githubusercontent.com/u/2?v=4',
+        },
+      ],
+      requestedReviewers: ['carol', 'dave'],
+    },
   },
 ];
 
@@ -95,19 +104,6 @@ export const MOCK_DETAIL = {
     { label: '라인 제거 개수', value: '-89' },
     { label: '커밋 개수', value: 8 },
   ],
-  riskScore: 45,
-  riskLevel: 'Medium',
-  riskBreakdown: [
-    { k: '코드 보전성', v: '중간' },
-    { k: '테스트 개수', v: '30회' },
-    { k: '테스트 커버리지', v: '충족 (89%)' },
-    { k: '의존성', v: '2개 의존성' },
-  ],
-  riskSummary: [
-    '코드 복잡성이 중간값으로 위험성 낮음',
-    '2개의 의존성으로 위험성 보통',
-    '테스트 커버리지 높음으로 위험성 낮음',
-  ],
   relatedProjects: [
     { name: 'user-service', active: true },
     { name: 'billing-api', active: true },
@@ -116,6 +112,18 @@ export const MOCK_DETAIL = {
     { name: 'Project B', time: '17:00 - 19:00', active: false },
   ],
   risks: MOCK_RISKS,
+
+  deployTitle: '인증 모듈 신규 배포',
+  deployBody: 'OAuth 2.0 기반 인증 모듈을 서비스에 반영합니다.',
+  scheduledAt: '2025-10-21 22:00',
+  expectedDuration: '30분',
+
+  deployMetrics: [
+    { label: '배포 전략', value: 'Canary' },
+    { label: '예상 다운타임', value: '0분' },
+    { label: '빌드 번호', value: '#145' },
+    { label: '릴리스 태그', value: 'v1.2.3' },
+  ],
 };
 
 export const statusKey = (label) => {
@@ -139,4 +147,72 @@ export const buildDetailFromItem = (item, base = MOCK_DETAIL) => ({
   status: item?.status ?? base.status,
   branchFrom: item?.branch?.split('/')[0] || base.branchFrom,
   branchTo: 'main',
+
+  deployTitle: item?.deployTitle ?? base.deployTitle,
+  deployBody: item?.deployBody ?? base.deployBody,
+  scheduledAt: item?.scheduledAt ?? base.scheduledAt,
+  expectedDuration: item?.expectedDuration ?? base.expectedDuration,
+  deployMetrics: item?.deployMetrics ?? base.deployMetrics,
+  reviewSummary: item?.reviewSummary ?? base.reviewSummary,
 });
+
+export const MOCK_APPLY_LIST = [
+  {
+    id: 'ap-1',
+    branch: 'feature/new-payment',
+    title: '배포 작업 신청: 결제 모듈 추가',
+    votes: '+12',
+    comments: 3,
+    hours: '1 hour ago',
+    status: '신청전',
+    risk: 'Low',
+
+    reviewSummary: {
+      approved: 2,
+      changesRequested: 1,
+      commented: 5,
+      dismissed: 0,
+      latestApprovalAt: 'Jan 15, 2025 at 2:30 PM',
+      approvers: [
+        {
+          login: 'alice',
+          avatarUrl: 'https://avatars.githubusercontent.com/u/1?v=4',
+        },
+        {
+          login: 'bob',
+          avatarUrl: 'https://avatars.githubusercontent.com/u/2?v=4',
+        },
+      ],
+      requestedReviewers: ['carol', 'dave'],
+    },
+  },
+  {
+    id: 'ap-2',
+    branch: 'chore/log-rotation',
+    title: '배포 작업 신청: 로그 로테이션 주기 변경',
+    votes: '+3',
+    comments: 0,
+    hours: '5 hours ago',
+    status: '신청전',
+    risk: 'Low',
+
+    reviewSummary: {
+      approved: 2,
+      changesRequested: 1,
+      commented: 5,
+      dismissed: 0,
+      latestApprovalAt: 'Jan 15, 2025 at 2:30 PM',
+      approvers: [
+        {
+          login: 'alice',
+          avatarUrl: 'https://avatars.githubusercontent.com/u/1?v=4',
+        },
+        {
+          login: 'bob',
+          avatarUrl: 'https://avatars.githubusercontent.com/u/2?v=4',
+        },
+      ],
+      requestedReviewers: ['carol', 'dave'],
+    },
+  },
+];

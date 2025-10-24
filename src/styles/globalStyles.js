@@ -4,7 +4,7 @@ export const globalStyles = (theme) => css`
   :root {
     --header-h: 72px;
     --header-h-sm: 56px;
-    --sidebar-w: 223px;
+    --sidebar-w: 170px;
   }
 
   @media (width <= 767px) {

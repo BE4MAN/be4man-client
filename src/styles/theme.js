@@ -62,8 +62,8 @@ const typography = {
 
 const palette = {
   light: {
-    bg: '#ffffff',
-    surface: '#f8f9fb',
+    bg: '#fff',
+    surface: '#FDFDFD',
     textPrimary: '#0f1115',
     textSecondary: '#5b6270',
     border: '#e8e8ef',
@@ -100,9 +100,11 @@ const palette = {
     },
     btn: {
       approveBg: '#4ccc88',
-      approveText: '#000',
+      approveText: '#fff',
       rejectBg: '#ff6b6b',
-      rejectText: '#000',
+      rejectText: '#fff',
+      historyBg: '#2563EB',
+      historyText: '#fff',
     },
     riskChipBg: {
       high: '#ff6b6b',
@@ -156,6 +158,8 @@ const palette = {
       approveText: '#4ccc88',
       rejectBg: 'rgb(255 90 90 / 12%)',
       rejectText: '#ff6b6b',
+      historyBg: 'rgb(37 99 235 / 12%)',
+      historyText: '#2563EB',
     },
     riskChipBg: {
       high: '#ff6b6b',

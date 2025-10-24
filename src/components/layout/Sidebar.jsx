@@ -1,18 +1,28 @@
+import { useMemo, useCallback } from 'react';
+
 import { PATHS } from '@/app/routes/paths';
 import { useAuth } from '@/hooks/useAuth';
 import { useUIStore } from '@/stores/uiStore';
 
-import DeploymngIcon from '/icons/deploymng.svg';
-import DeploymngDayIcon from '/icons/deploymng-day.svg';
-import DeploymngActiveIcon from '/icons/deploymng-active.svg';
+import HomeDayIcon from '/icons/home-day.svg';
+import HomeNightIcon from '/icons/home-night.svg';
+import HomeActiveIcon from '/icons/home-active.svg';
 
-import DashboardIcon from '/icons/dashboard.svg';
-import DashboardDayIcon from '/icons/dashboard-day.svg';
-import DashboardActiveIcon from '/icons/dashboard-active.svg';
+import ApprovalDayIcon from '/icons/approval-day.svg';
+import ApprovalNightIcon from '/icons/approval-night.svg';
+import ApprovalActiveIcon from '/icons/approval-active.svg';
 
-import LogsIcon from '/icons/search.svg';
-import LogsDayIcon from '/icons/search-day.svg';
-import LogsActiveIcon from '/icons/search-active.svg';
+import ScheduleDayIcon from '/icons/schedule-day.svg';
+import ScheduleNightIcon from '/icons/schedule-night.svg';
+import ScheduleActiveIcon from '/icons/schedule-active.svg';
+
+import TaskDayIcon from '/icons/task-day.svg';
+import TaskNightIcon from '/icons/task-night.svg';
+import TaskActiveIcon from '/icons/task-active.svg';
+
+import AnalyticsDayIcon from '/icons/analytics-day.svg';
+import AnalyticsNightIcon from '/icons/analytics-night.svg';
+import AnalyticsActiveIcon from '/icons/analytics-active.svg';
 
 import LogoutIcon from '/icons/logout.svg';
 import LogoutDayIcon from '/icons/logout-day.svg';
@@ -24,61 +34,103 @@ export default function Sidebar() {
   const { logout } = useAuth();
   const isDark = theme === 'dark';
 
-  const pickIcon = (isActive, darkSrc, lightSrc, activeSrc) =>
-    isActive ? (activeSrc ?? darkSrc) : isDark ? darkSrc : lightSrc;
+  const items = useMemo(
+    () => [
+      {
+        key: 'home',
+        to: PATHS.HOME,
+        label: '홈',
+        icons: {
+          dark: HomeNightIcon,
+          light: HomeDayIcon,
+          active: HomeActiveIcon,
+        },
+        end: true,
+      },
+      {
+        key: 'approvals',
+        to: PATHS.APPROVALS,
+        label: '결재함',
+        icons: {
+          dark: ApprovalNightIcon,
+          light: ApprovalDayIcon,
+          active: ApprovalActiveIcon,
+        },
+        end: true,
+      },
+      {
+        key: 'schedule',
+        to: PATHS.SCHEDULE,
+        label: '일정관리',
+        icons: {
+          dark: ScheduleNightIcon,
+          light: ScheduleDayIcon,
+          active: ScheduleActiveIcon,
+        },
+        end: true,
+      },
+      {
+        key: 'tasks',
+        to: PATHS.TASKS,
+        label: '작업관리',
+        icons: {
+          dark: TaskNightIcon,
+          light: TaskDayIcon,
+          active: TaskActiveIcon,
+        },
+        end: true,
+      },
+      {
+        key: 'analytics',
+        to: PATHS.ANALYTICS,
+        label: '통계',
+        icons: {
+          dark: AnalyticsNightIcon,
+          light: AnalyticsDayIcon,
+          active: AnalyticsActiveIcon,
+        },
+        end: true,
+      },
+    ],
+    [],
+  );
+
+  const iconSrc = useCallback(
+    (isActive, icons) => {
+      if (!icons) return null;
+      const { dark, light, active } = icons;
+      if (isActive && active) return active;
+      return isDark ? dark : light;
+    },
+    [isDark],
+  );
 
   return (
     <S.Aside open={sidebarOpen}>
       <S.MenuWrap>
-        <S.Item to={PATHS.DEPLOY} end>
-          {({ isActive }) => (
-            <>
-              <S.IconImg
-                src={pickIcon(
-                  isActive,
-                  DeploymngIcon,
-                  DeploymngDayIcon,
-                  DeploymngActiveIcon,
-                )}
-                alt="Deployment Management"
-              />
-              배포 관리
-            </>
-          )}
-        </S.Item>
-
-        <S.Item to={PATHS.DASHBOARD} end>
-          {({ isActive }) => (
-            <>
-              <S.IconImg
-                src={pickIcon(
-                  isActive,
-                  DashboardIcon,
-                  DashboardDayIcon,
-                  DashboardActiveIcon,
-                )}
-                alt="Dashboard"
-              />
-              대시 보드
-            </>
-          )}
-        </S.Item>
-
-        <S.Item to={PATHS.LOGS} end>
-          {({ isActive }) => (
-            <>
-              <S.IconImg
-                src={pickIcon(isActive, LogsIcon, LogsDayIcon, LogsActiveIcon)}
-                alt="Log Management"
-              />
-              로그 관리
-            </>
-          )}
-        </S.Item>
+        {items.map((it) => (
+          <S.Item key={it.key} to={it.to} end={it.end}>
+            {({ isActive }) => {
+              const src = iconSrc(isActive, it.icons);
+              return (
+                <>
+                  {src ? (
+                    <S.IconImg src={src} alt="" aria-hidden="true" />
+                  ) : null}
+                  {it.label}
+                </>
+              );
+            }}
+          </S.Item>
+        ))}
       </S.MenuWrap>
 
       <S.LogoutBtn type="button" onClick={logout}>
-        <S.IconImg src={isDark ? LogoutIcon : LogoutDayIcon} alt="Logout" />
+        <S.IconImg
+          src={isDark ? LogoutIcon : LogoutDayIcon}
+          alt=""
+          aria-hidden="true"
+        />
         로그아웃
       </S.LogoutBtn>
     </S.Aside>
