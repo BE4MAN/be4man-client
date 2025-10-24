@@ -13,6 +13,7 @@ const DeployManagement = lazy(
   () => import('@/features/deploy/pages/DeployManagement'),
 );
 const Dashboard = lazy(() => import('@/features/dashboard/pages/Dashboard'));
+const Task = lazy(() => import('@/features/log/pages/LogManagement'));
 
 const renderPlaceholder = (label) => (
   <div style={{ padding: 16, color: '#8B95A8' }}>{label} — Coming soon</div>
@@ -66,7 +67,11 @@ export const router = createBrowserRouter([
       },
       {
         path: PATHS.TASKS,
-        element: renderPlaceholder('Task'),
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <Task />
+          </Suspense>
+        ),
       },
       {
         path: PATHS.ANALYTICS,
