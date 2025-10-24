@@ -6,10 +6,27 @@ export const Input = React.forwardRef(
   ({ label, error, helperText, size = 'md', ...props }, ref) => {
     const hasError = !!error;
 
+    const renderLabel = () => {
+      if (!label) return null;
+
+      if (label.includes('*')) {
+        const parts = label.split('*');
+        return (
+          <S.Label>
+            {parts[0]}
+            <S.RequiredAsterisk>*</S.RequiredAsterisk>
+            {parts[1]}
+          </S.Label>
+        );
+      }
+
+      return <S.Label>{label}</S.Label>;
+    };
+
     return (
       <S.InputWrapper>
         <S.InputContainer>
-          {label && <S.Label>{label}</S.Label>}
+          {renderLabel()}
           <S.StyledInput
             ref={ref}
             $hasError={hasError}

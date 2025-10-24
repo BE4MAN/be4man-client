@@ -18,6 +18,10 @@ const Task = lazy(() => import('@/features/log/pages/LogManagement'));
 const renderPlaceholder = (label) => (
   <div style={{ padding: 16, color: '#8B95A8' }}>{label} — Coming soon</div>
 );
+const LogManagement = lazy(() => import('@/features/log/pages/LogManagement'));
+const ScheduleManagement = lazy(
+  () => import('@/features/schedule/pages/ScheduleManagement'),
+);
 
 export const router = createBrowserRouter([
   {
@@ -63,7 +67,11 @@ export const router = createBrowserRouter([
       },
       {
         path: PATHS.SCHEDULE,
-        element: renderPlaceholder('Schedule'),
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <ScheduleManagement />
+          </Suspense>
+        ),
       },
       {
         path: PATHS.TASKS,

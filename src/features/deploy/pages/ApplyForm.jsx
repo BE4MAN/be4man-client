@@ -24,12 +24,10 @@ export default function ApplyForm({ onSubmit, onCancel }) {
 
   const [startAt, setStartAt] = useState(null);
 
-  const availableServices = useMemo(() => [
-    'user-service',
-    'billing-api',
-    'order-service',
-    'notification',
-  ]);
+  const availableServices = useMemo(
+    () => ['user-service', 'billing-api', 'order-service', 'notification'],
+    [],
+  );
 
   const [serviceSelect, setServiceSelect] = useState('user-service');
   const [services, setServices] = useState(['user-service', 'billing-api']);
