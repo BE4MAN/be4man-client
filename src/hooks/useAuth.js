@@ -15,7 +15,7 @@ export const useAuth = () => {
   const postLoginFlow = async (accessToken, refreshToken) => {
     useAuthStore.getState().setTokens(accessToken, refreshToken);
 
-    navigate(PATHS.DEPLOY, { replace: true });
+    navigate(PATHS.HOME, { replace: true });
 
     userAPI
       .fetchUserInfo()
