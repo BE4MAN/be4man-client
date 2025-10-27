@@ -312,26 +312,6 @@ export const getStyles = (theme) => {
               theme.colors.backgroundHover || (isDark ? '#333333' : '#f5f5f5');
             color = theme.colors.textSecondary;
         }
-      } else if (type === 'stage') {
-        // 처리 단계
-        switch (value) {
-          case '계획서':
-            backgroundColor = isDark ? 'rgba(103, 58, 183, 0.2)' : '#ede7f6';
-            color = isDark ? '#b39ddb' : '#5e35b1';
-            break;
-          case '배포':
-            backgroundColor = isDark ? 'rgba(33, 150, 243, 0.2)' : '#e3f2fd';
-            color = isDark ? '#90caf9' : '#1976d2';
-            break;
-          case '레포트':
-            backgroundColor = isDark ? 'rgba(0, 150, 136, 0.2)' : '#e0f2f1';
-            color = isDark ? '#4db6ac' : '#00897b';
-            break;
-          default:
-            backgroundColor =
-              theme.colors.backgroundHover || (isDark ? '#333333' : '#f5f5f5');
-            theme.colors.text || (isDark ? '#e0e0e0' : '#616161');
-        }
       }
 
       return {
@@ -562,15 +542,16 @@ export const getStyles = (theme) => {
       color: theme.colors.text,
       textAlign: 'center',
       whiteSpace: 'nowrap',
-      marginTop: '4px',
+      marginTop: '0px',
     },
 
     timelineStepTime: {
       fontSize: '12px',
       color: theme.colors.textSecondary,
       textAlign: 'center',
-      minHeight: '18px',
+      minHeight: '0px',
       lineHeight: '18px',
+      marginTop: '0px',
     },
 
     timelineStepStatus: (warning, rejected) => ({
@@ -586,7 +567,7 @@ export const getStyles = (theme) => {
           : theme.colors.textSecondary,
       textAlign: 'center',
       fontWeight: warning || rejected ? '600' : '400',
-      marginTop: '4px',
+      marginTop: '-1px',
     }),
 
     timelineLink: (warning) => ({
@@ -602,7 +583,7 @@ export const getStyles = (theme) => {
       fontWeight: '500',
       cursor: 'pointer',
       transition: 'all 0.2s',
-      marginTop: '6px',
+      marginTop: '-1px',
     }),
 
     rejectionMessage: {
