@@ -1,4 +1,5 @@
 import { useMemo, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,6 +34,7 @@ export default function Sidebar() {
   const { sidebarOpen, theme } = useUIStore();
   const { logout } = useAuth();
   const isDark = theme === 'dark';
+  const { pathname } = useLocation();
 
   const items = useMemo(
     () => [
@@ -105,24 +107,38 @@ export default function Sidebar() {
     [isDark],
   );
 
+  const isApprovalFamily =
+    pathname === PATHS.APPROVALS ||
+    pathname === PATHS.APPROVAL_NEW ||
+    pathname.startsWith('/approval/');
+
   return (
     <S.Aside open={sidebarOpen}>
       <S.MenuWrap>
-        {items.map((it) => (
-          <S.Item key={it.key} to={it.to} end={it.end}>
-            {({ isActive }) => {
-              const src = iconSrc(isActive, it.icons);
-              return (
-                <>
-                  {src ? (
-                    <S.IconImg src={src} alt="" aria-hidden="true" />
-                  ) : null}
-                  {it.label}
-                </>
-              );
-            }}
-          </S.Item>
-        ))}
+        {items.map((it) => {
+          const forceActive = it.key === 'approvals' ? isApprovalFamily : false;
+
+          return (
+            <S.Item
+              key={it.key}
+              to={it.to}
+              end={it.end}
+              data-active={forceActive ? 'true' : undefined}
+            >
+              {({ isActive }) => {
+                const src = iconSrc(isActive || forceActive, it.icons);
+                return (
+                  <>
+                    {src ? (
+                      <S.IconImg src={src} alt="" aria-hidden="true" />
+                    ) : null}
+                    {it.label}
+                  </>
+                );
+              }}
+            </S.Item>
+          );
+        })}
       </S.MenuWrap>
 
       <S.LogoutBtn type="button" onClick={logout}>
