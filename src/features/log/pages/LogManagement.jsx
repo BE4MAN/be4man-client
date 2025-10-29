@@ -42,7 +42,7 @@ const mockData = [
     taskTitle: '결제 API 보안 개선',
     stage: '계획서',
     status: '반려',
-    completionTime: '2025.07.25 09:30',
+    completionTime: null,
     result: null,
     approver: '박과장(개발5팀)',
     rejectionInfo: {
@@ -260,7 +260,7 @@ const mockData = [
     taskTitle: 'UI/UX 최종 작업',
     stage: '레포트',
     status: '승인',
-    completionTime: '2025.07.25 14:00',
+    completionTime: null,
     result: '성공',
     approver: '박과장(개발5팀)',
     timeline: [
@@ -297,7 +297,7 @@ const mockData = [
     taskTitle: '결제 모듈 보안 강화',
     stage: '레포트',
     status: '반려',
-    completionTime: '2025.07.24 16:45',
+    completionTime: null,
     result: '실패',
     approver: '김팀장(개발2팀)',
     rejectionInfo: {
@@ -385,9 +385,9 @@ const mockData = [
     department: '개발1팀',
     serviceName: 'Auth Service',
     taskTitle: 'OAuth 2.0 통합',
-    stage: '배포',
+    stage: '레포트',
     status: '승인',
-    completionTime: '2025.07.25 13:30',
+    completionTime: null,
     result: '성공',
     approver: '박과장(개발5팀)',
     timeline: [

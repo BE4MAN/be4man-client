@@ -269,33 +269,6 @@ export const getStyles = (theme) => {
 
       if (type === 'status') {
         // 처리 상태
-        switch (value) {
-          case '승인':
-          case '승인완료':
-            backgroundColor = isDark ? 'rgba(33, 150, 243, 0.2)' : '#e3f2fd';
-            color = isDark ? '#90caf9' : '#1976d2';
-            break;
-          case '완료':
-            backgroundColor = isDark ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9';
-            color = isDark ? '#81c784' : '#388e3c';
-            break;
-          case '대기':
-            backgroundColor = isDark ? 'rgba(255, 193, 7, 0.2)' : '#fff9e6';
-            color = isDark ? '#ffd54f' : '#f59e0b';
-            break;
-          case '반려':
-            backgroundColor = isDark ? 'rgba(244, 67, 54, 0.2)' : '#ffebee';
-            color = isDark ? '#ef5350' : '#d32f2f';
-            break;
-          case '거절':
-            backgroundColor = isDark ? 'rgba(255, 87, 34, 0.2)' : '#ffe0d6';
-            color = isDark ? '#ff8a65' : '#e64a19';
-            break;
-          default:
-            backgroundColor =
-              theme.colors.backgroundHover || (isDark ? '#333333' : '#f5f5f5');
-            color = theme.colors.textSecondary;
-        }
       } else if (type === 'result') {
         // 결과
         switch (value) {
