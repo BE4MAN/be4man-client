@@ -27,6 +27,11 @@ export default function TaskDetail() {
   const [approvalLoading, setApprovalLoading] = useState(false);
   const [approvalMessage, setApprovalMessage] = useState('');
 
+  // 모달 상태 관리
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('reject'); // 'reject' or 'cancel'
+  const [comment, setComment] = useState('');
+
   if (!taskItem) {
     return (
       <div style={styles.container}>
@@ -75,20 +80,7 @@ export default function TaskDetail() {
     }
   };
 
-  //   const getImpactEmoji = (level) => {
-  //     switch (level) {
-  //       case '높음':
-  //         return '⚠️';
-  //       case '중간':
-  //         return '⚡';
-  //       case '낮음':
-  //         return '✓';
-  //       default:
-  //         return '○';
-  //     }
-  //   };
-
-  // 승인/거절 핸들러
+  // 승인 핸들러
   const handleApprove = async () => {
     setApprovalLoading(true);
     setApprovalMessage('승인 처리 중...');
@@ -99,20 +91,191 @@ export default function TaskDetail() {
     }, 1500);
   };
 
-  const handleReject = async () => {
+  // 반려 버튼 클릭 (모달 오픈)
+  const handleRejectClick = () => {
+    setModalType('reject');
+    setComment('');
+    setIsModalOpen(true);
+  };
+
+  // 취소 버튼 클릭 (이미 승인한 사람)
+  const handleCancelClick = () => {
+    setModalType('cancel');
+    setComment('');
+    setIsModalOpen(true);
+  };
+
+  // 모달 제출 핸들러
+  const handleModalSubmit = () => {
+    if (!comment.trim()) {
+      alert('사유를 입력해주세요.');
+      return;
+    }
+
+    const actionText = modalType === 'reject' ? '반려' : '취소';
     setApprovalLoading(true);
-    setApprovalMessage('반려 처리 중...');
+    setApprovalMessage(`${actionText} 처리 중...`);
+
     // API 호출
     setTimeout(() => {
       setApprovalLoading(false);
-      setApprovalMessage('반려 완료되었습니다.');
+      setApprovalMessage(`${actionText} 완료되었습니다.`);
+      setIsModalOpen(false);
+      setComment('');
     }, 1500);
+  };
+
+  // 모달 닫기
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setComment('');
   };
 
   const isDark = theme.mode === 'dark';
 
+  // 모달 스타일
+  const modalStyles = {
+    backdrop: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999,
+    },
+    modal: {
+      backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
+      borderRadius: '12px',
+      padding: '24px',
+      width: '90%',
+      maxWidth: '500px',
+      boxShadow: isDark
+        ? '0 8px 32px rgba(0, 0, 0, 0.5)'
+        : '0 8px 32px rgba(0, 0, 0, 0.15)',
+      maxHeight: '90vh',
+      overflowY: 'auto',
+    },
+    header: {
+      fontSize: '20px',
+      fontWeight: '600',
+      marginBottom: '20px',
+      color: theme.colors.text,
+      borderBottom: `1px solid ${theme.colors.border}`,
+      paddingBottom: '12px',
+    },
+    label: {
+      display: 'block',
+      fontSize: '14px',
+      fontWeight: '500',
+      marginBottom: '8px',
+      color: theme.colors.text,
+    },
+    select: {
+      width: '100%',
+      padding: '10px 12px',
+      borderRadius: '6px',
+      border: `1px solid ${theme.colors.border}`,
+      backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
+      color: theme.colors.text,
+      fontSize: '14px',
+      marginBottom: '16px',
+      outline: 'none',
+    },
+    textarea: {
+      width: '100%',
+      minHeight: '120px',
+      padding: '12px',
+      borderRadius: '6px',
+      border: `1px solid ${theme.colors.border}`,
+      backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
+      color: theme.colors.text,
+      fontSize: '14px',
+      marginBottom: '20px',
+      resize: 'vertical',
+      fontFamily: 'inherit',
+      outline: 'none',
+    },
+    buttonGroup: {
+      display: 'flex',
+      gap: '12px',
+      justifyContent: 'flex-end',
+    },
+    cancelButton: {
+      padding: '10px 20px',
+      borderRadius: '6px',
+      border: `1px solid ${theme.colors.border}`,
+      backgroundColor: 'transparent',
+      color: theme.colors.text,
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+    },
+    submitButton: {
+      padding: '10px 20px',
+      borderRadius: '6px',
+      border: 'none',
+      backgroundColor: '#ef5350',
+      color: '#ffffff',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+    },
+    cancelOrRejectButton: {
+      padding: '6px 12px',
+      borderRadius: '6px',
+      border: `1px solid ${theme.colors.border}`,
+      backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5',
+      color: theme.colors.text,
+      fontSize: '12px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      marginTop: '8px',
+    },
+  };
+
   return (
     <div style={styles.container}>
+      {/* 모달 */}
+      {isModalOpen && (
+        <div style={modalStyles.backdrop} onClick={handleModalClose}>
+          <div style={modalStyles.modal} onClick={(e) => e.stopPropagation()}>
+            <div style={modalStyles.header}>
+              {modalType === 'reject' ? '반려 사유 입력' : '취소 사유 입력'}
+            </div>
+
+            <label style={modalStyles.label}>
+              {modalType === 'reject' ? '반려 사유' : '취소 사유'}
+            </label>
+            <textarea
+              style={modalStyles.textarea}
+              placeholder="사유를 입력하세요..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              autoFocus
+            />
+
+            <div style={modalStyles.buttonGroup}>
+              <button
+                style={modalStyles.cancelButton}
+                onClick={handleModalClose}
+              >
+                닫기
+              </button>
+              <button
+                style={modalStyles.submitButton}
+                onClick={handleModalSubmit}
+              >
+                {modalType === 'reject' ? '반려' : '취소'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 타임라인 */}
       <div style={styles.timelineCard}>
         <h3 style={styles.timelineTitle}>작업 타임라인</h3>
@@ -185,43 +348,6 @@ export default function TaskDetail() {
           })}
         </div>
       </div>
-
-      {/* 취소/반려 알림 박스 */}
-      {(approval?.rejectionReason || approval?.cancellationReason) && (
-        <div
-          style={styles.alertBox(
-            approval?.rejectionReason ? 'rejected' : 'cancelled',
-          )}
-        >
-          <div style={styles.alertHeader}>
-            <span style={styles.alertIcon}>
-              {approval?.rejectionReason ? '❌' : '⚠️'}
-            </span>
-            <span style={styles.alertTitle}>
-              {approval?.rejectionReason ? '반려됨' : '작업 취소'}
-            </span>
-          </div>
-          <div style={styles.alertBody}>
-            <div style={styles.alertInfo}>
-              {
-                (approval?.rejectionReason || approval?.cancellationReason)
-                  ?.actor
-              }{' '}
-              ·{' '}
-              {
-                (approval?.rejectionReason || approval?.cancellationReason)
-                  ?.processedAt
-              }
-            </div>
-            <div style={styles.alertReason}>
-              {
-                (approval?.rejectionReason || approval?.cancellationReason)
-                  ?.reason
-              }
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 메인 컨텐츠 - 좌우 레이아웃 */}
       <div style={styles.mainContentWrapper}>
@@ -300,9 +426,7 @@ export default function TaskDetail() {
                                 fontSize: '12px',
                                 color: theme.colors.textSecondary,
                               }}
-                            >
-                              ({planInfo.risk.score}/100)
-                            </span>
+                            ></span>
                           </span>
                         </div>
 
@@ -427,30 +551,43 @@ export default function TaskDetail() {
                         </div>
                       </div>
 
-                      {/* 승인/반려 버튼 - 상세 정보 맨 아래 */}
-                      {approval?.canApprove && taskItem.stage === '계획서' && (
+                      {/* 승인/반려/취소 버튼 - 상세 정보 맨 아래 */}
+                      {(approval?.canApprove || approval?.canCancel) && (
                         <div style={styles.detailApprovalButtons}>
                           {approvalMessage && (
                             <div style={styles.approvalMessage}>
                               {approvalMessage}
                             </div>
                           )}
-                          <div style={styles.detailApprovalButtonWrapper}>
-                            <button
-                              style={styles.detailApproveButton}
-                              onClick={handleApprove}
-                              disabled={approvalLoading}
-                            >
-                              ✓ 승인
-                            </button>
-                            <button
-                              style={styles.detailRejectButton}
-                              onClick={handleReject}
-                              disabled={approvalLoading}
-                            >
-                              ✕ 반려
-                            </button>
-                          </div>
+                          {approval?.canApprove && (
+                            <div style={styles.detailApprovalButtonWrapper}>
+                              <button
+                                style={styles.detailApproveButton}
+                                onClick={handleApprove}
+                                disabled={approvalLoading}
+                              >
+                                ✓ 승인
+                              </button>
+                              <button
+                                style={styles.detailRejectButton}
+                                onClick={handleRejectClick}
+                                disabled={approvalLoading}
+                              >
+                                ✕ 반려
+                              </button>
+                            </div>
+                          )}
+                          {approval?.canCancel && (
+                            <div style={styles.detailApprovalButtonWrapper}>
+                              <button
+                                style={styles.detailRejectButton}
+                                onClick={handleCancelClick}
+                                disabled={approvalLoading}
+                              >
+                                ⚠️ 취소
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

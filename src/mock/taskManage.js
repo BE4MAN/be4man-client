@@ -15,7 +15,7 @@ const mockData = [
       type: 'Feature',
       environment: 'PROD',
       impact: '중간',
-      risk: { level: '중간', score: 58 },
+      risk: { level: '중간' },
       assignee: '정서진',
       draftDate: '2025-08-12',
       deploymentDateTime: {
@@ -216,7 +216,7 @@ const mockData = [
       type: 'Feature',
       environment: 'PROD',
       impact: '중간',
-      risk: { level: '중간', score: 62 },
+      risk: { level: '중간' },
       assignee: '이준호',
       draftDate: '2025-08-13',
       deploymentDateTime: {
@@ -335,7 +335,7 @@ const mockData = [
       type: 'Update',
       environment: 'PROD',
       impact: '높음',
-      risk: { level: '높음', score: 85 },
+      risk: { level: '높음' },
       assignee: '김석주',
       draftDate: '2025-08-13',
       deploymentDateTime: {
@@ -443,7 +443,7 @@ const mockData = [
       type: 'Update',
       environment: 'PROD',
       impact: '중간',
-      risk: { level: '중간', score: 60 },
+      risk: { level: '중간' },
       assignee: '임영준',
       draftDate: '2025-08-14',
       deploymentDateTime: {
@@ -573,7 +573,7 @@ const mockData = [
       type: 'Feature',
       environment: 'PROD',
       impact: '중간',
-      risk: { level: '중간', score: 65 },
+      risk: { level: '중간' },
       assignee: '강명수',
       draftDate: '2025-08-14',
       deploymentDateTime: {
@@ -707,7 +707,7 @@ const mockData = [
       type: 'Update',
       environment: 'PROD',
       impact: '중간',
-      risk: { level: '낮음', score: 45 },
+      risk: { level: '낮음' },
       assignee: '한동준',
       draftDate: '2025-08-15',
       deploymentDateTime: {
@@ -823,7 +823,7 @@ const mockData = [
       type: 'Maintenance',
       environment: 'PROD',
       impact: '낮음',
-      risk: { level: '낮음', score: 30 },
+      risk: { level: '낮음' },
       assignee: '최준우',
       draftDate: '2025-08-13',
       deploymentDateTime: {
@@ -942,7 +942,7 @@ const mockData = [
       type: 'Upgrade',
       environment: 'PROD',
       impact: '높음',
-      risk: { level: '중간', score: 65 },
+      risk: { level: '중간' },
       assignee: '이준호',
       draftDate: '2025-08-12',
       deploymentDateTime: {
@@ -993,7 +993,7 @@ const mockData = [
           order: 2,
         },
         {
-          approver: '나(현재 사용자)',
+          approver: '허팀장',
           department: '품질보증팀',
           role: '팀장',
           email: 'current.user@company.com',
@@ -1006,7 +1006,7 @@ const mockData = [
       ],
       pendingApprovers: [],
       nextApprover: {
-        name: '나(현재 사용자)',
+        name: '허팀장',
         order: 3,
         email: 'current.user@company.com',
         phone: '02-1234-8030',
@@ -1020,6 +1020,222 @@ const mockData = [
 
     timeline: [
       { step: '작업 신청', status: '완료', time: '2025-08-12 14:00' },
+      { step: '작업 승인', status: '진행중', time: null },
+      { step: '배포 시작', status: '', time: null, disabled: true },
+      { step: '배포 종료', status: '', time: null, disabled: true },
+      { step: '결과 보고', status: '', time: null, disabled: true },
+      { step: '결과 승인', status: '', time: null, disabled: true },
+    ],
+  },
+
+  // ========== 11. 계획서 단계 - 2번째 승인자가 취소, 3번째 대기 중 ==========
+  {
+    id: 513,
+    drafter: '김민수',
+    department: '개발11팀',
+    serviceName: 'API Gateway',
+    taskTitle: 'API Gateway 보안 강화',
+    stage: '계획서',
+    status: '취소',
+    completionTime: '2025-08-16 16:30',
+    result: null,
+
+    planInfo: {
+      type: 'Security',
+      environment: 'PROD',
+      impact: '중간',
+      risk: { level: '중간' },
+      assignee: '김민수',
+      draftDate: '2025-08-16',
+      deploymentDateTime: {
+        start: '2025-08-17 10:00',
+        end: '2025-08-17 12:00',
+      },
+    },
+
+    detailInfo: {
+      overview: 'API Gateway 보안 정책 강화 및 인증 개선',
+      goals: ['보안 취약점 해결', '인증 강화', 'API 접근 제어 개선'],
+      schedule: { start: '2025-08-17 10:00', end: '2025-08-17 12:00' },
+      assignees: [{ name: '김민수', role: '개발자', department: '개발11팀' }],
+      activities: ['보안 패치 적용', '인증 모듈 업데이트', '테스트'],
+      risks: [
+        {
+          description: 'API 접근 차단 위험',
+          mitigation: '단계별 배포 및 모니터링',
+        },
+      ],
+      backupPlan: '이전 버전 유지',
+      recoveryPlan: ['즉시 롤백', 'API 재시작'],
+    },
+
+    approval: {
+      canApprove: false,
+      planApprovalHistory: [
+        {
+          approver: '이팀장',
+          department: '개발11팀',
+          role: '팀장',
+          email: 'lee.gateway@company.com',
+          phone: '02-1234-7035',
+          status: '승인',
+          approvedAt: '2025-08-16 14:00',
+          comment: '보안 정책 검토 완료.',
+          order: 1,
+        },
+        {
+          approver: '박개발리더',
+          department: '보안팀',
+          role: '개발리더',
+          email: 'park.security@company.com',
+          phone: '02-1234-7036',
+          status: '취소',
+          approvedAt: '2025-08-16 15:00',
+          cancelledAt: '2025-08-16 16:30',
+          comment:
+            '보안 정책 재검토 필요. 추가 취약점 발견으로 인한 계획 수정 요청.',
+          order: 2,
+        },
+        {
+          approver: '최이사',
+          department: '개발본부',
+          role: '이사',
+          email: 'choi.director@company.com',
+          phone: '02-1234-7037',
+          status: '대기 중단',
+          approvedAt: null,
+          comment: null,
+          order: 3,
+        },
+      ],
+      pendingApprovers: [],
+      nextApprover: null,
+      reportApprovalHistory: [],
+
+      // 취소 이력
+      cancellationHistory: {
+        cancelledBy: '박개발리더',
+        department: '보안팀',
+        role: '개발리더',
+        email: 'park.security@company.com',
+        phone: '02-1234-7036',
+        cancelledAt: '2025-08-16 16:30',
+        reason:
+          '보안 정책 재검토 필요. 추가 취약점 발견으로 인한 계획 수정 요청.',
+        stage: '계획서 승인 단계',
+        type: 'MANUAL',
+      },
+    },
+
+    report: null,
+    jenkinsLog: null,
+
+    timeline: [
+      { step: '작업 신청', status: '완료', time: '2025-08-16 13:00' },
+      {
+        step: '작업 승인',
+        status: '취소',
+        time: '2025-08-16 16:30',
+        cancelled: true,
+        cancelledBy: '박개발리더',
+      },
+      { step: '배포 시작', status: '', time: null, disabled: true },
+      { step: '배포 종료', status: '', time: null, disabled: true },
+      { step: '결과 보고', status: '', time: null, disabled: true },
+      { step: '결과 승인', status: '', time: null, disabled: true },
+    ],
+  },
+
+  // ========== 12. 계획서 단계 - 2번째 승인자 승인 완료, 취소 버튼만 표시 ==========
+  {
+    id: 514,
+    drafter: '정서연',
+    department: '개발12팀',
+    serviceName: 'User Service',
+    taskTitle: '사용자 서비스 확장',
+    stage: '계획서',
+    status: '승인대기',
+    completionTime: null,
+    result: null,
+
+    planInfo: {
+      type: 'Feature',
+      environment: 'PROD',
+      impact: '중간',
+      risk: { level: '낮음' },
+      assignee: '정서연',
+      draftDate: '2025-08-16',
+      deploymentDateTime: {
+        start: '2025-08-17 14:00',
+        end: '2025-08-17 16:00',
+      },
+    },
+
+    detailInfo: {
+      overview: '사용자 서비스 확장 및 신규 기능 추가',
+      goals: ['사용자 프로필 기능 추가', '알림 시스템 개선'],
+      schedule: { start: '2025-08-17 14:00', end: '2025-08-17 16:00' },
+      assignees: [{ name: '정서연', role: '개발자', department: '개발12팀' }],
+      activities: ['프로필 모듈 개발', '알림 API 개선', '테스트'],
+      risks: [],
+      backupPlan: '이전 버전 유지',
+      recoveryPlan: ['롤백'],
+    },
+
+    approval: {
+      canApprove: false,
+      canCancel: true, // ✅ 2번째 승인자(현재 로그인 사용자)가 취소 가능
+      planApprovalHistory: [
+        {
+          approver: '송팀장',
+          department: '개발12팀',
+          role: '팀장',
+          email: 'song.user@company.com',
+          phone: '02-1234-7038',
+          status: '승인',
+          approvedAt: '2025-08-16 15:00',
+          comment: '기능 검토 완료.',
+          order: 1,
+        },
+        {
+          approver: '허팀장',
+          department: '개발본부',
+          role: '개발리더',
+          email: 'current.user@company.com',
+          phone: '02-1234-7039',
+          status: '승인',
+          approvedAt: '2025-08-16 15:30',
+          comment: '기술 검토 완료. 승인합니다.',
+          order: 2,
+        },
+        {
+          approver: '윤이사',
+          department: '개발본부',
+          role: '이사',
+          email: 'yoon.director@company.com',
+          phone: '02-1234-7040',
+          status: '승인 대기',
+          approvedAt: null,
+          comment: null,
+          order: 3,
+        },
+      ],
+      pendingApprovers: [],
+      nextApprover: {
+        name: '윤이사',
+        order: 3,
+        email: 'yoon.director@company.com',
+        phone: '02-1234-7040',
+        waitingTime: '15분',
+      },
+      reportApprovalHistory: [],
+    },
+
+    report: null,
+    jenkinsLog: null,
+
+    timeline: [
+      { step: '작업 신청', status: '완료', time: '2025-08-16 14:00' },
       { step: '작업 승인', status: '진행중', time: null },
       { step: '배포 시작', status: '', time: null, disabled: true },
       { step: '배포 종료', status: '', time: null, disabled: true },
