@@ -327,7 +327,7 @@ const mockData = [
     serviceName: 'Real-time Analytics',
     taskTitle: '실시간 분석 시스템 배포',
     stage: '배포',
-    status: '실패',
+    status: '완료',
     completionTime: '2025-08-14 15:45',
     result: '실패',
 
