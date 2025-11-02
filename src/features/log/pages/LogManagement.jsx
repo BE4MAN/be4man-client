@@ -120,7 +120,7 @@ export default function LogManagement() {
   const styles = getStyles(theme);
   const navigate = useNavigate();
 
-  const PAGE_SIZE = 9;
+  const PAGE_SIZE = 8;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
@@ -328,7 +328,7 @@ export default function LogManagement() {
               <label style={styles.filterLabel}>처리 상태</label>
               <CustomDropdown
                 label=""
-                options={['전체', '승인대기', '반려', '진행중', '취소', '완료']}
+                options={['전체', '승인대기', '진행중', '취소', '완료', '종료']}
                 value={filters.처리상태}
                 onChange={(val) => handleFilter('처리상태', val)}
               />

@@ -327,7 +327,7 @@ const mockData = [
     serviceName: 'Real-time Analytics',
     taskTitle: '실시간 분석 시스템 배포',
     stage: '배포',
-    status: '완료',
+    status: '종료',
     completionTime: '2025-08-14 15:45',
     result: '실패',
 
@@ -1021,124 +1021,6 @@ const mockData = [
     timeline: [
       { step: '작업 신청', status: '완료', time: '2025-08-12 14:00' },
       { step: '작업 승인', status: '진행중', time: null },
-      { step: '배포 시작', status: '', time: null, disabled: true },
-      { step: '배포 종료', status: '', time: null, disabled: true },
-      { step: '결과 보고', status: '', time: null, disabled: true },
-      { step: '결과 승인', status: '', time: null, disabled: true },
-    ],
-  },
-
-  // ========== 11. 계획서 단계 - 2번째 승인자가 취소, 3번째 대기 중 ==========
-  {
-    id: 513,
-    drafter: '김민수',
-    department: '개발11팀',
-    serviceName: 'API Gateway',
-    taskTitle: 'API Gateway 보안 강화',
-    stage: '계획서',
-    status: '취소',
-    completionTime: '2025-08-16 16:30',
-    result: null,
-
-    planInfo: {
-      type: 'Security',
-      environment: 'PROD',
-      impact: '중간',
-      risk: { level: '중간' },
-      assignee: '김민수',
-      draftDate: '2025-08-16',
-      deploymentDateTime: {
-        start: '2025-08-17 10:00',
-        end: '2025-08-17 12:00',
-      },
-    },
-
-    detailInfo: {
-      overview: 'API Gateway 보안 정책 강화 및 인증 개선',
-      goals: ['보안 취약점 해결', '인증 강화', 'API 접근 제어 개선'],
-      schedule: { start: '2025-08-17 10:00', end: '2025-08-17 12:00' },
-      assignees: [{ name: '김민수', role: '개발자', department: '개발11팀' }],
-      activities: ['보안 패치 적용', '인증 모듈 업데이트', '테스트'],
-      risks: [
-        {
-          description: 'API 접근 차단 위험',
-          mitigation: '단계별 배포 및 모니터링',
-        },
-      ],
-      backupPlan: '이전 버전 유지',
-      recoveryPlan: ['즉시 롤백', 'API 재시작'],
-    },
-
-    approval: {
-      canApprove: false,
-      planApprovalHistory: [
-        {
-          approver: '이팀장',
-          department: '개발11팀',
-          role: '팀장',
-          email: 'lee.gateway@company.com',
-          phone: '02-1234-7035',
-          status: '승인',
-          approvedAt: '2025-08-16 14:00',
-          comment: '보안 정책 검토 완료.',
-          order: 1,
-        },
-        {
-          approver: '박개발리더',
-          department: '보안팀',
-          role: '개발리더',
-          email: 'park.security@company.com',
-          phone: '02-1234-7036',
-          status: '취소',
-          approvedAt: '2025-08-16 15:00',
-          cancelledAt: '2025-08-16 16:30',
-          comment:
-            '보안 정책 재검토 필요. 추가 취약점 발견으로 인한 계획 수정 요청.',
-          order: 2,
-        },
-        {
-          approver: '최이사',
-          department: '개발본부',
-          role: '이사',
-          email: 'choi.director@company.com',
-          phone: '02-1234-7037',
-          status: '대기 중단',
-          approvedAt: null,
-          comment: null,
-          order: 3,
-        },
-      ],
-      pendingApprovers: [],
-      nextApprover: null,
-      reportApprovalHistory: [],
-
-      // 취소 이력
-      cancellationHistory: {
-        cancelledBy: '박개발리더',
-        department: '보안팀',
-        role: '개발리더',
-        email: 'park.security@company.com',
-        phone: '02-1234-7036',
-        cancelledAt: '2025-08-16 16:30',
-        reason:
-          '보안 정책 재검토 필요. 추가 취약점 발견으로 인한 계획 수정 요청.',
-        stage: '계획서 승인 단계',
-        type: 'MANUAL',
-      },
-    },
-
-    report: null,
-    jenkinsLog: null,
-
-    timeline: [
-      { step: '작업 신청', status: '완료', time: '2025-08-16 13:00' },
-      {
-        step: '작업 승인',
-        status: '취소',
-        time: '2025-08-16 16:30',
-        cancelled: true,
-        cancelledBy: '박개발리더',
-      },
       { step: '배포 시작', status: '', time: null, disabled: true },
       { step: '배포 종료', status: '', time: null, disabled: true },
       { step: '결과 보고', status: '', time: null, disabled: true },

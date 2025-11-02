@@ -337,8 +337,18 @@ export default function TaskDetail() {
                 <div
                   style={styles.timelineStepStatus(step.warning, step.rejected)}
                 >
-                  {step.status}
-                  {step.result && ` (${step.result})`}
+                  {/* 배포 종료 단계: "완료" → "종료", 결과 표시 */}
+                  {step.step === '배포종료' || step.step === '배포 종료' ? (
+                    <>
+                      {step.status === '완료' ? '종료' : step.status}
+                      {step.result && ` - ${step.result}`}
+                    </>
+                  ) : (
+                    <>
+                      {step.status}
+                      {step.result && ` (${step.result})`}
+                    </>
+                  )}
                   {step.comment && (
                     <div style={styles.timelineStepComment}>{step.comment}</div>
                   )}
@@ -1042,8 +1052,11 @@ function renderStepIcon(step, isLastStep, styles) {
     );
   }
 
-  // 배포 종료 단계는 result 속성을 확인
-  if (step.step === '배포 종료' && step.result === '성공') {
+  // 배포 종료 단계는 result 속성을 확인 (띄어쓰기 있는 것과 없는 것 모두 체크)
+  if (
+    (step.step === '배포종료' || step.step === '배포 종료') &&
+    step.result === '성공'
+  ) {
     return (
       <span style={styles.timelineIcon('completed', isLastStep)}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -1053,7 +1066,10 @@ function renderStepIcon(step, isLastStep, styles) {
     );
   }
 
-  if (step.step === '배포 종료' && step.result === '실패') {
+  if (
+    (step.step === '배포종료' || step.step === '배포 종료') &&
+    step.result === '실패'
+  ) {
     return (
       <span style={styles.timelineIcon('rejected', isLastStep)}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
