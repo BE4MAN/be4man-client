@@ -9,11 +9,15 @@ import ProtectedRoute from './ProtectedRoute';
 
 const AuthPage = lazy(() => import('@/features/auth/pages/AuthPage'));
 const AuthCallback = lazy(() => import('@/features/auth/pages/AuthCallback'));
-const DeployManagement = lazy(
-  () => import('@/features/deploy/pages/DeployManagement'),
-);
 const Dashboard = lazy(() => import('@/features/dashboard/pages/Dashboard'));
 const Task = lazy(() => import('@/features/log/pages/LogManagement'));
+const Approval = lazy(() => import('@/features/approval/pages/Approval'));
+const ApprovalFormPage = lazy(
+  () => import('@/features/approval/pages/ApprovalForm'),
+);
+const ApprovalDetailPage = lazy(
+  () => import('@/features/approval/pages/ApprovalDetail'),
+);
 
 const renderPlaceholder = (label) => (
   <div style={{ padding: 16, color: '#8B95A8' }}>{label} — Coming soon</div>
@@ -61,7 +65,24 @@ export const router = createBrowserRouter([
         path: PATHS.APPROVALS,
         element: (
           <Suspense fallback={<PageSkeleton />}>
-            <DeployManagement />
+            <Approval />
+          </Suspense>
+        ),
+      },
+
+      {
+        path: PATHS.APPROVAL_NEW,
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <ApprovalFormPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: PATHS.APPROVAL_DETAIL,
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <ApprovalDetailPage />
           </Suspense>
         ),
       },

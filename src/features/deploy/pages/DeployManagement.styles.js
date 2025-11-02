@@ -878,7 +878,6 @@ export const StatInfo = styled(CardBase)`
   }
 `;
 
-// 신청 화면 전용 바깥 래퍼: 사이드 없음, 한 칼럼 풀-높이
 export const ApplyShell = styled.div`
   display: grid;
   grid-template-columns: 1fr;
@@ -895,7 +894,6 @@ export const ApplyShell = styled.div`
   }
 `;
 
-// 신청 화면 전용 메인 영역(패딩/스크롤 등 기존 Main 톤 차용)
 export const ApplyMain = styled.main`
   display: block;
   min-height: 0;
@@ -949,7 +947,6 @@ export const ServiceWrap = styled.div`
   gap: 10px;
 `;
 
-/* ====== 폼 필드 공통 ====== */
 export const Field = styled.div`
   display: flex;
   flex-direction: column;
@@ -1012,7 +1009,6 @@ export const Textarea = styled.textarea`
   }
 `;
 
-/* react-datepicker를 Input 룩으로 감쌈(스코프드) */
 export const DateField = styled.div`
   .react-datepicker-wrapper,
   [class*='react-datepicker__input-container'] {
@@ -1039,7 +1035,7 @@ export const DateField = styled.div`
 export const TagWrap = styled.div`
   display: flex;
   flex-wrap: wrap;
-  align-content: flex-start; /* 여러 줄 묶음 정렬 */
+  align-content: flex-start;
   align-items: flex-start;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 10px;
@@ -1047,16 +1043,15 @@ export const TagWrap = styled.div`
   gap: 8px;
   padding: 10px;
   width: 100%;
-  min-width: 0; /* 컨테이너 수축 허용(overflow 방지) */
+  min-width: 0;
   overflow-x: hidden;
 `;
 
-/* 태그/칩, 버튼 */
 export const TagArea = styled.div`
   display: flex;
-  flex-wrap: wrap; /* ↓ 줄바꿈 */
+  flex-wrap: wrap;
   align-items: flex-start;
-  gap: 8px; /* 행/열 간격 */
+  gap: 8px;
   width: 100%;
   min-width: 0;
 `;
@@ -1072,10 +1067,10 @@ export const TagPill = styled.span`
   border: 1px solid ${({ theme }) => theme.colors.border};
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: 12px;
-  flex: 0 0 auto; /* 칩이 자기 크기만큼만 차지 → 다음 줄로 자연스레 */
-  max-width: 100%; /* 긴 텍스트가 있을 때 컨테이너 넘어가지 않게 */
-  white-space: nowrap; /* 칩 내부는 한 줄 유지 */
-  overflow: hidden; /* 너무 길면 ... 처리 */
+  flex: 0 0 auto;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
   text-overflow: ellipsis;
 
   button {

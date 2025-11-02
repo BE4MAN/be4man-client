@@ -61,7 +61,8 @@ export const Item = styled(NavLink)`
   }
 
   &.active,
-  &[aria-current='page'] {
+  &[aria-current='page'],
+  &[data-active='true'] {
     background: rgb(100 150 255 / 12%);
     color: ${({ theme }) => theme.colors.brand};
     font-weight: 500;
