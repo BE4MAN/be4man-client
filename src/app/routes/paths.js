@@ -8,5 +8,6 @@ export const PATHS = {
   APPROVAL_DETAIL: '/approval/:id',
   SCHEDULE: '/schedule',
   TASKS: '/tasks',
+  TASK_DETAIL: '/tasks/:id',
   ANALYTICS: '/analytics',
 };

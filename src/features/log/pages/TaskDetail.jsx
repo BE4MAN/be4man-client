@@ -1,0 +1,1054 @@
+import { useTheme } from '@emotion/react';
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
+
+import mockData from '../../../mock/taskManage';
+
+import { getStyles } from './TaskDetail.style';
+
+export default function TaskDetail() {
+  const theme = useTheme();
+  const styles = getStyles(theme);
+  const { id } = useParams();
+
+  const taskItem = mockData.find((item) => item.id === parseInt(id, 10));
+
+  // 단계별 초기 탭 결정
+  const getInitialTab = () => {
+    if (!taskItem) return 'plan';
+    if (taskItem.stage === '계획서') return 'plan';
+    if (taskItem.stage === '배포') return 'jenkins';
+    if (taskItem.stage === '결과보고') return 'report';
+    return 'plan';
+  };
+
+  // 탭 상태 관리
+  const [activeTab, setActiveTab] = useState(getInitialTab());
+  const [approvalLoading, setApprovalLoading] = useState(false);
+  const [approvalMessage, setApprovalMessage] = useState('');
+
+  if (!taskItem) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.notFound}>작업을 찾을 수 없습니다.</div>
+      </div>
+    );
+  }
+
+  const { planInfo, detailInfo, approval, jenkinsLog, report } = taskItem;
+
+  // 계획서 상태 판별 함수
+  const getPlanApprovalStatus = () => {
+    // 배포 또는 레포트 단계에 있으면 계획서는 무조건 승인 완료
+    if (taskItem.stage === '배포' || taskItem.stage === '결과보고') {
+      return '승인';
+    }
+
+    // 계획서 단계일 때는 실제 상태 반환
+    return taskItem.status;
+  };
+
+  // 탭 활성화 여부 결정
+  const isTabEnabled = (tabName) => {
+    if (taskItem.stage === '계획서') {
+      return tabName === 'plan'; // 계획서만 활성화
+    }
+    if (taskItem.stage === '배포') {
+      return tabName !== 'report'; // 레포트만 비활성화
+    }
+    if (taskItem.stage === '결과보고') {
+      return true; // 모든 탭 활성화
+    }
+    return tabName === 'plan'; // 기본값
+  };
+
+  const getRiskEmoji = (level) => {
+    switch (level) {
+      case '높음':
+        return '🔴';
+      case '중간':
+        return '🟡';
+      case '낮음':
+        return '🟢';
+      default:
+        return '⚪';
+    }
+  };
+
+  //   const getImpactEmoji = (level) => {
+  //     switch (level) {
+  //       case '높음':
+  //         return '⚠️';
+  //       case '중간':
+  //         return '⚡';
+  //       case '낮음':
+  //         return '✓';
+  //       default:
+  //         return '○';
+  //     }
+  //   };
+
+  // 승인/거절 핸들러
+  const handleApprove = async () => {
+    setApprovalLoading(true);
+    setApprovalMessage('승인 처리 중...');
+    // API 호출
+    setTimeout(() => {
+      setApprovalLoading(false);
+      setApprovalMessage('승인 완료되었습니다.');
+    }, 1500);
+  };
+
+  const handleReject = async () => {
+    setApprovalLoading(true);
+    setApprovalMessage('반려 처리 중...');
+    // API 호출
+    setTimeout(() => {
+      setApprovalLoading(false);
+      setApprovalMessage('반려 완료되었습니다.');
+    }, 1500);
+  };
+
+  const isDark = theme.mode === 'dark';
+
+  return (
+    <div style={styles.container}>
+      {/* 타임라인 */}
+      <div style={styles.timelineCard}>
+        <h3 style={styles.timelineTitle}>작업 타임라인</h3>
+        <div style={styles.timelineWrapper}>
+          {taskItem.timeline.map((step, index) => {
+            const isLastStep = index === taskItem.timeline.length - 1;
+            const nextStep = !isLastStep ? taskItem.timeline[index + 1] : null;
+
+            const shouldShowLine =
+              !isLastStep &&
+              nextStep &&
+              !nextStep.disabled &&
+              nextStep.status !== '대기';
+
+            // 라인 색상은 현재 단계의 완료 상태를 기반으로 결정
+            const getLineColor = () => {
+              const currentStatus = step.status;
+
+              // 현재 단계가 실패한 경우 (rejected 플래그 사용)
+              if (step.rejected || currentStatus === '취소') {
+                return isDark ? '#ef5350' : '#f44336';
+              }
+
+              // 현재 단계가 완료/승인/성공인 경우
+              if (
+                currentStatus === '완료' ||
+                currentStatus === '승인' ||
+                currentStatus === '성공' ||
+                currentStatus === '작성완료'
+              ) {
+                return isDark ? '#4caf50' : '#66bb6a'; // 초록색
+              }
+
+              // 진행중인 경우
+              if (currentStatus === '진행중') {
+                return isDark ? '#ffa726' : '#ff9800'; // 노란색
+              }
+
+              // 기본 (대기 상태)
+              return isDark ? '#424242' : '#e0e0e0';
+            };
+
+            return (
+              <div key={index} style={styles.timelineStep(step.disabled)}>
+                <div style={styles.timelineIconWrapper}>
+                  {renderStepIcon(step, isLastStep, styles, theme)}
+
+                  {shouldShowLine && (
+                    <div style={styles.timelineLine(getLineColor())} />
+                  )}
+                </div>
+
+                <div style={styles.timelineStepName}>{step.step}</div>
+
+                <div style={styles.timelineStepTime}>
+                  {step.time || <span>-</span>}
+                </div>
+
+                <div
+                  style={styles.timelineStepStatus(step.warning, step.rejected)}
+                >
+                  {step.status}
+                  {step.result && ` (${step.result})`}
+                  {step.comment && (
+                    <div style={styles.timelineStepComment}>{step.comment}</div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 취소/반려 알림 박스 */}
+      {(approval?.rejectionReason || approval?.cancellationReason) && (
+        <div
+          style={styles.alertBox(
+            approval?.rejectionReason ? 'rejected' : 'cancelled',
+          )}
+        >
+          <div style={styles.alertHeader}>
+            <span style={styles.alertIcon}>
+              {approval?.rejectionReason ? '❌' : '⚠️'}
+            </span>
+            <span style={styles.alertTitle}>
+              {approval?.rejectionReason ? '반려됨' : '작업 취소'}
+            </span>
+          </div>
+          <div style={styles.alertBody}>
+            <div style={styles.alertInfo}>
+              {
+                (approval?.rejectionReason || approval?.cancellationReason)
+                  ?.actor
+              }{' '}
+              ·{' '}
+              {
+                (approval?.rejectionReason || approval?.cancellationReason)
+                  ?.processedAt
+              }
+            </div>
+            <div style={styles.alertReason}>
+              {
+                (approval?.rejectionReason || approval?.cancellationReason)
+                  ?.reason
+              }
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 메인 컨텐츠 - 좌우 레이아웃 */}
+      <div style={styles.mainContentWrapper}>
+        {/* 왼쪽: 계획서 카드 (서브 탭 포함) */}
+        <div style={styles.leftContent}>
+          <div style={styles.planCard}>
+            {/* 서브 탭 */}
+            <div style={styles.subTabContainer}>
+              <button
+                style={styles.subTabButton(
+                  activeTab === 'plan',
+                  isTabEnabled('plan'),
+                )}
+                onClick={() => isTabEnabled('plan') && setActiveTab('plan')}
+                disabled={!isTabEnabled('plan')}
+              >
+                계획서
+              </button>
+              <button
+                style={styles.subTabButton(
+                  activeTab === 'jenkins',
+                  isTabEnabled('jenkins'),
+                )}
+                onClick={() =>
+                  isTabEnabled('jenkins') && setActiveTab('jenkins')
+                }
+                disabled={!isTabEnabled('jenkins')}
+              >
+                Jenkins
+              </button>
+              <button
+                style={styles.subTabButton(
+                  activeTab === 'report',
+                  isTabEnabled('report'),
+                )}
+                onClick={() => isTabEnabled('report') && setActiveTab('report')}
+                disabled={!isTabEnabled('report')}
+              >
+                결과 보고
+              </button>
+            </div>
+
+            {/* 탭 컨텐츠 */}
+            <div style={styles.tabContentWrapper}>
+              {activeTab === 'plan' && (
+                <>
+                  {/* 기본 정보 카드 */}
+                  <div style={styles.planCard}>
+                    <div style={styles.planHeader}>
+                      <span style={styles.planIcon}></span>
+                      <h2 style={styles.planTitle}>작업 정보</h2>
+                    </div>
+                    <div style={styles.planBody}>
+                      <div style={styles.infoGrid}>
+                        <div style={styles.infoItem}>
+                          <span style={styles.infoLabel}>작업명</span>
+                          <span style={styles.infoValue}>
+                            {taskItem.taskTitle}
+                          </span>
+                        </div>
+
+                        <div style={styles.infoItem}>
+                          <span style={styles.infoLabel}>서비스명</span>
+                          <span style={styles.infoValue}>
+                            {taskItem.serviceName}
+                          </span>
+                        </div>
+
+                        <div style={styles.infoItem}>
+                          <span style={styles.infoLabel}>위험도</span>
+                          <span style={styles.infoValue}>
+                            {getRiskEmoji(planInfo.risk.level)}{' '}
+                            {planInfo.risk.level}
+                            <span
+                              style={{
+                                fontSize: '12px',
+                                color: theme.colors.textSecondary,
+                              }}
+                            >
+                              ({planInfo.risk.score}/100)
+                            </span>
+                          </span>
+                        </div>
+
+                        <div style={styles.infoItem}>
+                          <span style={styles.infoLabel}>기안자</span>
+                          <span style={styles.infoValue}>
+                            {taskItem.drafter} ({taskItem.department})
+                          </span>
+                        </div>
+
+                        <div style={styles.infoItem}>
+                          <span style={styles.infoLabel}>기안일자</span>
+                          <span style={styles.infoValue}>
+                            {planInfo.draftDate}
+                          </span>
+                        </div>
+
+                        <div style={styles.infoItem}>
+                          <span style={styles.infoLabel}>배포 시작</span>
+                          <span style={styles.infoValue}>
+                            {planInfo.deploymentDateTime.start}
+                          </span>
+                        </div>
+
+                        <div style={styles.infoItem}>
+                          <span style={styles.infoLabel}>배포 종료</span>
+                          <span style={styles.infoValue}>
+                            {planInfo.deploymentDateTime.end.split(' ')[1]}
+                          </span>
+                        </div>
+
+                        <div style={styles.infoItem}>
+                          <span style={styles.infoLabel}>계획서 상태</span>
+                          <span
+                            style={styles.statusBadge(getPlanApprovalStatus())}
+                          >
+                            {getPlanApprovalStatus()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 상세 정보 카드 */}
+                  <div style={styles.planCard}>
+                    <div style={styles.planHeader}>
+                      <span style={styles.planIcon}></span>
+                      <h2 style={styles.planTitle}>상세 정보</h2>
+                    </div>
+
+                    <div style={styles.planBody}>
+                      <div style={styles.detailSection}>
+                        <div style={styles.detailItem}>
+                          <span style={styles.detailLabel}>1. 개요</span>
+                          <p style={styles.detailText}>{detailInfo.overview}</p>
+                        </div>
+
+                        <div style={styles.detailItem}>
+                          <span style={styles.detailLabel}>2. 목표</span>
+                          <ul style={styles.detailList}>
+                            {detailInfo.goals?.map((goal, idx) => (
+                              <li key={idx} style={styles.detailListItem}>
+                                {goal}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div style={styles.detailItem}>
+                          <span style={styles.detailLabel}>3. 일정</span>
+                          <p style={styles.detailText}>
+                            {detailInfo.schedule?.start} ~{' '}
+                            {detailInfo.schedule?.end}
+                          </p>
+                        </div>
+
+                        <div style={styles.detailItem}>
+                          <span style={styles.detailLabel}>4. 수행 내용</span>
+                          <ul style={styles.detailList}>
+                            {detailInfo.activities?.map((activity, idx) => (
+                              <li key={idx} style={styles.detailListItem}>
+                                {activity}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div style={styles.detailItem}>
+                          <span style={styles.detailLabel}>5. 리스크</span>
+                          <div style={styles.riskList}>
+                            {detailInfo.risks?.map((risk, idx) => (
+                              <div key={idx} style={styles.riskItem}>
+                                <p style={styles.riskDescription}>
+                                  <strong>문제:</strong> {risk.description}
+                                </p>
+                                <p style={styles.riskMitigation}>
+                                  <strong>대응:</strong> {risk.mitigation}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div style={styles.detailItem}>
+                          <span style={styles.detailLabel}>6. 백업 계획</span>
+                          <p style={styles.detailText}>
+                            {detailInfo.backupPlan}
+                          </p>
+                        </div>
+
+                        <div style={styles.detailItem}>
+                          <span style={styles.detailLabel}>
+                            7. 실패 시 복구 방안
+                          </span>
+                          <ul style={styles.detailList}>
+                            {detailInfo.recoveryPlan?.map((plan, idx) => (
+                              <li key={idx} style={styles.detailListItem}>
+                                {plan}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* 승인/반려 버튼 - 상세 정보 맨 아래 */}
+                      {approval?.canApprove && taskItem.stage === '계획서' && (
+                        <div style={styles.detailApprovalButtons}>
+                          {approvalMessage && (
+                            <div style={styles.approvalMessage}>
+                              {approvalMessage}
+                            </div>
+                          )}
+                          <div style={styles.detailApprovalButtonWrapper}>
+                            <button
+                              style={styles.detailApproveButton}
+                              onClick={handleApprove}
+                              disabled={approvalLoading}
+                            >
+                              ✓ 승인
+                            </button>
+                            <button
+                              style={styles.detailRejectButton}
+                              onClick={handleReject}
+                              disabled={approvalLoading}
+                            >
+                              ✕ 반려
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {activeTab === 'jenkins' && jenkinsLog && (
+                <>
+                  {/* Pipeline 단계 */}
+                  <div style={styles.planCard}>
+                    <div style={styles.planHeader}>
+                      <span style={styles.planIcon}></span>
+                      <h2 style={styles.planTitle}>Pipeline</h2>
+                    </div>
+                    <div style={styles.planBody}>
+                      <div style={styles.pipelineContainer}>
+                        {jenkinsLog.pipeline?.map((stage, idx) => (
+                          <React.Fragment key={idx}>
+                            <div style={styles.pipelineStage}>
+                              <div
+                                style={styles.pipelineStageIcon(stage.status)}
+                              >
+                                {renderPipelineIcon(stage.status)}
+                              </div>
+                              <div style={styles.pipelineStageName}>
+                                {stage.name}
+                              </div>
+                            </div>
+                            {idx < jenkinsLog.pipeline.length - 1 && (
+                              <div style={styles.pipelineLine} />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stats 정보 */}
+                  <div style={styles.planCard}>
+                    <div style={styles.planHeader}>
+                      <span style={styles.planIcon}></span>
+                      <h2 style={styles.planTitle}>Stats</h2>
+                    </div>
+                    <div style={styles.planBody}>
+                      <div style={styles.statsGrid}>
+                        <div style={styles.statsItem}>
+                          <div style={styles.statsIcon}>✓</div>
+                          <div style={styles.statsContent}>
+                            <div style={styles.statsLabel}>빌드 상태</div>
+                            <div style={styles.statsValue(jenkinsLog.status)}>
+                              {jenkinsLog.status}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={styles.statsItem}>
+                          <div style={styles.statsIcon}></div>
+                          <div style={styles.statsContent}>
+                            <div style={styles.statsLabel}>빌드 소요 시간</div>
+                            <div style={styles.statsValue()}>
+                              {jenkinsLog.duration || '-'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {jenkinsLog.branch && (
+                          <div style={styles.statsItem}>
+                            <div style={styles.statsIcon}></div>
+                            <div style={styles.statsContent}>
+                              <div style={styles.statsLabel}>브랜치</div>
+                              <div style={styles.statsValue()}>
+                                {jenkinsLog.branch}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {jenkinsLog.pr && (
+                          <div style={styles.statsItem}>
+                            <div style={styles.statsIcon}></div>
+                            <div style={styles.statsContent}>
+                              <div style={styles.statsLabel}>배포된 PR</div>
+                              <div style={styles.statsValue()}>
+                                {jenkinsLog.pr}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Console Output */}
+                  <div style={styles.planCard}>
+                    <div style={styles.planHeader}>
+                      <span style={styles.planIcon}></span>
+                      <h2 style={styles.planTitle}>
+                        Build #{jenkinsLog.buildNumber} Console Output
+                      </h2>
+                    </div>
+                    <div style={styles.planBody}>
+                      <div style={styles.consoleHeader}>
+                        <span style={styles.consoleTitle}>Console</span>
+                        <div style={styles.consoleActions}>
+                          <button style={styles.consoleButton}>
+                            ⬇ Download
+                          </button>
+                          <button style={styles.consoleButton}>
+                            ⛶ Fullscreen
+                          </button>
+                        </div>
+                      </div>
+                      <div style={styles.consoleOutput}>
+                        {jenkinsLog.logs?.map((log, idx) => (
+                          <div key={idx} style={styles.consoleLine}>
+                            <span style={styles.consoleTime}>[{log.time}]</span>
+                            <span style={styles.consoleLevel(log.level)}>
+                              [{log.level}]
+                            </span>
+                            <span style={styles.consoleMessage}>
+                              {log.message}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 문제 요약 */}
+                  {jenkinsLog.errorSummary && (
+                    <div style={styles.planCard}>
+                      <div style={styles.planHeader}>
+                        <span style={styles.planIcon}></span>
+                        <h2 style={styles.planTitle}>문제 요약</h2>
+                      </div>
+                      <div style={styles.planBody}>
+                        <div style={styles.issuesSummary}>
+                          <p style={styles.issuesText}>
+                            {jenkinsLog.errorSummary}
+                          </p>
+                          {jenkinsLog.issueDetails && (
+                            <div style={styles.issuesDetails}>
+                              <h4 style={styles.issuesDetailsTitle}>
+                                주요 에러내역
+                              </h4>
+                              <ul style={styles.issuesList}>
+                                {jenkinsLog.issueDetails.map((issue, idx) => (
+                                  <li key={idx} style={styles.issuesListItem}>
+                                    {issue}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {activeTab === 'report' && report && (
+                <div style={styles.planCard}>
+                  <div style={styles.planHeader}>
+                    <span style={styles.planIcon}></span>
+                    <h2 style={styles.planTitle}>결과 보고</h2>
+                  </div>
+                  <div style={styles.planBody}>
+                    <div style={styles.reportSection}>
+                      <h3 style={styles.reportSectionTitle}>요약</h3>
+                      <p style={styles.reportText}>{report.summary}</p>
+                    </div>
+
+                    {report.performanceMetrics && (
+                      <div style={styles.reportSection}>
+                        <h3 style={styles.reportSectionTitle}>성능 지표</h3>
+                        <div style={styles.reportMetricsGrid}>
+                          <div style={styles.reportMetricItem}>
+                            <span style={styles.reportMetricLabel}>이전</span>
+                            <span style={styles.reportMetricValue}>
+                              {report.performanceMetrics.before}
+                            </span>
+                          </div>
+                          <div style={styles.reportMetricItem}>
+                            <span style={styles.reportMetricLabel}>현재</span>
+                            <span style={styles.reportMetricValue}>
+                              {report.performanceMetrics.after}
+                            </span>
+                          </div>
+                          <div style={styles.reportMetricItem}>
+                            <span style={styles.reportMetricLabel}>개선율</span>
+                            <span style={styles.reportMetricImprovement}>
+                              {report.performanceMetrics.improvement}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {report.issuesFound && report.issuesFound.length > 0 && (
+                      <div style={styles.reportSection}>
+                        <h3 style={styles.reportSectionTitle}>발견된 이슈</h3>
+                        <ul style={styles.reportList}>
+                          {report.issuesFound.map((issue, idx) => (
+                            <li key={idx} style={styles.reportListItem}>
+                              {issue}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {report.nextSteps && report.nextSteps.length > 0 && (
+                      <div style={styles.reportSection}>
+                        <h3 style={styles.reportSectionTitle}>다음 단계</h3>
+                        <ul style={styles.reportList}>
+                          {report.nextSteps.map((step, idx) => (
+                            <li key={idx} style={styles.reportListItem}>
+                              {step}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 오른쪽: 승인 정보 */}
+        <div style={styles.approvalSidebarFull}>
+          <div style={styles.sidebarHeader}>
+            <h3 style={styles.sidebarTitle}>승인 정보</h3>
+          </div>
+
+          {/* 승인자 리스트 */}
+          <div style={styles.approvalListContainer}>
+            {(() => {
+              let approvalHistory = [];
+              let nextApprover = null;
+
+              if (activeTab === 'report') {
+                approvalHistory = approval?.reportApprovalHistory || [];
+                nextApprover = approval?.nextReportApprover || null;
+              } else {
+                approvalHistory = approval?.planApprovalHistory || [];
+                nextApprover = approval?.nextApprover || null;
+              }
+
+              const pendingApprovers =
+                activeTab === 'report' ? [] : approval?.pendingApprovers || [];
+
+              // ✅ 수정: 모든 승인자 리스트 구성
+              let allApprovers = [
+                ...approvalHistory.map((h) => ({
+                  ...h,
+                  name: h.approver,
+                  isPending: false,
+                })),
+                ...pendingApprovers.map((p) => ({
+                  ...p,
+                  isPending: true,
+                })),
+              ].sort((a, b) => a.order - b.order);
+
+              // ✅ 수정: cancellationReason과 cancellationDetails를 함께 사용
+              if (
+                (approval?.cancellationReason ||
+                  approval?.cancellationDetails) &&
+                activeTab !== 'report' &&
+                taskItem.status === '취소'
+              ) {
+                // cancellationDetails가 있으면 사용, 없으면 cancellationReason에서 파싱
+                const cancellationInfo = approval?.cancellationDetails || {
+                  cancelledBy: approval?.cancellationReason?.actor
+                    ?.split('(')[0]
+                    .trim(),
+                  department:
+                    approval?.cancellationReason?.actor
+                      ?.split('(')[1]
+                      ?.replace(')', '')
+                      .trim() || '',
+                  role: '작업자',
+                  cancelledAt: approval?.cancellationReason?.processedAt,
+                  stage: '계획서 단계',
+                  type: 'MANUAL',
+                };
+
+                allApprovers = [
+                  ...allApprovers,
+                  {
+                    name: cancellationInfo.cancelledBy,
+                    department: cancellationInfo.department,
+                    role: cancellationInfo.role,
+                    email: cancellationInfo.email,
+                    phone: cancellationInfo.phone,
+                    status: '취소',
+                    cancelledAt: cancellationInfo.cancelledAt,
+                    comment: approval?.cancellationReason?.reason,
+                    type: cancellationInfo.type,
+                    stage: cancellationInfo.stage,
+                    order: 999, // 마지막에 표시
+                    isCancellation: true,
+                  },
+                ];
+              }
+
+              const currentApproverOrder = nextApprover?.order;
+
+              return allApprovers.map((approver, idx) => {
+                const isCurrentTurn = approver.order === currentApproverOrder;
+                const isApproved = approver.status === '승인';
+                const isRejected = approver.status === '반려';
+                const isCancelled = approver.status === '취소';
+
+                return (
+                  <div
+                    key={idx}
+                    style={styles.approverListItem(
+                      isCurrentTurn,
+                      isCancelled,
+                      isRejected,
+                    )}
+                  >
+                    {/* 승인자 이름 */}
+                    <div
+                      style={styles.approverListName(
+                        isCurrentTurn,
+                        isCancelled,
+                        isApproved,
+                        isRejected,
+                      )}
+                    >
+                      {isApproved && <span style={styles.checkMark}>✓</span>}
+                      {isRejected && <span style={styles.rejectMark}>✕</span>}
+                      {isCancelled && <span style={styles.cancelMark}>⚠️</span>}
+                      {approver.name}
+                    </div>
+
+                    {/* 부서/역할 */}
+                    <div
+                      style={styles.approverListInfo(
+                        isCurrentTurn,
+                        isCancelled,
+                        isApproved,
+                        isRejected,
+                      )}
+                    >
+                      {approver.department} · {approver.role}
+                    </div>
+
+                    {/* ✅ 취소 정보 상세 표시 */}
+                    {isCancelled && (
+                      <>
+                        <div
+                          style={styles.approverListInfo(
+                            isCurrentTurn,
+                            isCancelled,
+                            isApproved,
+                            isRejected,
+                          )}
+                        >
+                          {approver.cancelledAt}
+                        </div>
+
+                        {/* ✅ 취소 사유 표시 */}
+                        {approver.comment && (
+                          <div
+                            style={styles.approverListInfo(
+                              isCurrentTurn,
+                              isCancelled,
+                              isApproved,
+                              isRejected,
+                            )}
+                          >
+                            <strong>취소 사유:</strong> {approver.comment}
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* 반려 정보 */}
+                    {isRejected && approver.comment && (
+                      <div
+                        style={styles.approverListInfo(
+                          isCurrentTurn,
+                          isCancelled,
+                          isApproved,
+                          isRejected,
+                        )}
+                      >
+                        <strong>반려 사유:</strong> {approver.comment}
+                      </div>
+                    )}
+
+                    {/* 승인 대기 정보 */}
+                    {isCurrentTurn && nextApprover?.email && (
+                      <div
+                        style={styles.approverListInfo(
+                          isCurrentTurn,
+                          isCancelled,
+                          isApproved,
+                          isRejected,
+                        )}
+                      >
+                        📧 {nextApprover.email}
+                      </div>
+                    )}
+
+                    {isCurrentTurn && nextApprover?.waitingTime && (
+                      <div style={styles.approverListWaiting}>
+                        ⏱️ 대기: {nextApprover.waitingTime}
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 타임라인 아이콘 렌더링 함수
+function renderStepIcon(step, isLastStep, styles) {
+  if (step.disabled) {
+    return (
+      <span style={styles.timelineIcon('pending', isLastStep)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
+          />
+          <path
+            d="M12 6v6l4 2.4"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </svg>
+      </span>
+    );
+  }
+
+  // 배포 종료 단계는 result 속성을 확인
+  if (step.step === '배포 종료' && step.result === '성공') {
+    return (
+      <span style={styles.timelineIcon('completed', isLastStep)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+        </svg>
+      </span>
+    );
+  }
+
+  if (step.step === '배포 종료' && step.result === '실패') {
+    return (
+      <span style={styles.timelineIcon('rejected', isLastStep)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
+        </svg>
+      </span>
+    );
+  }
+
+  if (
+    step.status === '완료' ||
+    step.status === '승인' ||
+    step.status === '성공' ||
+    step.status === '작성완료'
+  ) {
+    return (
+      <span style={styles.timelineIcon('completed', isLastStep)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+        </svg>
+      </span>
+    );
+  }
+
+  if (step.status === '진행중') {
+    return (
+      <span style={styles.timelineIcon('inProgress', isLastStep)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z" />
+        </svg>
+      </span>
+    );
+  }
+
+  if (step.status === '실패' || step.rejected || step.status === '취소') {
+    return (
+      <span style={styles.timelineIcon('rejected', isLastStep)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
+        </svg>
+      </span>
+    );
+  }
+
+  if (step.status === '대기' && !step.disabled) {
+    return (
+      <span style={styles.timelineIcon('pending', isLastStep)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
+          />
+          <path
+            d="M12 6v6l4 2.4"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </svg>
+      </span>
+    );
+  }
+
+  return (
+    <span style={styles.timelineIcon('pending', isLastStep)}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <circle
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="2"
+          fill="none"
+        />
+        <path
+          d="M12 6v6l4 2.4"
+          stroke="currentColor"
+          strokeWidth="2"
+          fill="none"
+          strokeLinecap="round"
+        />
+      </svg>
+    </span>
+  );
+}
+
+// 파이프라인 아이콘 렌더링 함수
+function renderPipelineIcon(status) {
+  if (status === 'SUCCESS' || status === '성공') {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="12" cy="12" r="10" fill="#4caf50" />
+        <path
+          d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
+          fill="white"
+        />
+      </svg>
+    );
+  }
+
+  if (status === 'FAILURE' || status === '실패') {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="12" cy="12" r="10" fill="#f44336" />
+        <path
+          d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"
+          fill="white"
+        />
+      </svg>
+    );
+  }
+
+  if (status === 'IN_PROGRESS' || status === '진행중') {
+    return (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="12" cy="12" r="10" fill="#2196f3" />
+        <path
+          d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"
+          fill="white"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="12" cy="12" r="10" fill="#9e9e9e" />
+    </svg>
+  );
+}
