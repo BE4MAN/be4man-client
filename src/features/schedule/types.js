@@ -32,6 +32,7 @@
  * @property {string} endTime - 종료 시간 (HH:mm)
  * @property {RestrictedPeriodType} type - 유형
  * @property {boolean} [applyToAll] - 전체 적용 여부 (선택)
+ * @property {string[]} [services] - 연관 서비스 목록 (선택)
  */
 
 export {};
