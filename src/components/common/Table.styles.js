@@ -33,6 +33,8 @@ export const Table = styled.table`
 
 export const TableHeader = styled.thead`
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  background-color: ${({ theme }) =>
+    theme.mode === 'dark' ? '#2a2a2a' : '#f8f9fa'};
 `;
 
 export const TableBody = styled.tbody`
@@ -51,8 +53,18 @@ export const TableRow = styled.tr`
     cursor: pointer;
   `}
 
-  &:hover {
-    background: ${({ theme }) => theme.colors.interactiveHover};
+  /* thead 내부 tr은 hover 효과 없음 */
+  thead & {
+    &:hover {
+      background: transparent !important;
+    }
+  }
+
+  /* tbody 내부 tr만 hover 효과 */
+  tbody & {
+    &:hover {
+      background: ${({ theme }) => theme.colors.interactiveHover};
+    }
   }
 `;
 
@@ -60,12 +72,17 @@ export const TableHead = styled.th`
   padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.sm};
   text-align: left;
   color: ${({ theme }) => theme.colors.textSecondary};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
   white-space: nowrap;
 
   ${({ theme }) => theme.mq.md`
     padding: ${theme.spacing.md};
   `}
+
+  /* 호버 효과 제거 */
+  &:hover {
+    background-color: transparent !important;
+  }
 `;
 
 export const TableCell = styled.td`

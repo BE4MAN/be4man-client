@@ -17,7 +17,7 @@ export const Textarea = styled.textarea`
   width: 100%;
   min-height: 80px;
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
-  background: ${({ theme }) => theme.colors.inputBg};
+  background: ${({ theme }) => theme.colors.bg};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius.md};
   color: ${({ theme }) => theme.colors.textPrimary};

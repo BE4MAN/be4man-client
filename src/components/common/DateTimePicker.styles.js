@@ -35,27 +35,27 @@ export const DatePickerWrapper = styled.div`
   .custom-datepicker {
     width: 100%;
     height: 40px;
-    padding: 0 40px 0 12px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background: white;
-    color: #111827;
-    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    padding: 8px 36px 8px 12px;
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    border-radius: 6px;
+    background: ${({ theme }) => theme.colors.bg};
+    color: ${({ theme }) => theme.colors.textPrimary};
+    font-size: 14px;
     outline: none;
     transition: all 0.2s ease;
     cursor: pointer;
 
     &:hover {
-      border-color: #3b82f6;
+      border-color: ${({ theme }) => theme.colors.brand};
     }
 
     &:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgb(59 130 246 / 10%);
+      border-color: ${({ theme }) => theme.colors.brand};
+      box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.brand}20;
     }
 
     &::placeholder {
-      color: #9ca3af;
+      color: ${({ theme }) => theme.colors.textSecondary};
     }
   }
 
@@ -66,7 +66,7 @@ export const DatePickerWrapper = styled.div`
     transform: translateY(-50%);
     width: 16px;
     height: 16px;
-    color: #6b7280;
+    color: ${({ theme }) => theme.colors.textSecondary};
     pointer-events: none;
   }
 
@@ -83,27 +83,27 @@ export const DatePickerWrapper = styled.div`
   .react-datepicker__input-container input {
     width: 100%;
     height: 40px;
-    padding: 0 40px 0 12px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background: white;
-    color: #111827;
-    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    padding: 8px 36px 8px 12px;
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    border-radius: 6px;
+    background: ${({ theme }) => theme.colors.bg};
+    color: ${({ theme }) => theme.colors.textPrimary};
+    font-size: 14px;
     outline: none;
     transition: all 0.2s ease;
     cursor: pointer;
 
     &:hover {
-      border-color: #3b82f6;
+      border-color: ${({ theme }) => theme.colors.brand};
     }
 
     &:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgb(59 130 246 / 10%);
+      border-color: ${({ theme }) => theme.colors.brand};
+      box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.brand}20;
     }
 
     &::placeholder {
-      color: #9ca3af;
+      color: ${({ theme }) => theme.colors.textSecondary};
     }
   }
 
@@ -118,78 +118,104 @@ export const DatePickerWrapper = styled.div`
 
   .react-datepicker {
     width: 320px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    box-shadow:
-      0 4px 6px -1px rgb(0 0 0 / 10%),
-      0 2px 4px -1px rgb(0 0 0 / 6%);
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    border-radius: 12px;
+    box-shadow: ${({ theme }) =>
+      theme.mode === 'dark'
+        ? '0 8px 24px rgba(0,0,0,0.5)'
+        : '0 8px 24px rgba(0,0,0,0.15)'};
     font-family: inherit;
   }
 
   .react-datepicker__header {
-    background: white;
-    border-bottom: 1px solid #f3f4f6;
-    border-radius: 8px 8px 0 0;
-    padding: 16px;
+    background: ${({ theme }) => theme.colors.surface};
+    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+    border-radius: 12px 12px 0 0;
+    padding: 10px;
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between; /* 화살표를 양쪽 끝에 배치 */
+    justify-content: space-between;
+    width: 100%;
   }
 
   .react-datepicker__navigation {
-    position: static; /* static으로 변경하여 flex 레이아웃에 참여 */
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
+    position: static;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    border-radius: 4px;
     background: transparent;
     border: none;
-    color: #6b7280;
+    color: ${({ theme }) => theme.colors.textSecondary};
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 4px;
+    margin: 0;
+    top: auto;
+    left: auto;
+    right: auto;
 
     &:hover {
-      background: #f3f4f6;
-      color: #374151;
+      background: ${({ theme }) =>
+        theme.mode === 'dark' ? '#2a2a2a' : '#f3f4f6'};
+      color: ${({ theme }) => theme.colors.textPrimary};
     }
 
     &:active {
       transform: scale(0.95);
     }
+
+    &.react-datepicker__navigation--previous {
+      order: 1;
+    }
+
+    &.react-datepicker__navigation--next {
+      order: 3;
+    }
+  }
+
+  .react-datepicker__navigation-icon::before {
+    border-color: ${({ theme }) => theme.colors.textSecondary};
+    border-width: 2px 2px 0 0;
+    width: 6px;
+    height: 6px;
   }
 
   .react-datepicker__current-month {
-    font-size: ${({ theme }) => theme.typography.fontSize.lg};
-    color: #111827;
-    font-weight: ${({ theme }) => theme.typography.fontWeight.normal};
+    font-size: 13px;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.textPrimary};
     text-align: center;
     margin: 0;
-    flex: 1; /* 중앙에 위치하도록 flex: 1 */
+    flex: 1;
+    order: 2;
   }
 
   .react-datepicker__day-names {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
     text-align: center;
-    font-size: ${({ theme }) => theme.typography.fontSize.sm};
-    color: #6b7280;
-    font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-    margin-bottom: 8px;
-    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.textSecondary};
+    margin-bottom: 4px;
+    padding: 0 4px;
   }
 
   .react-datepicker__day-name {
-    padding: 8px 0;
+    padding: 4px 0;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   .react-datepicker__month {
-    padding: 16px;
+    padding: 10px;
   }
 
   .react-datepicker__week {
@@ -201,39 +227,39 @@ export const DatePickerWrapper = styled.div`
   }
 
   .react-datepicker__day {
-    width: 32px;
-    height: 32px;
+    padding: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
-    font-size: ${({ theme }) => theme.typography.fontSize.sm};
-    color: #9ca3af;
+    border-radius: 4px;
+    font-size: 12px;
+    color: ${({ theme }) => theme.colors.textPrimary};
     cursor: pointer;
     transition: all 0.2s ease;
-    font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-    margin: 0 auto;
-    text-align: center;
+    font-weight: 400;
+    margin: 0;
 
     &:hover {
-      background: #f9fafb;
-      color: #374151;
+      background: ${({ theme }) =>
+        theme.mode === 'dark' ? '#2a2a2a' : '#f3f4f6'};
+      color: ${({ theme }) => theme.colors.textPrimary};
     }
 
     &.react-datepicker__day--selected {
-      background: #000;
-      color: white;
-      border-radius: 50%;
-      font-weight: 600;
+      background: ${({ theme }) => theme.colors.brand};
+      color: #fff;
+      border-radius: 4px;
+      font-weight: 500;
     }
 
     &.react-datepicker__day--today {
-      color: #3b82f6;
+      color: ${({ theme }) => theme.colors.brand};
       font-weight: 600;
     }
 
     &.react-datepicker__day--outside-month {
-      color: #d1d5db;
+      color: ${({ theme }) => theme.colors.textSecondary};
+      opacity: 0.4;
       cursor: default;
     }
   }
@@ -284,7 +310,7 @@ export const TimePickerWrapper = styled.div`
     transform: translateY(-50%);
     width: 16px;
     height: 16px;
-    color: #6b7280;
+    color: ${({ theme }) => theme.colors.textSecondary};
     pointer-events: none;
   }
 `;
@@ -292,23 +318,23 @@ export const TimePickerWrapper = styled.div`
 export const TimeInput = styled.input`
   width: 100%;
   height: 40px;
-  padding: 0 40px 0 12px; /* 날짜 선택기와 동일한 패딩 */
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: white;
-  color: #111827;
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  padding: 8px 36px 8px 12px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 6px;
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: 14px;
   outline: none;
   transition: all 0.2s ease;
   cursor: pointer;
 
   &:hover {
-    border-color: #3b82f6;
+    border-color: ${({ theme }) => theme.colors.brand};
   }
 
   &:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgb(59 130 246 / 10%);
+    border-color: ${({ theme }) => theme.colors.brand};
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.brand}20;
   }
 
   &::-webkit-calendar-picker-indicator {
