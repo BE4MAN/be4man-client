@@ -56,8 +56,8 @@ export const getStyles = (theme) => {
       borderRadius: '8px',
       outline: 'none',
       transition: 'all 0.2s',
-      backgroundColor: theme.colors.background,
-      color: theme.colors.text,
+      backgroundColor: 'transparent',
+      color: '#ffffff',
     }),
 
     clearButton: (hovered) => ({
