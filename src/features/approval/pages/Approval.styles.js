@@ -32,54 +32,38 @@ export const FilterCard = styled.section`
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   padding: ${({ theme }) => theme.spacing.md};
-  box-shadow: ${({ theme }) => theme.shadow.sm};
   margin-bottom: ${({ theme }) => theme.spacing.md};
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 `;
 
 export const FilterRow = styled.div`
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: ${({ theme }) => theme.spacing.sm};
-  align-items: start;
-
-  ${({ theme }) => theme.mq.md`
-    grid-template-columns: 120px 1fr;
-  `}
-
-  & + & {
-    margin-top: ${({ theme }) => theme.spacing.sm};
-  }
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
 `;
 
 export const FilterLabel = styled.div`
   color: ${({ theme }) => theme.colors.textSecondary};
-  line-height: 36px;
+  font-size: 13px;
+  min-width: 70px;
 `;
 
-export const CheckGroup = styled.div`
+export const FilterSelectWrap = styled.div`
   display: flex;
-  gap: 14px;
+  gap: 8px;
   flex-wrap: wrap;
-`;
-
-export const CheckItem = styled.label`
-  display: inline-flex;
-  gap: 6px;
   align-items: center;
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  cursor: pointer;
-`;
-
-export const Checkbox = styled.input`
-  width: 16px;
-  height: 16px;
-  accent-color: ${({ theme }) => theme.colors.primary};
+  width: 100%;
 `;
 
 export const SearchRow = styled.div`
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  flex: 1;
 `;
 
 export const Select = styled.select`
@@ -89,6 +73,12 @@ export const Select = styled.select`
   border: 1px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) => theme.colors.bg};
   color: ${({ theme }) => theme.colors.textPrimary};
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+    border-color: ${({ theme }) => theme.colors.border};
+  }
 `;
 
 export const Input = styled.input`
@@ -101,11 +91,6 @@ export const Input = styled.input`
   background: ${({ theme }) => theme.colors.inputBg};
   color: ${({ theme }) => theme.colors.textPrimary};
   outline: none;
-
-  &:focus {
-    box-shadow: 0 0 0 3px rgb(100 150 255 / 18%);
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
 `;
 
 export const SearchBtn = styled.button`
@@ -116,6 +101,23 @@ export const SearchBtn = styled.button`
   color: ${({ theme }) => theme.colors.onPrimary};
   border-radius: ${({ theme }) => theme.radius.md};
   font-weight: 600;
+  cursor: pointer;
+`;
+
+export const ResetBtn = styled.button`
+  height: 36px;
+  padding: 0 12px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surface};
+  }
 `;
 
 export const Panel = styled.section`
@@ -140,10 +142,6 @@ export const Body = styled.tbody`
 `;
 
 export const Tr = styled.tr`
-  &:not(:first-of-type) {
-    border-top: 1px solid ${({ theme }) => theme.colors.border};
-  }
-
   cursor: pointer;
 `;
 
@@ -184,14 +182,18 @@ export const Td = styled.td`
     overflow: visible;
     text-overflow: clip;
   }
+
+  &[data-nopointer] {
+    cursor: default;
+  }
 `;
 
 export const Title = styled.span`
-  display: inline-block;
+  display: block;
   max-width: 100%;
-  white-space: inherit;
-  overflow: inherit;
-  text-overflow: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 export const LinkLike = styled.a`
@@ -213,32 +215,8 @@ export const LinkLike = styled.a`
 export const ApproveWrap = styled.div`
   display: flex;
   gap: 10px;
+  justify-content: center;
   align-items: center;
-`;
-
-export const ProgBar = styled.div`
-  --p: 0%;
-
-  position: relative;
-  width: clamp(120px, 16vw, 220px);
-  height: 18px;
-  border-radius: 4px;
-  background: ${({ theme }) => (theme.mode === 'dark' ? '#f3f4f6' : '#fff')};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    width: var(--p);
-    background: #255e32;
-  }
-`;
-
-export const Ratio = styled.span`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
 `;
 
 export const Pagination = styled.nav`
@@ -282,7 +260,6 @@ export const PageBtn = styled.button`
 
   &[data-active] {
     border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 3px rgb(80 96 255 / 18%);
   }
 `;
 
@@ -359,7 +336,6 @@ export const Modal = styled.div`
   background: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.textPrimary};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  box-shadow: 0 10px 30px rgb(0 0 0 / 25%);
   overflow: hidden;
 `;
 
@@ -382,7 +358,6 @@ export const ReasonBox = styled.pre`
   white-space: pre-wrap;
   line-height: 1.6;
   padding: 12px;
-  border-radius: ${({ theme }) => theme.radius.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) =>
     theme.mode === 'dark' ? 'rgba(148,163,184,0.08)' : '#fafafa'};
@@ -438,4 +413,81 @@ export const ReasonScroll = styled.div`
   padding: 12px;
   max-height: 260px;
   overflow: auto;
+`;
+
+export const CustomSelect = styled.div`
+  position: relative;
+  min-width: 140px;
+`;
+
+export const CustomSelectBtn = styled.button`
+  width: 100%;
+  height: 36px;
+  padding: 0 34px 0 10px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  cursor: pointer;
+  position: relative;
+
+  span {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: ${({ theme }) => theme.colors.textSecondary};
+    pointer-events: none;
+  }
+`;
+
+export const CustomSelectList = styled.ul`
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow: auto;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  z-index: 40;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+
+  /* 스크롤 커스텀 */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgb(148 163 184 / 45%);
+    border-radius: 9999px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(148 163 184 / 70%);
+  }
+`;
+
+export const CustomSelectItem = styled.li`
+  padding: 6px 10px;
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  cursor: pointer;
+  line-height: 1.4;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surfaceHover ?? '#eff6ff'};
+  }
 `;

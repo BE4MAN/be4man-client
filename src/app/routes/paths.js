@@ -9,5 +9,6 @@ export const PATHS = {
   SCHEDULE: '/schedule',
   SCHEDULE_BAN_NEW: '/schedule/ban/new',
   TASKS: '/tasks',
+  TASK_DETAIL: '/tasks/:id',
   ANALYTICS: '/analytics',
 };
