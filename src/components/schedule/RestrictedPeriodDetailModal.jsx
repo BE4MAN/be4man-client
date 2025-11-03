@@ -1,3 +1,5 @@
+import { CalendarOff } from 'lucide-react';
+
 import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
 import { PrimaryBtn } from '@/styles/modalButtons';
@@ -28,7 +30,12 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
           </S.Field>
           <S.Field>
             <S.Label>유형</S.Label>
-            <S.Value>{period.type}</S.Value>
+            <S.TypeContainer>
+              <S.TypeIconWrapper>
+                <CalendarOff size={16} />
+              </S.TypeIconWrapper>
+              <S.Value>{period.type}</S.Value>
+            </S.TypeContainer>
           </S.Field>
         </S.Grid>
 

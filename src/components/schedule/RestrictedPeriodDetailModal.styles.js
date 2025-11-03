@@ -35,6 +35,22 @@ export const Value = styled.p`
   margin: 0;
 `;
 
+export const TypeContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+export const TypeIconWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    color: ${({ theme }) => theme.colors.schedule.restrictedDanger};
+  }
+`;
+
 export const Footer = styled.div`
   display: flex;
   justify-content: flex-end;

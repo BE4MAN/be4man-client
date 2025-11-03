@@ -25,49 +25,58 @@ export const TitleBox = styled.div`
   gap: ${({ theme }) => theme.spacing.sm};
 `;
 
-export const StatusCircle = styled.div`
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+export const StatusIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  margin-top: 8px;
+  margin-top: 2px;
 
-  ${({ status, theme }) => {
-    switch (status) {
-      case 'scheduled':
-        return `background: ${theme.colors.textPrimary};`;
-      case 'success':
-        return `background: ${theme.colors.schedule.successGreen};`;
-      case 'failed':
-        return `background: ${theme.colors.schedule.restrictedDanger};`;
-      default:
-        return `background: ${theme.colors.textPrimary};`;
-    }
-  }}
+  svg {
+    ${({ status, theme }) => {
+      switch (status) {
+        case 'scheduled':
+          return `color: ${theme.colors.textPrimary};`;
+        case 'success':
+          return `color: ${theme.colors.schedule.successGreen};`;
+        case 'failed':
+          return `color: ${theme.colors.schedule.restrictedDanger};`;
+        default:
+          return `color: ${theme.colors.textPrimary};`;
+      }
+    }}
+  }
 `;
 
 export const Details = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
-  margin-left: ${({ theme }) => theme.spacing.md};
+  margin-left: 18px;
 `;
 
 export const Title = styled.h3`
   color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.typography.fontSize.md};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
   margin: 0;
   font-weight: ${({ theme }) => theme.typography.fontWeight.normal};
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: break-word;
+  line-height: 1.4;
 `;
 
 export const Service = styled.p`
   color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
   margin: 0;
 `;
 
 export const Time = styled.p`
   color: ${({ theme }) => theme.colors.schedule.deploymentPrimary};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
   margin: 0;
 `;

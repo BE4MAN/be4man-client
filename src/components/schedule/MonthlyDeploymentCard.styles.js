@@ -19,27 +19,29 @@ export const Content = styled.div`
   gap: 0.375rem;
 `;
 
-export const StatusCircle = styled.div`
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+export const StatusIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  margin-top: 6px;
+  margin-top: 2px;
   margin-left: 4px;
   margin-right: 4px;
 
-  ${({ status, theme }) => {
-    switch (status) {
-      case 'scheduled':
-        return `background: ${theme.colors.textPrimary};`;
-      case 'success':
-        return `background: ${theme.colors.schedule.successGreen};`;
-      case 'failed':
-        return `background: ${theme.colors.schedule.restrictedDanger};`;
-      default:
-        return `background: ${theme.colors.textPrimary};`;
-    }
-  }}
+  svg {
+    ${({ status, theme }) => {
+      switch (status) {
+        case 'scheduled':
+          return `color: ${theme.colors.textPrimary};`;
+        case 'success':
+          return `color: ${theme.colors.schedule.successGreen};`;
+        case 'failed':
+          return `color: ${theme.colors.schedule.restrictedDanger};`;
+        default:
+          return `color: ${theme.colors.textPrimary};`;
+      }
+    }}
+  }
 `;
 
 export const TitleWrapper = styled.div`
@@ -58,19 +60,11 @@ export const Title = styled.h3`
   margin: 0;
   line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: ${({ isCollapsed }) => (isCollapsed ? 1 : 2)};
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   overflow-wrap: break-word;
   flex: 1;
   min-width: 0;
-`;
-
-export const AdditionalCount = styled.span`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.typography.fontSize.xs};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  flex-shrink: 0;
-  margin-left: auto;
 `;

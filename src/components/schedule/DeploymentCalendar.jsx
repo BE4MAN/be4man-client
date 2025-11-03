@@ -8,7 +8,7 @@ import {
   subMonths,
 } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsDownUp } from 'lucide-react';
 import { useState } from 'react';
 
 import Button from '@/components/auth/Button';
@@ -123,27 +123,37 @@ export default function DeploymentCalendar({
 
         days.push(
           <S.DayCell key={i} isToday={isTodayCell}>
-            <S.DayNumber isToday={isTodayCell}>{dayNumber}</S.DayNumber>
+            <S.DayNumber isToday={isTodayCell}>
+              <span>{dayNumber}</span>
+              {hasMultipleTasks && allTasks.length > 0 && (
+                <S.ExpandButton
+                  type="button"
+                  onClick={() => toggleDayExpansion(dayNumber)}
+                >
+                  {shouldCollapse ? (
+                    <span>+ {allTasks.length - 1}</span>
+                  ) : (
+                    <ChevronsDownUp size={14} />
+                  )}
+                </S.ExpandButton>
+              )}
+            </S.DayNumber>
             <S.CardList>
               {allTasks.length === 0 ? null : shouldCollapse ? (
                 <>
-                  {/* 첫 번째 항목만 표시 (제목에 "+ N" 포함) */}
+                  {/* 첫 번째 항목만 표시 */}
                   {allTasks[0].type === 'restricted' ? (
                     <MonthlyRestrictedPeriodCard
                       key={allTasks[0].data.id}
                       title={allTasks[0].data.title}
-                      onClick={() => toggleDayExpansion(dayNumber)}
-                      isCollapsed
-                      additionalCount={allTasks.length - 1}
+                      onClick={() => onRestrictedPeriodClick(allTasks[0].data)}
                     />
                   ) : (
                     <MonthlyDeploymentCard
                       key={allTasks[0].data.id}
                       title={allTasks[0].data.title}
                       status={allTasks[0].data.status}
-                      onClick={() => toggleDayExpansion(dayNumber)}
-                      isCollapsed
-                      additionalCount={allTasks.length - 1}
+                      onClick={() => onDeploymentClick(allTasks[0].data)}
                     />
                   )}
                 </>
