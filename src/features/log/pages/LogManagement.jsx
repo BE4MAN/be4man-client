@@ -32,7 +32,7 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
     button: {
       width: '100%',
       padding: '8px 12px',
-      backgroundColor: theme.mode === 'dark' ? '#ffffff' : '#ffffff',
+      backgroundColor: theme.mode === 'dark' ? '#2a2a2a' : '#ffffff',
       border: `1px solid ${theme.colors.border}`,
       borderRadius: '6px',
       cursor: 'pointer',
@@ -40,7 +40,7 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       fontSize: '14px',
-      color: theme.colors.text,
+      color: theme.mode === 'dark' ? '#e0e0e0' : '#333333',
     },
     menu: {
       position: 'absolute',
@@ -68,7 +68,11 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
           ? 'rgba(33, 150, 243, 0.3)'
           : theme.colors.brandLight || 'rgba(33, 150, 243, 0.1)'
         : 'transparent',
-      color: isSelected ? theme.colors.brand : theme.colors.text,
+      color: isSelected
+        ? theme.colors.brand
+        : theme.mode === 'dark'
+          ? '#e0e0e0'
+          : '#333333',
     }),
   };
 
@@ -124,8 +128,8 @@ export default function LogManagement() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
-    처리단계: '전체',
-    처리상태: '전체',
+    작업단계: '전체',
+    작업상태: '전체',
     결과: '전체',
     시작일: '',
     종료일: '',
@@ -154,8 +158,8 @@ export default function LogManagement() {
 
   const resetFilters = () => {
     setFilters({
-      처리단계: '전체',
-      처리상태: '전체',
+      작업단계: '전체',
+      작업상태: '전체',
       결과: '전체',
       시작일: '',
       종료일: '',
@@ -165,8 +169,21 @@ export default function LogManagement() {
     setSearchQuery('');
   };
 
+  // 각 단계별 허용된 상태 정의
+  const stageStatusMap = {
+    계획서: ['승인대기'],
+    배포: ['진행중', '종료', '취소'],
+    결과보고: ['승인대기', '반려', '완료'],
+  };
+
   const filteredData = mockData
     .filter((item) => {
+      // 단계별 허용된 상태인지 먼저 체크
+      const allowedStatuses = stageStatusMap[item.stage];
+      if (allowedStatuses && !allowedStatuses.includes(item.status)) {
+        return false;
+      }
+
       const matchesSearch =
         searchQuery === '' ||
         item.id.toString().includes(searchQuery) ||
@@ -175,9 +192,9 @@ export default function LogManagement() {
         item.taskTitle.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStage =
-        filters.처리단계 === '전체' || item.stage === filters.처리단계;
+        filters.작업단계 === '전체' || item.stage === filters.작업단계;
       const matchesStatus =
-        filters.처리상태 === '전체' || item.status === filters.처리상태;
+        filters.작업상태 === '전체' || item.status === filters.작업상태;
       const matchesResult =
         filters.결과 === '전체' ||
         (item.result && item.result === filters.결과);
@@ -316,21 +333,29 @@ export default function LogManagement() {
         <div style={styles.filtersPanel}>
           <div style={styles.filtersRow}>
             <div style={styles.filterRowItem}>
-              <label style={styles.filterLabel}>처리 단계</label>
+              <label style={styles.filterLabel}>작업 단계</label>
               <CustomDropdown
                 label=""
                 options={['전체', '계획서', '배포', '결과보고']}
-                value={filters.처리단계}
-                onChange={(val) => handleFilter('처리단계', val)}
+                value={filters.작업단계}
+                onChange={(val) => handleFilter('작업단계', val)}
               />
             </div>
             <div style={styles.filterRowItem}>
-              <label style={styles.filterLabel}>처리 상태</label>
+              <label style={styles.filterLabel}>작업 상태</label>
               <CustomDropdown
                 label=""
-                options={['전체', '승인대기', '진행중', '취소', '완료', '종료']}
-                value={filters.처리상태}
-                onChange={(val) => handleFilter('처리상태', val)}
+                options={[
+                  '전체',
+                  '승인대기',
+                  '진행중',
+                  '취소',
+                  '반려',
+                  '완료',
+                  '종료',
+                ]}
+                value={filters.작업상태}
+                onChange={(val) => handleFilter('작업상태', val)}
               />
             </div>
             <div style={styles.filterRowItem}>
@@ -376,8 +401,8 @@ export default function LogManagement() {
               <th style={styles.th}>부서</th>
               <th style={styles.th}>서비스명</th>
               <th style={styles.th}>작업 제목</th>
-              <th style={styles.th}>처리 단계</th>
-              <th style={styles.th}>처리 상태</th>
+              <th style={styles.th}>작업 단계</th>
+              <th style={styles.th}>작업 상태</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>완료 시각</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>배포 결과</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>상세</th>

@@ -1125,6 +1125,261 @@ const mockData = [
       { step: '결과 승인', status: '', time: null, disabled: true },
     ],
   },
+
+  // ========== 13. 계획서 단계 - 내가 2번째로 승인했는데 3번째가 반려해서 취소됨 ==========
+  {
+    id: 515,
+    drafter: '박민수',
+    department: '개발11팀',
+    serviceName: 'Payment API',
+    taskTitle: 'Payment Gateway 업그레이드',
+    stage: '계획서',
+    status: '취소',
+    completionTime: '2025-08-13 14:30',
+    result: null,
+
+    planInfo: {
+      type: 'Upgrade',
+      environment: 'PROD',
+      impact: '높음',
+      risk: { level: '중간' },
+      assignee: '박민수',
+      draftDate: '2025-08-12',
+      deploymentDateTime: {
+        start: '2025-08-14 02:00',
+        end: '2025-08-14 06:00',
+      },
+    },
+
+    detailInfo: {
+      overview: '결제 게이트웨이를 최신 버전으로 업그레이드',
+      goals: ['결제 성공률 개선', '보안 강화', '응답 속도 개선'],
+      schedule: { start: '2025-08-14 02:00', end: '2025-08-14 06:00' },
+      assignees: [{ name: '박민수', role: '개발자', department: '개발11팀' }],
+      activities: ['라이브러리 업데이트', '테스트', '배포', '모니터링'],
+      risks: [
+        {
+          description: '결제 서비스 중단 위험',
+          mitigation: '무중단 배포(Blue-Green) 전략 사용',
+        },
+      ],
+      backupPlan: '이전 버전 즉시 롤백',
+      recoveryPlan: ['즉시 롤백', '고객 통보'],
+    },
+
+    approval: {
+      canApprove: false,
+      canCancel: false,
+      planApprovalHistory: [
+        {
+          approver: '정팀장',
+          department: '개발11팀',
+          role: '팀장',
+          email: 'jung.payment@company.com',
+          phone: '02-1234-7041',
+          status: '승인',
+          approvedAt: '2025-08-12 15:00',
+          comment: '기술 검토 완료.',
+          order: 1,
+        },
+        {
+          approver: '허팀장',
+          department: '품질보증팀',
+          role: '팀장',
+          email: 'current.user@company.com',
+          phone: '02-1234-8030',
+          status: '승인',
+          approvedAt: '2025-08-13 10:00',
+          comment: '품질 검토 완료. 승인합니다.',
+          order: 2,
+        },
+        {
+          approver: '김이사',
+          department: '개발본부',
+          role: '이사',
+          email: 'kim.director@company.com',
+          phone: '02-1234-7042',
+          status: '반려',
+          approvedAt: '2025-08-13 14:30',
+          comment: '보안 검토 미흡. 추가 검증 필요.',
+          order: 3,
+        },
+      ],
+      pendingApprovers: [],
+      nextApprover: null,
+      reportApprovalHistory: [],
+
+      cancellationHistory: {
+        cancelledBy: '김이사',
+        department: '개발본부',
+        role: '이사',
+        email: 'kim.director@company.com',
+        phone: '02-1234-7042',
+        cancelledAt: '2025-08-13 14:30',
+        reason: '보안 검토 미흡. 추가 검증 필요.',
+        stage: '계획서 승인',
+        type: 'REJECTED',
+      },
+    },
+
+    report: null,
+    jenkinsLog: null,
+
+    timeline: [
+      { step: '작업 신청', status: '완료', time: '2025-08-12 14:00' },
+      {
+        step: '작업 승인',
+        status: '반려',
+        time: '2025-08-13 14:30',
+        rejected: true,
+        rejectedBy: '김이사',
+      },
+      { step: '배포 시작', status: '', time: null, disabled: true },
+      { step: '배포 종료', status: '', time: null, disabled: true },
+      { step: '결과 보고', status: '', time: null, disabled: true },
+      { step: '결과 승인', status: '', time: null, disabled: true },
+    ],
+  },
+
+  // ========== 14. 결과보고 단계 - 2명 승인했는데 3번째가 반려해서 모두에게 반려로 표시 ==========
+  {
+    id: 516,
+    drafter: '최수영',
+    department: '개발13팀',
+    serviceName: 'Notification Service',
+    taskTitle: '알림 서비스 확장',
+    stage: '결과보고',
+    status: '반려',
+    completionTime: '2025-08-17 16:00',
+    result: '성공',
+
+    planInfo: {
+      type: 'Feature',
+      environment: 'PROD',
+      impact: '중간',
+      risk: { level: '중간' },
+      assignee: '최수영',
+      draftDate: '2025-08-15',
+      deploymentDateTime: {
+        start: '2025-08-17 10:00',
+        end: '2025-08-17 12:00',
+      },
+    },
+
+    detailInfo: {
+      overview: '알림 서비스 확장',
+      goals: ['푸시 알림 기능 추가', '알림 발송률 개선'],
+      schedule: { start: '2025-08-17 10:00', end: '2025-08-17 12:00' },
+      assignees: [{ name: '최수영', role: '개발자', department: '개발13팀' }],
+      activities: ['알림 API 개발', '푸시 연동', '테스트'],
+      risks: [],
+      backupPlan: '이전 알림 시스템 유지',
+      recoveryPlan: ['롤백'],
+    },
+
+    approval: {
+      canApprove: false,
+      planApprovalHistory: [
+        {
+          approver: '유팀장',
+          department: '개발13팀',
+          role: '팀장',
+          email: 'yoo.noti@company.com',
+          phone: '02-1234-7043',
+          status: '승인',
+          approvedAt: '2025-08-15 16:00',
+          comment: '기술 검토 완료.',
+          order: 1,
+        },
+      ],
+      pendingApprovers: [],
+      nextApprover: null,
+
+      reportApprovalHistory: [
+        {
+          approver: '송팀장',
+          department: '개발13팀',
+          role: '팀장',
+          email: 'song.noti@company.com',
+          phone: '02-1234-7044',
+          status: '승인',
+          approvedAt: '2025-08-17 13:00',
+          comment: '배포 결과 확인.',
+          order: 1,
+        },
+        {
+          approver: '허팀장',
+          department: '품질보증팀',
+          role: '팀장',
+          email: 'current.user@company.com',
+          phone: '02-1234-8030',
+          status: '승인',
+          approvedAt: '2025-08-17 14:00',
+          comment: '품질 검토 완료. 승인합니다.',
+          order: 2,
+        },
+        {
+          approver: '정이사',
+          department: '개발본부',
+          role: '이사',
+          email: 'jung.director@company.com',
+          phone: '02-1234-7045',
+          status: '반려',
+          approvedAt: '2025-08-17 16:00',
+          comment: '성능 모니터링 데이터 부족. 추가 분석 후 재보고 필요.',
+          order: 3,
+        },
+      ],
+      nextReportApprover: null,
+    },
+
+    report: {
+      summary: '알림 서비스 확장 배포 완료.',
+      performanceMetrics: {
+        before: '푸시 발송률 70%',
+        after: '푸시 발송률 85%',
+        improvement: '15% 향상',
+      },
+      issuesFound: [],
+      nextSteps: ['성능 모니터링 강화'],
+    },
+
+    jenkinsLog: {
+      buildNumber: '2878',
+      status: '성공',
+      duration: '50분',
+      branch: 'main',
+      pr: '#4548 - Notification Service',
+      pipeline: [
+        { name: 'Build', status: '성공' },
+        { name: 'Deploy to Prod', status: '성공' },
+      ],
+      logs: [
+        { time: '10:00:00', level: 'INFO', message: '[Build] 시작' },
+        { time: '10:50:00', level: 'INFO', message: '[Deploy] 완료' },
+      ],
+    },
+
+    timeline: [
+      { step: '작업 신청', status: '완료', time: '2025-08-15 15:00' },
+      { step: '작업 승인', status: '완료', time: '2025-08-15 16:00' },
+      { step: '배포 시작', status: '완료', time: '2025-08-17 10:00' },
+      {
+        step: '배포 종료',
+        status: '완료',
+        time: '2025-08-17 10:50',
+        result: '성공',
+      },
+      { step: '결과 보고', status: '완료', time: '2025-08-17 13:00' },
+      {
+        step: '결과 승인',
+        status: '반려',
+        time: '2025-08-17 16:00',
+        rejected: true,
+        rejectedBy: '정이사',
+      },
+    ],
+  },
 ];
 
 export default mockData;
