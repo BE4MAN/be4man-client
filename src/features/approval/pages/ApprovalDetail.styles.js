@@ -42,6 +42,7 @@ export const TopBar = styled.div`
 
 export const RightGroup = styled.div`
   display: flex;
+  flex-direction: end;
   gap: 6px;
   flex-wrap: wrap;
 `;
@@ -53,14 +54,34 @@ export const SubtleBtn = styled.button`
   background: ${({ theme }) => (theme.mode === 'dark' ? '#0f1520' : '#fff')};
   color: ${({ theme }) => theme.colors.text};
   cursor: pointer;
+
+  &:hover {
+    background: ${({ theme }) =>
+      theme.mode === 'dark' ? '#182030' : '#f0f4f9'};
+  }
+`;
+
+export const PrimaryBtn = styled.button`
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: ${({ theme }) => (theme.mode === 'dark' ? '#2563eb' : '#2563eb')};
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ theme }) =>
+      theme.mode === 'dark' ? '#1d4ed8' : '#1e40af'};
+  }
 `;
 
 export const HeaderRow = styled.div`
+  width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: end;
   gap: 16px;
   margin-bottom: 12px;
-  align-items: flex-start;
 `;
 
 export const TitleWrap = styled.div`
@@ -125,26 +146,12 @@ export const InfoTh = styled.th`
   border-right: 1px solid ${({ theme }) => theme.colors.border};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   text-align: center;
-
-  &[data-bb] {
-    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  }
 `;
 
 export const InfoTd = styled.td`
   vertical-align: middle;
   padding: 8px 10px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-
-  & > input,
-  & > select,
-  & > textarea {
-    width: 100%;
-  }
-
-  &[data-bb] {
-    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  }
 `;
 
 export const Section = styled.section`
@@ -259,4 +266,52 @@ export const CommentText = styled.div`
   line-height: 1.55;
   text-align: left;
   max-height: none;
+`;
+
+export const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 45%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+`;
+
+export const Modal = styled.div`
+  background: ${({ theme }) => (theme.mode === 'dark' ? '#111827' : '#fff')};
+  color: ${({ theme }) => theme.colors.text};
+  width: 70%;
+  max-width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 30px rgb(0 0 0 / 30%);
+`;
+
+export const ModalHeader = styled.div`
+  padding: 14px 16px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  font-weight: 700;
+  font-size: 16px;
+`;
+
+export const ModalTitle = styled.h4`
+  margin: 0;
+`;
+
+export const ModalBody = styled.div`
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+`;
+
+export const ModalActions = styled.div`
+  padding: 12px 16px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => (theme.mode === 'dark' ? '#0f1520' : '#fafafa')};
+  gap: 8px;
 `;

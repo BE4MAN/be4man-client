@@ -7,7 +7,7 @@ const FALLBACK_DETAIL = {
   id: '-',
   title: '제목 없음',
   type: '작업 계획서',
-  dept: '전체',
+  dept: '개발1팀',
   drafter: '김푸름',
   draftedAt: '2025-07-25T14:32:00+09:00',
   retention: '5년',
@@ -49,7 +49,7 @@ const FALLBACK_DETAIL = {
   approvalLine: [
     {
       type: 'draft',
-      dept: '전체',
+      dept: '개발1팀',
       name: '김민호',
       rank: '사원',
       status: '완료',
@@ -98,6 +98,7 @@ export default function ApprovalDetail() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
+  const [showLine, setShowLine] = useState(false);
 
   useEffect(() => {
     if (state?.__isFull) {
@@ -120,14 +121,10 @@ export default function ApprovalDetail() {
   return (
     <S.Wrap>
       <S.Panel>
-        <S.TopBar>
-          <S.RightGroup></S.RightGroup>
-        </S.TopBar>
-
         <S.HeaderRow>
-          <S.TitleWrap>
-            <S.DocTitle>{data.title}</S.DocTitle>
-          </S.TitleWrap>
+          <S.PrimaryBtn onClick={() => setShowLine(true)}>
+            결재라인
+          </S.PrimaryBtn>
           <S.SubtleBtn onClick={() => navigate(-1)}>뒤로가기</S.SubtleBtn>
         </S.HeaderRow>
 
@@ -166,42 +163,6 @@ export default function ApprovalDetail() {
         </S.InfoTable>
 
         <S.Section>
-          <S.SecHead>결재라인</S.SecHead>
-          <S.ALTable role="table" aria-label="결재라인">
-            <S.ALHeadRow role="row" data-head>
-              <S.ALCell role="columnheader">유형</S.ALCell>
-              <S.ALCell role="columnheader">부서명</S.ALCell>
-              <S.ALCell role="columnheader">성명</S.ALCell>
-              <S.ALCell role="columnheader">직책</S.ALCell>
-              <S.ALCell role="columnheader">상태</S.ALCell>
-              <S.ALCell role="columnheader">처리 이력</S.ALCell>
-              <S.ALCell role="columnheader" data-col="comment">
-                코멘트
-              </S.ALCell>
-            </S.ALHeadRow>
-
-            {(data.approvalLine || []).map((s, i) => (
-              <S.ALRow key={`${s.name}-${i}`} role="row">
-                <S.ALCell role="cell">{TYPE_LABEL[s.type] ?? s.type}</S.ALCell>
-                <S.ALCell role="cell">{s.dept}</S.ALCell>
-                <S.ALCell role="cell">{s.name}</S.ALCell>
-                <S.ALCell role="cell">{s.rank}</S.ALCell>
-                <S.ALCell role="cell">{s.status || '대기'}</S.ALCell>
-                <S.ALCell role="cell">
-                  {s.approvedAt ? formatYmd(s.approvedAt) : '-'}
-                </S.ALCell>
-                <S.ALCell role="cell" data-col="comment">
-                  <S.CommentText>
-                    {s.comment?.trim() ? s.comment : ''}
-                  </S.CommentText>
-                </S.ALCell>
-              </S.ALRow>
-            ))}
-          </S.ALTable>
-        </S.Section>
-
-        <S.Section>
-          <S.SecHead>본문</S.SecHead>
           <S.BodyViewer
             dangerouslySetInnerHTML={{
               __html: data.body || '<p>(내용 없음)</p>',
@@ -209,6 +170,60 @@ export default function ApprovalDetail() {
           />
         </S.Section>
       </S.Panel>
+
+      {showLine && (
+        <S.ModalOverlay
+          onClick={() => setShowLine(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <S.Modal onClick={(e) => e.stopPropagation()}>
+            <S.ModalHeader>
+              <S.ModalTitle>결재라인</S.ModalTitle>
+            </S.ModalHeader>
+            <S.ModalBody>
+              <S.ALTable role="table" aria-label="결재라인">
+                <S.ALHeadRow role="row" data-head>
+                  <S.ALCell role="columnheader">유형</S.ALCell>
+                  <S.ALCell role="columnheader">부서명</S.ALCell>
+                  <S.ALCell role="columnheader">성명</S.ALCell>
+                  <S.ALCell role="columnheader">직책</S.ALCell>
+                  <S.ALCell role="columnheader">상태</S.ALCell>
+                  <S.ALCell role="columnheader">처리 이력</S.ALCell>
+                  <S.ALCell role="columnheader" data-col="comment">
+                    코멘트
+                  </S.ALCell>
+                </S.ALHeadRow>
+
+                {(data.approvalLine || []).map((s, i) => (
+                  <S.ALRow key={`${s.name}-${i}`} role="row">
+                    <S.ALCell role="cell">
+                      {TYPE_LABEL[s.type] ?? s.type}
+                    </S.ALCell>
+                    <S.ALCell role="cell">{s.dept}</S.ALCell>
+                    <S.ALCell role="cell">{s.name}</S.ALCell>
+                    <S.ALCell role="cell">{s.rank}</S.ALCell>
+                    <S.ALCell role="cell">{s.status || '대기'}</S.ALCell>
+                    <S.ALCell role="cell">
+                      {s.approvedAt ? formatYmd(s.approvedAt) : '-'}
+                    </S.ALCell>
+                    <S.ALCell role="cell" data-col="comment">
+                      <S.CommentText>
+                        {s.comment?.trim() ? s.comment : ''}
+                      </S.CommentText>
+                    </S.ALCell>
+                  </S.ALRow>
+                ))}
+              </S.ALTable>
+            </S.ModalBody>
+            <S.ModalActions>
+              <S.PrimaryBtn onClick={() => setShowLine(false)}>
+                닫기
+              </S.PrimaryBtn>
+            </S.ModalActions>
+          </S.Modal>
+        </S.ModalOverlay>
+      )}
     </S.Wrap>
   );
 }

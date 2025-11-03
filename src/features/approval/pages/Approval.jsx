@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import * as S from './Approval.styles';
@@ -11,7 +11,6 @@ const MOCK = [
     serviceName: '유저 서비스',
     drafter: '김민호',
     draftedAt: '2025-07-25T14:32:00+09:00',
-    approval: { current: 1, total: 3 },
     currentApprover: '이원석',
     approvedAt: null,
     status: '승인요청',
@@ -23,7 +22,6 @@ const MOCK = [
     serviceName: '결제 서비스',
     drafter: '김민호',
     draftedAt: '2025-07-24T19:20:00+09:00',
-    approval: { current: 4, total: 4 },
     currentApprover: '—',
     approvedAt: '2025-07-25T14:32:00+09:00',
     status: '완료',
@@ -35,7 +33,6 @@ const MOCK = [
     serviceName: '정산 서비스',
     drafter: '김민호',
     draftedAt: '2025-07-23T10:00:00+09:00',
-    approval: { current: 1, total: 3 },
     currentApprover: '박지훈',
     approvedAt: null,
     status: '반려',
@@ -61,6 +58,90 @@ const MOCK = [
   },
   {
     id: 305,
+    type: '계획서',
+    title: '푸시 서비스 핫픽스 계획',
+    serviceName: '푸시 서비스',
+    drafter: '김민호',
+    draftedAt: '2025-07-27T12:10:00+09:00',
+    approval: { current: 0, total: 2 },
+    currentApprover: '-',
+    approvedAt: null,
+    status: '임시저장',
+  },
+  {
+    id: 306,
+    type: '계획서',
+    title: '푸시 서비스 핫픽스 계획',
+    serviceName: '푸시 서비스',
+    drafter: '김민호',
+    draftedAt: '2025-07-27T12:10:00+09:00',
+    approval: { current: 0, total: 2 },
+    currentApprover: '-',
+    approvedAt: null,
+    status: '임시저장',
+  },
+  {
+    id: 307,
+    type: '계획서',
+    title: '푸시 서비스 핫픽스 계획',
+    serviceName: '푸시 서비스',
+    drafter: '김민호',
+    draftedAt: '2025-07-27T12:10:00+09:00',
+    approval: { current: 0, total: 2 },
+    currentApprover: '-',
+    approvedAt: null,
+    status: '임시저장',
+  },
+  {
+    id: 308,
+    type: '계획서',
+    title: '푸시 서비스 핫픽스 계획',
+    serviceName: '푸시 서비스',
+    drafter: '김민호',
+    draftedAt: '2025-07-27T12:10:00+09:00',
+    approval: { current: 0, total: 2 },
+    currentApprover: '-',
+    approvedAt: null,
+    status: '임시저장',
+  },
+  {
+    id: 309,
+    type: '계획서',
+    title: '푸시 서비스 핫픽스 계획',
+    serviceName: '푸시 서비스',
+    drafter: '김민호',
+    draftedAt: '2025-07-27T12:10:00+09:00',
+    approval: { current: 0, total: 2 },
+    currentApprover: '-',
+    approvedAt: null,
+    status: '임시저장',
+  },
+  {
+    id: 310,
+    type: '계획서',
+    title: '푸시 서비스 핫픽스 계획',
+    serviceName: '푸시 서비스',
+    drafter: '김민호',
+    draftedAt: '2025-07-27T12:10:00+09:00',
+    approval: { current: 0, total: 2 },
+    currentApprover: '-',
+    approvedAt: null,
+    status: '임시저장',
+  },
+  {
+    id: 311,
+    type: '계획서',
+    title: '푸시 서비스 핫픽스 계획',
+    serviceName: '푸시 서비스',
+    drafter: '김민호',
+    draftedAt: '2025-07-27T12:10:00+09:00',
+    approval: { current: 0, total: 2 },
+    currentApprover: '-',
+    approvedAt: null,
+    status: '임시저장',
+  },
+  {
+    id: 312,
     type: '계획서',
     title: '푸시 서비스 핫픽스 계획',
     serviceName: '푸시 서비스',
@@ -101,10 +182,8 @@ const STATUS_OPTIONS = [
   '승인취소',
   '완료',
   '반려',
-  '결과보고',
-  '계획서',
 ];
-
+const TYPE_OPTIONS = ['전체', '계획서', '결과보고'];
 const SEARCH_FIELDS = [
   { key: 'ALL', label: '전체' },
   { key: 'title', label: '제목' },
@@ -153,7 +232,6 @@ export default function Approval({
         const cur = Number(r?.approval?.current ?? 0);
         const totRaw = Number(r?.approval?.total ?? 1);
         const tot = Number.isFinite(totRaw) && totRaw > 0 ? totRaw : 1;
-
         let status = r.status;
         if (!status) {
           if (r.rejectedAt) status = '반려';
@@ -162,7 +240,6 @@ export default function Approval({
           else if (r?.draftedAt) status = '승인요청';
           else status = '승인요청';
         }
-
         return {
           ...r,
           status,
@@ -172,17 +249,10 @@ export default function Approval({
     [itemsArr],
   );
 
-  const [checked, setChecked] = useState(new Set(['승인요청']));
-  const toggleStatus = (name) => {
-    setChecked((prev) => {
-      const next = new Set(prev);
-      if (name === '전체') return new Set(['전체']);
-      next.delete('전체');
-      next.has(name) ? next.delete(name) : next.add(name);
-      if (next.size === 0) next.add('전체');
-      return next;
-    });
-  };
+  const [statusFilter, setStatusFilter] = useState('전체');
+  const [typeFilter, setTypeFilter] = useState('전체');
+  const [drafterFilter, setDrafterFilter] = useState('전체');
+  const [serviceFilter, setServiceFilter] = useState('전체');
 
   const [searchField, setSearchField] = useState('ALL');
   const [q, setQ] = useState('');
@@ -190,18 +260,35 @@ export default function Approval({
   const [pageSize] = useState(defaultPageSize);
   const [page, setPage] = useState(1);
 
+  const [openType, setOpenType] = useState(false);
+  const [openStatus, setOpenStatus] = useState(false);
+  const [openSearch, setOpenSearch] = useState(false);
+
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      const el = e.target;
+      if (el.closest('[data-select-root="true"]')) return;
+
+      setOpenType(false);
+      setOpenStatus(false);
+      setOpenSearch(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const filtered = useMemo(() => {
     const text = q.trim().toLowerCase();
-
-    const passStatus = (row) => {
-      if (checked.has('전체')) return true;
-      if (text && row.status?.toLowerCase().includes(text)) return true;
-      for (const s of checked) {
-        if (row.status === s || row.type === s) return true;
-      }
-      return false;
-    };
-
+    const passStatus = (row) =>
+      statusFilter === '전체' ? true : row.status === statusFilter;
+    const passType = (row) =>
+      typeFilter === '전체' ? true : row.type === typeFilter;
+    const passDrafter = (row) =>
+      drafterFilter === '전체' ? true : row.drafter === drafterFilter;
+    const passService = (row) =>
+      serviceFilter === '전체' ? true : row.serviceName === serviceFilter;
     const passSearch = (row) => {
       if (!text) return true;
       if (searchField === 'ALL') {
@@ -220,14 +307,27 @@ export default function Approval({
           .join(' ')
           .toLowerCase();
         return hay.includes(text);
-      } else {
-        const v = (row?.[searchField] ?? '').toString().toLowerCase();
-        return v.includes(text);
       }
+      const v = (row?.[searchField] ?? '').toString().toLowerCase();
+      return v.includes(text);
     };
-
-    return rows.filter((r) => passStatus(r) && passSearch(r));
-  }, [rows, checked, searchField, q]);
+    return rows.filter(
+      (r) =>
+        passStatus(r) &&
+        passType(r) &&
+        passDrafter(r) &&
+        passService(r) &&
+        passSearch(r),
+    );
+  }, [
+    rows,
+    statusFilter,
+    typeFilter,
+    drafterFilter,
+    serviceFilter,
+    searchField,
+    q,
+  ]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -235,7 +335,17 @@ export default function Approval({
   const start = (safePage - 1) * pageSize;
   const pageItems = filtered.slice(start, start + pageSize);
 
-  useEffect(() => setPage(1), [checked, searchField, q, pageSize]);
+  useEffect(() => {
+    setPage(1);
+  }, [
+    statusFilter,
+    typeFilter,
+    drafterFilter,
+    serviceFilter,
+    searchField,
+    q,
+    pageSize,
+  ]);
 
   const pageWindow = useMemo(() => {
     if (totalPages <= 9)
@@ -260,6 +370,15 @@ export default function Approval({
     return out;
   }, [safePage, totalPages]);
 
+  const resetFilter = () => {
+    setStatusFilter('전체');
+    setTypeFilter('전체');
+    setDrafterFilter('전체');
+    setServiceFilter('전체');
+    setSearchField('ALL');
+    setQ('');
+  };
+
   return (
     <S.Wrap>
       <S.TopBar>
@@ -269,37 +388,84 @@ export default function Approval({
         </S.PrimaryBtn>
       </S.TopBar>
 
-      <S.FilterCard>
+      <S.FilterCard ref={dropdownRef}>
         <S.FilterRow>
           <S.FilterLabel>검색옵션</S.FilterLabel>
-          <S.CheckGroup>
-            {STATUS_OPTIONS.map((name) => (
-              <S.CheckItem key={name}>
-                <S.Checkbox
-                  type="checkbox"
-                  id={`st-${name}`}
-                  checked={checked.has(name)}
-                  onChange={() => toggleStatus(name)}
-                />
-                <label htmlFor={`st-${name}`}>{name}</label>
-              </S.CheckItem>
-            ))}
-          </S.CheckGroup>
+          <S.FilterSelectWrap>
+            <S.CustomSelect data-select-root="true">
+              <S.CustomSelectBtn onClick={() => setOpenType((p) => !p)}>
+                {typeFilter}
+                <span>▾</span>
+              </S.CustomSelectBtn>
+              {openType && (
+                <S.CustomSelectList>
+                  {TYPE_OPTIONS.map((o) => (
+                    <S.CustomSelectItem
+                      key={o}
+                      onClick={() => {
+                        setTypeFilter(o);
+                        setOpenType(false);
+                      }}
+                    >
+                      {o}
+                    </S.CustomSelectItem>
+                  ))}
+                </S.CustomSelectList>
+              )}
+            </S.CustomSelect>
+
+            <S.CustomSelect data-select-root="true">
+              <S.CustomSelectBtn onClick={() => setOpenStatus((p) => !p)}>
+                {statusFilter}
+                <span>▾</span>
+              </S.CustomSelectBtn>
+              {openStatus && (
+                <S.CustomSelectList>
+                  {STATUS_OPTIONS.map((o) => (
+                    <S.CustomSelectItem
+                      key={o}
+                      onClick={() => {
+                        setStatusFilter(o);
+                        setOpenStatus(false);
+                      }}
+                    >
+                      {o}
+                    </S.CustomSelectItem>
+                  ))}
+                </S.CustomSelectList>
+              )}
+            </S.CustomSelect>
+            <S.ResetBtn type="button" onClick={resetFilter}>
+              필터 초기화
+            </S.ResetBtn>
+          </S.FilterSelectWrap>
         </S.FilterRow>
 
         <S.FilterRow>
           <S.FilterLabel>검색명</S.FilterLabel>
           <S.SearchRow>
-            <S.Select
-              value={searchField}
-              onChange={(e) => setSearchField(e.target.value)}
-            >
-              {SEARCH_FIELDS.map((f) => (
-                <option key={f.key} value={f.key}>
-                  {f.label}
-                </option>
-              ))}
-            </S.Select>
+            <S.CustomSelect data-select-root="true" style={{ minWidth: 140 }}>
+              <S.CustomSelectBtn onClick={() => setOpenSearch((p) => !p)}>
+                {SEARCH_FIELDS.find((f) => f.key === searchField)?.label ??
+                  '전체'}
+                <span>▾</span>
+              </S.CustomSelectBtn>
+              {openSearch && (
+                <S.CustomSelectList>
+                  {SEARCH_FIELDS.map((f) => (
+                    <S.CustomSelectItem
+                      key={f.key}
+                      onClick={() => {
+                        setSearchField(f.key);
+                        setOpenSearch(false);
+                      }}
+                    >
+                      {f.label}
+                    </S.CustomSelectItem>
+                  ))}
+                </S.CustomSelectList>
+              )}
+            </S.CustomSelect>
             <S.Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -332,11 +498,11 @@ export default function Approval({
               <S.Th role="columnheader" style={{ width: 180 }}>
                 기안일
               </S.Th>
-              <S.Th role="columnheader" style={{ width: 160 }}>
+              <S.Th role="columnheader" style={{ width: 110 }}>
                 승인 상태
               </S.Th>
               <S.Th role="columnheader" style={{ width: 130 }}>
-                현재 승인자
+                승인 예정자
               </S.Th>
               <S.Th role="columnheader" style={{ width: 180 }}>
                 결재일
@@ -347,11 +513,7 @@ export default function Approval({
           <S.Body role="rowgroup">
             {pageItems.length === 0 ? (
               <S.Tr role="row">
-                <S.Td
-                  role="cell"
-                  style={{ color: 'var(textSecondary)' }}
-                  colSpan={9}
-                >
+                <S.Td role="cell" colSpan={9}>
                   조건에 맞는 항목이 없습니다.
                 </S.Td>
               </S.Tr>
@@ -384,41 +546,13 @@ export default function Approval({
                       ? '임시저장'
                       : formatYmdHm(r.draftedAt)}
                   </S.Td>
-                  <S.Td role="cell">
+                  <S.Td
+                    role="cell"
+                    data-nopointer
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {r.status === '임시저장' ? (
                       '-'
-                    ) : (
-                      <S.ApproveWrap>
-                        <S.ProgBar
-                          role="progressbar"
-                          aria-label={`승인 ${r.approval.current}/${r.approval.total}`}
-                          aria-valuemin={0}
-                          aria-valuemax={r.approval.total}
-                          aria-valuenow={r.approval.current}
-                          style={{
-                            ['--p']: `${Math.max(
-                              0,
-                              Math.min(
-                                100,
-                                (r.approval.current /
-                                  Math.max(1, r.approval.total)) *
-                                  100,
-                              ),
-                            )}%`,
-                          }}
-                        />
-                        <S.Ratio>
-                          {r.approval.current}/{r.approval.total}
-                        </S.Ratio>
-                      </S.ApproveWrap>
-                    )}
-                  </S.Td>
-                  <S.Td role="cell">
-                    {r.status === '완료' ? '완료' : r.currentApprover}
-                  </S.Td>
-                  <S.Td role="cell">
-                    {r.status === '완료' && r.approvedAt ? (
-                      formatYmdHm(r.approvedAt)
                     ) : r.status === '반려' ? (
                       <S.StatusBtn
                         data-variant="danger"
@@ -439,9 +573,17 @@ export default function Approval({
                       >
                         취소
                       </S.StatusBtn>
+                    ) : r.status === '완료' ? (
+                      '완료'
                     ) : (
-                      '-'
+                      <S.ApproveWrap>대기</S.ApproveWrap>
                     )}
+                  </S.Td>
+                  <S.Td role="cell">
+                    {r.status === '완료' ? '완료' : r.currentApprover}
+                  </S.Td>
+                  <S.Td role="cell">
+                    {r.approvedAt ? formatYmdHm(r.approvedAt) : '-'}
                   </S.Td>
                 </S.Tr>
               ))
@@ -501,13 +643,8 @@ export default function Approval({
                 {decisionRow.status === '반려' ? '반려 사유' : '취소 사유'}
               </S.ModalTitle>
             </S.ModalHeader>
-
             <S.ModalBody>
-              <S.Card
-                aria-label={
-                  decisionRow.status === '반려' ? '반려 사유' : '취소 사유'
-                }
-              >
+              <S.Card>
                 <S.KV>
                   <S.K>
                     {decisionRow.status === '반려' ? '반려자' : '취소자'}
@@ -517,7 +654,6 @@ export default function Approval({
                       ? decisionRow.rejectedBy
                       : decisionRow.canceledBy) ?? '—'}
                   </S.V>
-
                   <S.K>
                     {decisionRow.status === '반려' ? '반려일' : '취소일'}
                   </S.K>
@@ -531,9 +667,7 @@ export default function Approval({
                         : '—'}
                   </S.V>
                 </S.KV>
-
                 <S.Dashed />
-
                 <S.ReasonScroll>
                   <S.ReasonBox>
                     {decisionRow.status === '반려'
@@ -545,7 +679,6 @@ export default function Approval({
                 </S.ReasonScroll>
               </S.Card>
             </S.ModalBody>
-
             <S.ModalActions>
               <S.PrimaryBtn type="button" onClick={closeDecision}>
                 닫기

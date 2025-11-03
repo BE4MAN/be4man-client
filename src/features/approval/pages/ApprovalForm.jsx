@@ -209,14 +209,9 @@ export default function ApprovalForm({
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Placeholder.configure({ placeholder: '내용을 입력하세요…' }),
     ],
-    content: initial.designText ?? '',
+    content: initial.designText ?? htmlText,
     onUpdate: ({ editor }) => setHtmlText(editor.getHTML()),
   });
-
-  useEffect(() => {
-    if (!editor) return;
-    editor.commands.setContent(htmlText || '', false);
-  }, [editor, htmlText]);
 
   const [confirmType, setConfirmType] = useState(null);
   const [pendingDocType, setPendingDocType] = useState(null);

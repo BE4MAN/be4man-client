@@ -1,270 +1,272 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 
 import * as S from './Dashboard.styles';
 
-const STAT = {
-  requested: { title: '배포 신청', value: 286, diff: +12 },
-  pending: { title: '승인 대기', value: 18, diff: +5 },
-  done: { title: '완료한 배포', value: 245, diff: +18 },
-  failed: { title: '실패한 배포', value: 23, diff: +8 },
-};
-
-const TODAY_DEPLOYS = [
-  {
-    id: 1,
-    icon: 'success',
-    title: 'v2.3.1 배포',
-    team: '프론트엔드팀',
-    time: '14:30',
-    status: '성공',
-  },
-  {
-    id: 2,
-    icon: 'success',
-    title: 'API 서버 업데이트',
-    team: '백엔드팀',
-    time: '15:20',
-    status: '성공',
-  },
-  {
-    id: 3,
-    icon: 'wait',
-    title: '데이터베이스 마이그레이션',
-    team: 'DevOps팀',
-    time: '16:45',
-    status: '대기중',
-  },
-];
-
-const FAILED_7D = [
-  {
-    id: 'f1',
-    title: '긴급 보안 패치',
-    team: '백엔드팀',
-    at: '2025-10-22 14:20',
-    status: '실패',
-  },
-  {
-    id: 'f2',
-    title: 'v2.2.9 배포',
-    team: '프론트엔드팀',
-    at: '2025-10-21 11:30',
-    status: '실패',
-  },
-  {
-    id: 'f3',
-    title: '인프라 업데이트',
-    team: 'DevOps팀',
-    at: '2025-10-20 09:15',
-    status: '실패',
-  },
-];
-
-const WEEK_ITEMS = [
-  {
-    id: 'w1',
-    datetime: '2025-10-23T18:48:00+09:00',
-    title: 'Hotfix 배포',
-    team: '결제 서비스',
-  },
-  {
-    id: 'w2',
-    datetime: '2025-10-24T09:50:00+09:00',
-    title: 'v1.9.2 배포',
-    team: '코어 서비스',
-  },
-  {
-    id: 'w3',
-    datetime: '2025-10-25T14:20:00+09:00',
-    title: '긴급 보안 패치',
-    team: '백엔드팀',
-    danger: true,
-  },
-  {
-    id: 'w4',
-    datetime: '2025-10-26T10:15:00+09:00',
-    title: '긴급 보안 패치',
-    team: '백엔드팀',
-    danger: true,
-  },
-  {
-    id: 'w5',
-    datetime: '2025-10-27T11:30:00+09:00',
-    title: '긴급 보안 패치',
-    team: '백엔드팀',
-    danger: true,
-  },
-];
-
-function mondayOf(d) {
-  const x = new Date(d);
-  const diff = (x.getDay() + 6) % 7;
-  x.setDate(x.getDate() - diff);
-  x.setHours(0, 0, 0, 0);
-  return x;
+function mondayOf(date) {
+  const d = new Date(date);
+  const day = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - day);
+  d.setHours(0, 0, 0, 0);
+  return d;
 }
 function addDays(base, n) {
   const d = new Date(base);
   d.setDate(d.getDate() + n);
   return d;
 }
-function ymd(d) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate())
-    .toISOString()
-    .slice(0, 10);
-}
-
-function WeekCarousel({ items }) {
-  const thisWeek = useMemo(() => mondayOf(new Date()), []);
-  const [offset, setOffset] = useState(0);
-  const DOW = (d) =>
-    ['월', '화', '수', '목', '금', '토', '일'][(d.getDay() + 6) % 7];
-
-  const bucket = useMemo(() => {
-    const start = addDays(thisWeek, offset * 7);
-    const end = addDays(start, 7);
-    const b = Array.from({ length: 7 }, (_, k) => {
-      const date = addDays(start, k);
-      return { key: ymd(date), date, items: [] };
-    });
-    items.forEach((it) => {
-      const d = new Date(it.datetime);
-      if (d >= start && d < end) {
-        const k = ymd(d);
-        const cell = b.find((x) => x.key === k);
-        if (cell) cell.items.push(it);
-      }
-    });
-    b.forEach((cell) =>
-      cell.items.sort((a, c) => +new Date(a.datetime) - +new Date(c.datetime)),
-    );
-    return b;
-  }, [items, thisWeek, offset]);
-
-  return (
-    <S.Block>
-      <S.BlockHead>
-        <S.BlockTitle>주단위 일정</S.BlockTitle>
-        <S.HeadBtns>
-          <S.IconBtn onClick={() => setOffset((v) => v - 1)}>‹</S.IconBtn>
-          <S.IconBtn onClick={() => setOffset((v) => v + 1)}>›</S.IconBtn>
-        </S.HeadBtns>
-      </S.BlockHead>
-
-      <S.WeekViewport>
-        <S.WeekPage>
-          {bucket.map((b) => (
-            <S.DayCol key={b.key}>
-              <S.SlideHead>
-                <span className="dow">{DOW(b.date)}</span>
-                <span className="date">
-                  {String(b.date.getMonth() + 1).padStart(2, '0')}.
-                  {String(b.date.getDate()).padStart(2, '0')}
-                </span>
-              </S.SlideHead>
-
-              {b.items.length === 0 ? (
-                <S.Empty>일정 없음</S.Empty>
-              ) : (
-                <S.DayList>
-                  {b.items.map((it) => {
-                    const t = new Date(it.datetime);
-                    const hh = String(t.getHours()).padStart(2, '0');
-                    const mm = String(t.getMinutes()).padStart(2, '0');
-                    return (
-                      <S.DayItem
-                        key={it.id}
-                        data-danger={it.danger || undefined}
-                      >
-                        <div className="title">{it.title}</div>
-                        <div className="meta">
-                          <span>{it.team}</span>
-                          <span>
-                            {hh}:{mm}
-                          </span>
-                        </div>
-                      </S.DayItem>
-                    );
-                  })}
-                </S.DayList>
-              )}
-            </S.DayCol>
-          ))}
-        </S.WeekPage>
-      </S.WeekViewport>
-    </S.Block>
-  );
-}
 
 export default function Dashboard() {
+  const [offset, setOffset] = useState(0);
+  const baseWeek = useMemo(() => mondayOf(new Date()), []);
+  const weekStart = addDays(baseWeek, offset * 7);
+  const weekEnd = addDays(weekStart, 6);
+  const formatDate = (d) => `${d.getMonth() + 1}월 ${d.getDate()}일`;
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  const STATS = [
+    {
+      id: 1,
+      label: '승인 대기',
+      value: 5,
+      desc: '결재가 필요한 문서',
+      color: '#2563eb',
+    },
+    {
+      id: 2,
+      label: '진행중인 업무',
+      value: 5,
+      desc: '현재 처리중인 작업',
+      color: '#7c3aed',
+    },
+    {
+      id: 3,
+      label: '알림',
+      value: 3,
+      desc: '확인이 필요한 알림',
+      color: '#dc2626',
+    },
+  ];
+
+  const TASKS = [
+    {
+      id: 1,
+      title: '프로젝트 보고서 작성',
+      due: '2025-10-30',
+      status: '진행중',
+      owner: '홍길동',
+      progress: 65,
+      desc: '프로젝트 보고서 작성에 대한 상세 작업 중입니다.',
+      file: '업무_문서.pdf',
+    },
+    {
+      id: 2,
+      title: '고객 피드백 검토',
+      due: '2025-10-29',
+      status: '진행중',
+      owner: '이수민',
+      progress: 40,
+      desc: '고객 의견을 수집 및 정리 중입니다.',
+      file: '피드백_정리.xlsx',
+    },
+    {
+      id: 3,
+      title: '월간 실적 분석',
+      due: '2025-10-28',
+      status: '진행중',
+      owner: '김민재',
+      progress: 90,
+      desc: '데이터 분석 결과를 보고서로 정리 중입니다.',
+      file: '실적_보고서.pdf',
+    },
+  ];
+
+  const WEEKLY = {
+    '2025-10-27': ['10:00 팀 회의', '14:00 프로젝트 검토'],
+    '2025-10-28': ['11:00 고객 미팅', '12:30 점심 약속'],
+    '2025-10-29': ['10:30 코드 리뷰', '15:00 개발 세미나'],
+    '2025-10-30': ['09:00 월간 보고', '11:00 예산 회의'],
+    '2025-10-31': ['09:30 주간 보고', '16:00 팀 빌딩'],
+  };
+
+  const RECOVERY = [
+    {
+      service: '결제 서비스',
+      failedAt: '10/29 15:22',
+      cause: 'DB 마이그레이션 실패',
+      status: '복구 완료',
+      duration: '42분',
+      team: 'DevOps팀',
+    },
+    {
+      service: '알림 서비스',
+      failedAt: '10/28 18:10',
+      cause: 'Jenkins 단계 오류',
+      status: '진행중',
+      duration: '-',
+      team: '백엔드팀',
+    },
+    {
+      service: '사용자 서비스',
+      failedAt: '10/27 09:50',
+      cause: '배포 승인 누락',
+      status: '분석중',
+      duration: '-',
+      team: '프론트팀',
+    },
+  ];
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('list');
+  const [selectedTask, setSelectedTask] = useState(null);
+  const overlayRef = useRef();
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (overlayRef.current && e.target === overlayRef.current) {
+        setIsOpen(false);
+        setViewMode('list');
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <S.Wrap>
-      <S.SectionTitle>작업 현황</S.SectionTitle>
-      <S.StatGrid>
-        {Object.entries(STAT).map(([key, v]) => (
-          <S.StatCard key={key}>
-            <S.StatHead>
-              <S.StatTitle>{v.title}</S.StatTitle>
-            </S.StatHead>
-            <S.StatFoot>
-              <S.StatValue>{v.value}</S.StatValue>
-              <S.StatDiff data-up={v.diff > 0 || undefined}>
-                {v.diff > 0 ? `+${v.diff}` : v.diff}
-              </S.StatDiff>
-            </S.StatFoot>
-          </S.StatCard>
-        ))}
-      </S.StatGrid>
+    <>
+      <S.Wrap>
+        <S.StatGrid>
+          {STATS.map((s) => (
+            <S.StatCard key={s.id} onClick={() => setIsOpen(true)}>
+              <S.CardTop>
+                <S.IconBox style={{ color: s.color }}>●</S.IconBox>
+                <S.StatValue>{s.value}</S.StatValue>
+              </S.CardTop>
+              <S.StatLabel>{s.label}</S.StatLabel>
+            </S.StatCard>
+          ))}
+        </S.StatGrid>
 
-      <S.TwoCol>
-        <S.Block>
-          <S.BlockHead>
-            <S.BlockTitle>오늘 배포 목록</S.BlockTitle>
-          </S.BlockHead>
-          <S.List>
-            {TODAY_DEPLOYS.map((r) => (
-              <S.ListItem key={r.id}>
-                <S.Left>
-                  <S.StatusIcon data-type={r.icon} />
-                  <div>
-                    <div className="title">{r.title}</div>
-                    <div className="sub">{r.team}</div>
-                  </div>
-                </S.Left>
-                <S.Right>
-                  <div className="time">{r.time}</div>
-                  <S.Pill data-kind={r.status}>{r.status}</S.Pill>
-                </S.Right>
-              </S.ListItem>
-            ))}
-          </S.List>
-        </S.Block>
+        <S.WeekBlock>
+          <S.WeekHeader>
+            <span>주간 일정</span>
+            <span>
+              {formatDate(weekStart)} – {formatDate(weekEnd)}
+            </span>
+            <div>
+              <S.IconBtn onClick={() => setOffset((v) => v - 1)}>
+                ‹ 이전
+              </S.IconBtn>
+              <S.IconBtn onClick={() => setOffset((v) => v + 1)}>
+                다음 ›
+              </S.IconBtn>
+            </div>
+          </S.WeekHeader>
+          <S.WeekGrid>
+            {days.map((d, i) => {
+              const key = d.toISOString().slice(0, 10);
+              const items = WEEKLY[key] || [];
+              return (
+                <S.DayCol key={key} onClick={() => setIsOpen(true)}>
+                  <S.DayHead>
+                    <span>{['월', '화', '수', '목', '금', '토', '일'][i]}</span>
+                    <span>{d.getDate()}</span>
+                  </S.DayHead>
+                  {items.length ? (
+                    items.map((it, idx) => (
+                      <S.DayItem key={idx}>{it}</S.DayItem>
+                    ))
+                  ) : (
+                    <S.Empty>일정 없음</S.Empty>
+                  )}
+                </S.DayCol>
+              );
+            })}
+          </S.WeekGrid>
+        </S.WeekBlock>
 
-        <S.Block>
-          <S.BlockHead>
-            <S.BlockTitle>배포 실패 목록 최근 7일</S.BlockTitle>
-          </S.BlockHead>
-          <S.List>
-            {FAILED_7D.map((r) => (
-              <S.ListItem key={r.id}>
-                <S.Left>
-                  <S.StatusIcon data-type="error" />
-                  <div>
-                    <div className="title">{r.title}</div>
-                    <div className="sub">{r.team}</div>
-                  </div>
-                </S.Left>
-                <S.Right>
-                  <div className="time">{r.at}</div>
-                  <S.Pill data-kind="실패">실패</S.Pill>
-                </S.Right>
-              </S.ListItem>
-            ))}
-          </S.List>
-        </S.Block>
-      </S.TwoCol>
+        <S.RecoveryBlock>
+          <S.SectionTitle>배포 실패 복구 현황판</S.SectionTitle>
+          <S.Table>
+            <thead>
+              <tr>
+                <th>서비스명</th>
+                <th>실패 일시</th>
+                <th>원인</th>
+                <th>상태</th>
+                <th>소요시간</th>
+                <th>담당팀</th>
+              </tr>
+            </thead>
+            <tbody>
+              {RECOVERY.map((r, idx) => (
+                <tr key={idx}>
+                  <td>{r.service}</td>
+                  <td>{r.failedAt}</td>
+                  <td>{r.cause}</td>
+                  <td>
+                    <S.Status $status={r.status}>{r.status}</S.Status>
+                  </td>
+                  <td>{r.duration}</td>
+                  <td>{r.team}</td>
+                </tr>
+              ))}
+            </tbody>
+          </S.Table>
+        </S.RecoveryBlock>
+      </S.Wrap>
 
-      <WeekCarousel items={WEEK_ITEMS} />
-    </S.Wrap>
+      {isOpen && <S.Overlay ref={overlayRef} />}
+
+      {isOpen && (
+        <S.SidePanel>
+          {viewMode === 'list' ? (
+            <>
+              <S.PanelHeader>
+                <S.PanelTitle>진행중인 업무</S.PanelTitle>
+                <S.PanelSub>총 업무 {TASKS.length}건</S.PanelSub>
+              </S.PanelHeader>
+              <S.TaskList>
+                {TASKS.map((t) => (
+                  <S.TaskItem
+                    key={t.id}
+                    onClick={() => {
+                      setSelectedTask(t);
+                      setViewMode('detail');
+                    }}
+                  >
+                    <div>
+                      <S.TaskTitle>{t.title}</S.TaskTitle>
+                      <S.TaskDate>📅 {t.due}</S.TaskDate>
+                    </div>
+                    <S.TaskBadge>{t.status}</S.TaskBadge>
+                  </S.TaskItem>
+                ))}
+              </S.TaskList>
+            </>
+          ) : (
+            <>
+              <S.PanelHeader dark>
+                <S.BackBtn onClick={() => setViewMode('list')}>
+                  ← 뒤로가기
+                </S.BackBtn>
+                <S.PanelTitle>업무 상세</S.PanelTitle>
+              </S.PanelHeader>
+              <S.DetailContent>
+                <S.TaskStatus>{selectedTask.status}</S.TaskStatus>
+                <S.DetailTitle>{selectedTask.title}</S.DetailTitle>
+                <S.DetailMeta>
+                  <li>담당자: {selectedTask.owner}</li>
+                  <li>마감일: {selectedTask.due}</li>
+                  <li>진행률: {selectedTask.progress}%</li>
+                </S.DetailMeta>
+                <S.Divider />
+                <S.DetailDesc>{selectedTask.desc}</S.DetailDesc>
+                <S.FileLink href="#">{selectedTask.file}</S.FileLink>
+              </S.DetailContent>
+            </>
+          )}
+        </S.SidePanel>
+      )}
+    </>
   );
 }
