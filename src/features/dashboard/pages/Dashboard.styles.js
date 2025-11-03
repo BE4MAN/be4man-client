@@ -1,282 +1,349 @@
 import styled from '@emotion/styled';
 
-const tone = (t) => ({
-  bg: t.mode === 'dark' ? '#0f141c' : '#f7f9fc',
-  card: t.mode === 'dark' ? '#151b26' : '#ffffff',
-  cardAlt: t.mode === 'dark' ? '#171c27' : '#ffffff',
-  border: t.colors?.border ?? (t.mode === 'dark' ? '#263046' : '#e5e9f2'),
-  text: t.colors?.text ?? (t.mode === 'dark' ? '#e5eaf3' : '#0f172a'),
-  textDim:
-    t.colors?.textSecondary ?? (t.mode === 'dark' ? '#98a2b2' : '#6b7280'),
-  primary: t.colors?.primary ?? '#2563eb',
-  success: '#16a34a',
-  wait: '#eab308',
-  error: '#ef4444',
-});
-
 export const Wrap = styled.div`
-  padding: 18px;
-  color: ${({ theme }) => tone(theme).text};
-  background: ${({ theme }) => tone(theme).bg};
-`;
-
-export const SectionTitle = styled.h3`
-  margin: 4px 0 10px;
-  font-size: 16px;
-  color: ${({ theme }) => tone(theme).text};
+  background: #f3f4f6;
+  color: #111827;
+  padding: 24px;
+  font-family: Pretendard, 'Noto Sans KR', sans-serif;
+  display: grid;
+  gap: 24px;
 `;
 
 export const StatGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
-
-  @media (width <= 1100px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @media (width <= 640px) {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 `;
 
 export const StatCard = styled.div`
-  background: ${({ theme }) => tone(theme).card};
-  border: 1px solid ${({ theme }) => tone(theme).border};
-  border-radius: 14px;
-  padding: 14px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  padding: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #f9fafb;
+  }
 `;
 
-export const StatHead = styled.div`
+export const CardTop = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
 `;
 
-export const StatFoot = styled.div`
+export const IconBox = styled.div`
+  width: 36px;
+  height: 36px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
+  font-size: 20px;
 `;
 
-export const StatTitle = styled.div`
-  color: ${({ theme }) => tone(theme).textDim};
+export const StatLabel = styled.div`
   font-weight: 700;
+  font-size: 15px;
 `;
 
 export const StatValue = styled.div`
-  font-size: clamp(22px, 4vw, 28px);
+  font-size: 28px;
   font-weight: 800;
-  margin-top: 8px;
 `;
 
-export const StatDiff = styled.div`
-  margin-top: 4px;
-  font-weight: 700;
-  color: ${({ theme }) => tone(theme).error};
-
-  &[data-up='true'] {
-    color: ${({ theme }) => tone(theme).primary};
-  }
+export const StatDesc = styled.div`
+  font-size: 13px;
+  color: #6b7280;
 `;
 
-export const TwoCol = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin: 16px 0 22px;
-
-  @media (width <= 980px) {
-    grid-template-columns: 1fr;
-  }
+export const WeekBlock = styled.div`
+  background: #fff;
+  border: 1px solid #d1d5db;
+  padding: 16px;
 `;
 
-export const Block = styled.div`
-  background: ${({ theme }) => tone(theme).cardAlt};
-  border: 1px solid ${({ theme }) => tone(theme).border};
-  border-radius: 14px;
-  padding: 10px;
-`;
-
-export const BlockHead = styled.div`
+export const WeekHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 8px 10px;
-`;
-
-export const BlockTitle = styled.div`
-  font-weight: 800;
-`;
-
-export const HeadBtns = styled.div`
-  display: flex;
-  gap: 6px;
+  border-bottom: 1px solid #d1d5db;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
 `;
 
 export const IconBtn = styled.button`
-  border: 1px solid ${({ theme }) => tone(theme).border};
-  background: ${({ theme }) => tone(theme).card};
-  color: ${({ theme }) => tone(theme).text};
-  border-radius: 8px;
-  padding: 6px 10px;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: default;
-  }
-`;
-
-export const List = styled.div`
-  display: grid;
-  gap: 10px;
-  padding: 6px;
-`;
-
-export const ListItem = styled.div`
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid ${({ theme }) => tone(theme).border};
-  border-radius: 12px;
-  background: ${({ theme }) => tone(theme).card};
-`;
-
-export const Left = styled.div`
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 10px;
-  align-items: center;
-
-  .title {
-    font-weight: 700;
-  }
-
-  .sub {
-    color: ${({ theme }) => tone(theme).textDim};
-    font-size: 12px;
-  }
-`;
-
-export const Right = styled.div`
-  display: grid;
-  gap: 6px;
-  justify-items: end;
-
-  .time {
-    font-size: 12px;
-    color: ${({ theme }) => tone(theme).textDim};
-  }
-`;
-
-export const StatusIcon = styled.span`
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: inline-block;
-  border: 2px solid currentcolor;
-  color: ${({ theme }) => tone(theme).success};
-
-  &[data-type='wait'] {
-    color: ${({ theme }) => tone(theme).wait};
-  }
-
-  &[data-type='error'] {
-    color: ${({ theme }) => tone(theme).error};
-  }
-`;
-
-export const Pill = styled.span`
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
   padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  border: 1px solid ${({ theme }) => tone(theme).border};
-  background: ${({ theme }) => tone(theme).card};
-  color: ${({ theme }) => tone(theme).success};
+  margin-left: 6px;
+  cursor: pointer;
+  font-size: 13px;
 
-  &[data-kind='대기중'] {
-    color: ${({ theme }) => tone(theme).wait};
-  }
-
-  &[data-kind='실패'] {
-    color: ${({ theme }) => tone(theme).error};
+  &:hover {
+    background: #e5e7eb;
   }
 `;
 
-export const WeekViewport = styled.div`
-  overflow: hidden;
-  padding: 12px;
-`;
-
-export const WeekPage = styled.div`
-  width: 100%;
+export const WeekGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(7, 1fr);
 `;
 
 export const DayCol = styled.div`
-  border: 1px solid ${({ theme }) => tone(theme).border};
-  border-radius: 14px;
-  background: ${({ theme }) => tone(theme).card};
+  border: 0.5px solid #d1d5db;
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  cursor: pointer;
+
+  &:hover {
+    background: #f9fafb;
+  }
 `;
 
-export const SlideHead = styled.div`
+export const DayHead = styled.div`
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px;
+  font-weight: 600;
+  font-size: 13px;
   display: flex;
   justify-content: space-between;
-  padding: 10px 12px;
-  border-bottom: 1px solid ${({ theme }) => tone(theme).border};
-
-  .dow {
-    font-weight: 800;
-  }
-
-  .date {
-    color: ${({ theme }) => tone(theme).textDim};
-    font-size: 12px;
-  }
-`;
-
-export const Empty = styled.div`
-  padding: 24px;
-  text-align: center;
-  color: ${({ theme }) => tone(theme).textDim};
-`;
-
-export const DayList = styled.div`
-  padding: 10px 12px;
-  display: grid;
-  gap: 10px;
-  grid-auto-rows: minmax(56px, auto);
 `;
 
 export const DayItem = styled.div`
-  border: 1px solid ${({ theme }) => tone(theme).border};
-  border-radius: 10px;
-  background: ${({ theme }) => tone(theme).cardAlt};
-  padding: clamp(8px, 1.2vw, 12px);
+  border-left: 3px solid #2563eb;
+  margin: 6px;
+  padding: 8px;
+  font-size: 13px;
+`;
 
-  .title {
-    font-weight: 700;
+export const Empty = styled.div`
+  padding: 20px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 12px;
+`;
+
+export const RecoveryBlock = styled.div`
+  background: #fff;
+  border: 1px solid #d1d5db;
+  padding: 16px;
+`;
+
+export const SectionTitle = styled.div`
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-size: 15px;
+`;
+
+export const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: center;
+
+  th {
+    background: #f9fafb;
+    border-bottom: 1px solid #d1d5db;
+    padding: 8px;
   }
 
-  .meta {
-    margin-top: 4px;
-    display: flex;
-    justify-content: space-between;
-    color: ${({ theme }) => tone(theme).textDim};
-    font-size: 12px;
+  td {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 8px;
   }
 
-  &[data-danger='true'] {
-    box-shadow: inset 0 0 0 1px ${({ theme }) => tone(theme).error};
+  tr:hover {
+    background: #f9fafb;
+  }
+`;
+
+export const Status = styled.span`
+  display: inline-block;
+  padding: 3px 8px;
+  font-weight: 600;
+  border: 1px solid
+    ${({ $status }) =>
+      $status === '복구 완료'
+        ? '#16a34a'
+        : $status === '진행중'
+          ? '#eab308'
+          : '#ef4444'};
+  color: ${({ $status }) =>
+    $status === '복구 완료'
+      ? '#16a34a'
+      : $status === '진행중'
+        ? '#eab308'
+        : '#ef4444'};
+  background: ${({ $status }) =>
+    $status === '복구 완료'
+      ? '#dcfce7'
+      : $status === '진행중'
+        ? '#fef9c3'
+        : '#fee2e2'};
+`;
+
+/* 오른쪽 패널 */
+export const SidePanel = styled.div`
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 500px;
+  height: 100vh;
+  background: #fff;
+  border-left: 1px solid #d1d5db;
+  z-index: 20;
+  box-shadow: -2px 0 6px rgb(0 0 0 / 10%);
+  margin-top: 72px;
+  display: flex;
+  flex-direction: column;
+`;
+
+export const PanelHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: '#f9fafb';
+  color: '#111';
+`;
+
+export const PanelTitle = styled.div`
+  font-size: 16px;
+  font-weight: 700;
+`;
+
+export const PanelSub = styled.div`
+  font-size: 13px;
+  color: #6b7280;
+`;
+
+export const CloseBtn = styled.button`
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: inherit;
+`;
+
+export const TaskList = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 16px;
+`;
+
+export const TaskItem = styled.div`
+  border: 1px solid #d1d5db;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #f3f4f6;
+  }
+`;
+
+export const TaskTitle = styled.div`
+  font-weight: 600;
+  font-size: 14px;
+`;
+
+export const TaskDate = styled.div`
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+`;
+
+export const TaskBadge = styled.span`
+  background: #111827;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+`;
+
+export const DetailPanel = styled(SidePanel)`
+  right: 420px;
+  border-right: 1px solid #d1d5db;
+  background: #f9fafb;
+  z-index: 30;
+`;
+
+export const DetailContent = styled.div`
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+`;
+
+export const TaskStatus = styled.span`
+  display: inline-block;
+  background: #111827;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+`;
+
+export const DetailTitle = styled.h3`
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 12px;
+`;
+
+export const DetailMeta = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+
+  li {
+    margin-bottom: 6px;
+  }
+`;
+
+export const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid #d1d5db;
+  margin: 16px 0;
+`;
+
+export const DetailDesc = styled.p`
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.5;
+`;
+
+export const FileLink = styled.a`
+  display: inline-block;
+  margin-top: 8px;
+  color: #2563eb;
+  font-size: 13px;
+  text-decoration: underline;
+`;
+
+export const Overlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 15%);
+  z-index: 10;
+`;
+
+export const BackBtn = styled.button`
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  margin-right: 8px;
+
+  &:hover {
+    text-decoration: underline;
   }
 `;
