@@ -27,23 +27,14 @@ export const ViewButtons = styled.div`
   `}
 `;
 
-export const ViewButton = styled.button`
+const BaseButton = styled.button`
   display: flex;
   align-items: center;
   gap: 0.4537rem;
   height: 2.2687rem;
   padding: 0 0.5rem;
   border-radius: 0.3125rem;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  background: ${({ isActive, theme }) =>
-    isActive ? theme.colors.surface : 'transparent'};
-  color: ${({ isActive, theme }) =>
-    isActive ? theme.colors.textPrimary : theme.colors.textSecondary};
   font-size: 0.7936rem;
-  font-weight: ${({ isActive, theme }) =>
-    isActive
-      ? theme.typography.fontWeight.bold
-      : theme.typography.fontWeight.medium};
   cursor: pointer;
   transition: all 0.2s ease;
   outline: none;
@@ -66,43 +57,28 @@ export const ViewButton = styled.button`
   `}
 `;
 
-export const AddButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.4537rem;
-  height: 2.2687rem;
-  padding: 0 0.5rem;
-  border-radius: 0.3125rem;
+export const ViewButton = styled(BaseButton)`
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ isActive, theme }) =>
+    isActive ? theme.colors.surface : 'transparent'};
+  color: ${({ isActive, theme }) =>
+    isActive ? theme.colors.textPrimary : theme.colors.textSecondary};
+  font-weight: ${({ isActive, theme }) =>
+    isActive
+      ? theme.typography.fontWeight.bold
+      : theme.typography.fontWeight.medium};
+`;
+
+export const AddButton = styled(BaseButton)`
   border: 1px solid ${({ theme }) => theme.colors.schedule.restrictedDanger};
   background: ${({ theme }) => theme.colors.bg};
   color: ${({ theme }) => theme.colors.schedule.restrictedDanger};
-  font-size: 0.7936rem;
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  outline: none;
-
-  svg {
-    width: 0.9075rem;
-    height: 0.9075rem;
-  }
-
-  span {
-    display: none;
-
-    ${({ theme }) => theme.mq.md`
-      display: inline;
-    `}
-  }
 
   &:hover {
     background: ${({ theme }) => theme.colors.schedule.restrictedDanger};
     color: white;
   }
-
-  ${({ theme }) => theme.mq.md`
-    padding: 0 0.75rem;
-  `}
 `;
 
 export const Content = styled.div`
@@ -227,12 +203,6 @@ export const FilterRowItem = styled.div`
   flex-direction: column;
   gap: 6px;
   justify-content: center;
-`;
-
-export const FilterButtonsContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 export const FilterButton = styled.button`

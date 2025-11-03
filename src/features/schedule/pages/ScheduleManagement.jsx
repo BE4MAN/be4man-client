@@ -10,8 +10,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
-import Button from '@/components/auth/Button';
-import Input from '@/components/auth/Input';
 import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleCustomSelect from '@/components/schedule/components/ScheduleCustomSelect';
 import DeploymentCalendar from '@/components/schedule/DeploymentCalendar';

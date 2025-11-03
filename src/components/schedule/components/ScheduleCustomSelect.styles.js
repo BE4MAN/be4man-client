@@ -49,9 +49,8 @@ export const SelectButton = styled.button`
   justify-content: space-between;
 
   span {
-    font-size: ${({ $hasValue }) => (!$hasValue ? '14px' : '14px')};
-    color: ${({ $hasValue, theme }) =>
-      !$hasValue ? theme.colors.textSecondary : theme.colors.textSecondary};
+    font-size: 14px;
+    color: ${({ theme }) => theme.colors.textSecondary};
   }
 
   &:focus {

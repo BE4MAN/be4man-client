@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import DateTimeRangePicker from '@/components/common/DateTimeRangePicker';
 import ServiceTag from '@/components/common/ServiceTag';
+import { RequiredAsterisk } from '@/components/schedule/commonStyles';
 import ScheduleCustomSelect from '@/components/schedule/components/ScheduleCustomSelect';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
 import { DEPARTMENT_REVERSE_MAP } from '@/constants/accounts';
@@ -146,7 +147,7 @@ export default function RestrictedPeriodCreationPage() {
 
           <S.MetaRow>
             <S.MetaTh>
-              제목 <S.RequiredAsterisk>*</S.RequiredAsterisk>
+              제목 <RequiredAsterisk>*</RequiredAsterisk>
             </S.MetaTh>
             <S.MetaTd colSpan={3}>
               <S.Input
@@ -176,7 +177,7 @@ export default function RestrictedPeriodCreationPage() {
 
           <S.MetaRow>
             <S.MetaTh>
-              기간 <S.RequiredAsterisk>*</S.RequiredAsterisk>
+              기간 <RequiredAsterisk>*</RequiredAsterisk>
             </S.MetaTh>
             <S.MetaTd>
               <DateTimeRangePicker
@@ -217,7 +218,7 @@ export default function RestrictedPeriodCreationPage() {
 
           <S.MetaRow>
             <S.MetaTh>
-              연관 서비스 <S.RequiredAsterisk>*</S.RequiredAsterisk>
+              연관 서비스 <RequiredAsterisk>*</RequiredAsterisk>
             </S.MetaTh>
             <S.MetaTd colSpan={3}>
               <S.ServiceSelectContainer>

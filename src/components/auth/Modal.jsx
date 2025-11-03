@@ -44,7 +44,7 @@ export const Modal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.04 }}
+        transition={{ duration: 0.08 }}
         onClick={closeOnOverlayClick ? onClose : undefined}
         $zIndex={zIndex}
         {...props}
@@ -53,7 +53,7 @@ export const Modal = ({
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          transition={{ duration: 0.06, ease: 'easeInOut' }}
+          transition={{ duration: 0.12, ease: 'easeInOut' }}
           maxWidth={maxWidth}
           onClick={(e) => e.stopPropagation()}
         >

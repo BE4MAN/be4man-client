@@ -64,7 +64,7 @@ export const Input = styled.input`
   ${baseInput}
 
   border-color: ${({ $hasError, theme }) =>
-    $hasError ? theme.colors.error : 'var(--border)'} !important;
+    $hasError ? theme.colors.error : 'var(--border)'};
 `;
 
 export const Textarea = styled.textarea`
@@ -113,11 +113,6 @@ export const MetaRow = styled.tr`
   &:not(:first-of-type) {
     border-top: 1px solid ${({ theme }) => theme.colors.border};
   }
-`;
-
-export const RequiredAsterisk = styled.span`
-  color: ${({ theme }) => theme.colors.error};
-  margin-left: 2px;
 `;
 
 export const MetaTh = styled.th`

@@ -79,7 +79,7 @@ export const CalendarGrid = styled.div`
 
 export const EmptyCell = styled.div`
   background: ${({ theme }) => theme.colors.surface};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  border: 1px solid ${({ theme }) => theme.colors.surface};
   min-height: 64px;
   padding: ${({ theme }) => theme.spacing.sm};
 `;

@@ -31,25 +31,6 @@ export const DateRangeLabel = styled.label`
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
 `;
 
-export const RequiredAsterisk = styled.span`
-  color: ${({ theme }) => theme.colors.error};
-  margin-left: 2px;
-`;
-
-export const Required = styled.span`
-  color: ${({ theme }) => theme.colors.error};
-`;
-
-export const DateTimeGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: ${({ theme }) => theme.spacing.md};
-
-  ${({ theme }) => theme.mq.md`
-    grid-template-columns: 1fr 1fr;
-  `}
-`;
-
 export const Footer = styled.div`
   display: flex;
   justify-content: flex-end;
@@ -73,12 +54,13 @@ export const ServicesSelectWrapper = styled.div`
     width: 100%;
   }
 
+  /* ScheduleCustomSelect 내부 SelectWrapper 스타일 강제 적용 */
   & > div > div > div {
-    min-width: 14.0625rem !important;
-    width: auto !important;
-    height: 2.2rem !important;
-    display: flex !important;
-    align-items: center !important;
+    min-width: 14.0625rem;
+    width: auto;
+    height: 2.2rem;
+    display: flex;
+    align-items: center;
   }
 `;
 
