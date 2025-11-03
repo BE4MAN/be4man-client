@@ -13,6 +13,7 @@ export const Modal = ({
   maxWidth,
   showCloseButton = true,
   closeOnOverlayClick = true,
+  zIndex,
   ...props
 }) => {
   // ESC 키로 모달 닫기
@@ -43,15 +44,16 @@ export const Modal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.04 }}
         onClick={closeOnOverlayClick ? onClose : undefined}
+        $zIndex={zIndex}
         {...props}
       >
         <S.ModalContent
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          transition={{ duration: 0.06, ease: 'easeInOut' }}
           maxWidth={maxWidth}
           onClick={(e) => e.stopPropagation()}
         >

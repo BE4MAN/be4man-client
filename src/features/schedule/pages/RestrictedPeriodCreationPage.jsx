@@ -1,10 +1,12 @@
+import { RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import CustomSelect from '@/components/auth/CustomSelect';
-import Modal from '@/components/auth/Modal';
 import DateTimeRangePicker from '@/components/common/DateTimeRangePicker';
 import ServiceTag from '@/components/common/ServiceTag';
+import ScheduleCustomSelect from '@/components/schedule/components/ScheduleCustomSelect';
+import ScheduleModal from '@/components/schedule/components/ScheduleModal';
+import { DEPARTMENT_REVERSE_MAP } from '@/constants/accounts';
 import { useAuthStore } from '@/stores/authStore';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
 
@@ -27,10 +29,12 @@ export default function RestrictedPeriodCreationPage() {
   const [errors, setErrors] = useState({
     title: false,
     dateTime: false,
+    services: false,
   });
   const [touched, setTouched] = useState({
     title: false,
     dateTime: false,
+    services: false,
   });
 
   // 서비스 목록 추출
@@ -42,19 +46,23 @@ export default function RestrictedPeriodCreationPage() {
     // 필수 필드 검증
     const titleError = !title.trim();
     const dateTimeError = !(startDate && endDate && startTime && endTime);
+    const servicesError =
+      !Array.isArray(selectedServices) || selectedServices.length === 0;
 
     setErrors({
       title: titleError,
       dateTime: dateTimeError,
+      services: servicesError,
     });
 
     setTouched({
       title: true,
       dateTime: true,
+      services: true,
     });
 
     // 모든 필드가 유효한 경우에만 모달 열기
-    if (!titleError && !dateTimeError) {
+    if (!titleError && !dateTimeError && !servicesError) {
       setRegisterModalOpen(true);
     }
   };
@@ -76,7 +84,9 @@ export default function RestrictedPeriodCreationPage() {
 
   const isTitleValid = title.trim().length > 0;
   const isDateTimeValid = startDate && endDate && startTime && endTime;
-  const isFormValid = isTitleValid && isDateTimeValid;
+  const isServicesValid =
+    Array.isArray(selectedServices) && selectedServices.length > 0;
+  const isFormValid = isTitleValid && isDateTimeValid && isServicesValid;
 
   const handleDateRangeChange = (start, end) => {
     setStartDate(start);
@@ -86,6 +96,14 @@ export default function RestrictedPeriodCreationPage() {
   const handleTimeChange = (start, end) => {
     setStartTime(start);
     setEndTime(end);
+  };
+
+  const handleSelectAllServices = () => {
+    setSelectedServices(availableServices);
+  };
+
+  const handleResetServices = () => {
+    setSelectedServices([]);
   };
 
   return (
@@ -115,12 +133,21 @@ export default function RestrictedPeriodCreationPage() {
             </S.MetaTd>
             <S.MetaTh>등록부서</S.MetaTh>
             <S.MetaTd>
-              <S.Input value={user?.department || '없음'} readOnly />
+              <S.Input
+                value={
+                  user?.department
+                    ? DEPARTMENT_REVERSE_MAP[user.department] || user.department
+                    : '없음'
+                }
+                readOnly
+              />
             </S.MetaTd>
           </S.MetaRow>
 
           <S.MetaRow>
-            <S.MetaTh>제목 *</S.MetaTh>
+            <S.MetaTh>
+              제목 <S.RequiredAsterisk>*</S.RequiredAsterisk>
+            </S.MetaTh>
             <S.MetaTd colSpan={3}>
               <S.Input
                 placeholder="작업 금지 제목을 입력하세요"
@@ -148,7 +175,9 @@ export default function RestrictedPeriodCreationPage() {
           </S.MetaRow>
 
           <S.MetaRow>
-            <S.MetaTh>기간 *</S.MetaTh>
+            <S.MetaTh>
+              기간 <S.RequiredAsterisk>*</S.RequiredAsterisk>
+            </S.MetaTh>
             <S.MetaTd>
               <DateTimeRangePicker
                 startDate={startDate}
@@ -187,24 +216,49 @@ export default function RestrictedPeriodCreationPage() {
           </S.MetaRow>
 
           <S.MetaRow>
-            <S.MetaTh>연관 서비스</S.MetaTh>
+            <S.MetaTh>
+              연관 서비스 <S.RequiredAsterisk>*</S.RequiredAsterisk>
+            </S.MetaTh>
             <S.MetaTd colSpan={3}>
-              <div style={{ marginBottom: '8px', width: '50%' }}>
-                <CustomSelect
-                  value={
-                    Array.isArray(selectedServices) ? selectedServices : []
-                  }
-                  onChange={(value) => {
-                    setSelectedServices(Array.isArray(value) ? value : []);
-                  }}
-                  options={availableServices.map((service) => ({
-                    value: service,
-                    label: service,
-                  }))}
-                  multiple
-                  placeholder="전체"
-                />
-              </div>
+              <S.ServiceSelectContainer>
+                <S.ServiceSelectWrapper>
+                  <ScheduleCustomSelect
+                    value={
+                      Array.isArray(selectedServices) ? selectedServices : []
+                    }
+                    onChange={(value) => {
+                      setSelectedServices(Array.isArray(value) ? value : []);
+                      if (touched.services) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          services: !Array.isArray(value) || value.length === 0,
+                        }));
+                      }
+                    }}
+                    onBlur={() =>
+                      setTouched((prev) => ({ ...prev, services: true }))
+                    }
+                    options={availableServices.map((service) => ({
+                      value: service,
+                      label: service,
+                    }))}
+                    multiple
+                    error={touched.services && errors.services ? '' : ''}
+                  />
+                </S.ServiceSelectWrapper>
+                <S.ServiceButtonsContainer>
+                  <S.ServiceButton
+                    type="button"
+                    onClick={handleSelectAllServices}
+                  >
+                    전체
+                  </S.ServiceButton>
+                  <S.ServiceButton type="button" onClick={handleResetServices}>
+                    <RotateCcw size={14} />
+                    <span>초기화</span>
+                  </S.ServiceButton>
+                </S.ServiceButtonsContainer>
+              </S.ServiceSelectContainer>
               {Array.isArray(selectedServices) &&
                 selectedServices.length > 0 && (
                   <S.ServicesTagContainer>
@@ -239,7 +293,7 @@ export default function RestrictedPeriodCreationPage() {
       </S.Panel>
 
       {/* 취소 확인 모달 */}
-      <Modal
+      <ScheduleModal
         isOpen={cancelModalOpen}
         onClose={() => setCancelModalOpen(false)}
         title="등록 취소"
@@ -255,10 +309,10 @@ export default function RestrictedPeriodCreationPage() {
         }
       >
         작성 중인 내용이 저장되지 않은 채 취소됩니다.
-      </Modal>
+      </ScheduleModal>
 
       {/* 등록 확인 모달 */}
-      <Modal
+      <ScheduleModal
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
         title="작업 금지 기간 등록"
@@ -274,7 +328,7 @@ export default function RestrictedPeriodCreationPage() {
         }
       >
         본 작업 금지를 등록하시겠습니까?
-      </Modal>
+      </ScheduleModal>
     </S.PageContainer>
   );
 }

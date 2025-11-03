@@ -229,10 +229,53 @@ export const FilterRowItem = styled.div`
   justify-content: center;
 `;
 
+export const FilterButtonsContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+export const FilterButton = styled.button`
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 0.3125rem;
+  background-color: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  height: 2.2rem;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.surface};
+    border-color: ${({ theme }) => theme.colors.brand};
+  }
+
+  &:active {
+    background-color: ${({ theme }) => theme.colors.interactiveActive};
+  }
+`;
+
 export const FilterLabel = styled.label`
   font-size: 13px;
   font-weight: 500;
   color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+export const ServiceSelectContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 export const SelectWrapper = styled.div`

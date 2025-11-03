@@ -11,9 +11,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
 import Button from '@/components/auth/Button';
-import CustomSelect from '@/components/auth/CustomSelect';
 import Input from '@/components/auth/Input';
 import ServiceTag from '@/components/common/ServiceTag';
+import ScheduleCustomSelect from '@/components/schedule/components/ScheduleCustomSelect';
 import DeploymentCalendar from '@/components/schedule/DeploymentCalendar';
 import DeploymentDetailModal from '@/components/schedule/DeploymentDetailModal';
 import RestrictedPeriodDetailModal from '@/components/schedule/RestrictedPeriodDetailModal';
@@ -151,6 +151,10 @@ export default function ScheduleManagement() {
     setPeriodEndDate('');
   };
 
+  const handleSelectAllServices = () => {
+    setSelectedServices(availableServices.map((service) => service.value));
+  };
+
   // location state에서 viewMode 확인
   useEffect(() => {
     if (location.state?.viewMode === 'list') {
@@ -251,7 +255,7 @@ export default function ScheduleManagement() {
                   <S.FilterRowItem>
                     <S.FilterLabel>유형</S.FilterLabel>
                     <S.SelectWrapper>
-                      <CustomSelect
+                      <ScheduleCustomSelect
                         value={selectedBanType}
                         onChange={(value) => setSelectedBanType(value)}
                         options={banTypes}
@@ -261,15 +265,30 @@ export default function ScheduleManagement() {
 
                   <S.FilterRowItem>
                     <S.FilterLabel>연관 서비스</S.FilterLabel>
-                    <S.SelectWrapper>
-                      <CustomSelect
-                        value={selectedServices}
-                        onChange={(value) => setSelectedServices(value)}
-                        options={availableServices}
-                        multiple
-                        placeholder="전체"
-                      />
-                    </S.SelectWrapper>
+                    <S.ServiceSelectContainer>
+                      <S.SelectWrapper>
+                        <ScheduleCustomSelect
+                          value={
+                            Array.isArray(selectedServices)
+                              ? selectedServices
+                              : []
+                          }
+                          onChange={(value) => {
+                            setSelectedServices(
+                              Array.isArray(value) ? value : [],
+                            );
+                          }}
+                          options={availableServices}
+                          multiple
+                        />
+                      </S.SelectWrapper>
+                      <S.FilterButton
+                        type="button"
+                        onClick={handleSelectAllServices}
+                      >
+                        전체
+                      </S.FilterButton>
+                    </S.ServiceSelectContainer>
                   </S.FilterRowItem>
 
                   <S.FilterRowItem>
@@ -282,24 +301,24 @@ export default function ScheduleManagement() {
                   </S.FilterRowItem>
                 </S.FiltersRow>
               </S.FiltersPanel>
-            </S.SearchFilterSection>
 
-            {/* 선택된 서비스 태그 */}
-            {selectedServices.length > 0 && (
-              <S.TagContainer>
-                {selectedServices.map((service) => (
-                  <ServiceTag
-                    key={service}
-                    service={service}
-                    onRemove={() =>
-                      setSelectedServices((prev) =>
-                        prev.filter((s) => s !== service),
-                      )
-                    }
-                  />
-                ))}
-              </S.TagContainer>
-            )}
+              {/* 선택된 서비스 태그 */}
+              {selectedServices.length > 0 && (
+                <S.TagContainer>
+                  {selectedServices.map((service) => (
+                    <ServiceTag
+                      key={service}
+                      service={service}
+                      onRemove={() =>
+                        setSelectedServices((prev) =>
+                          prev.filter((s) => s !== service),
+                        )
+                      }
+                    />
+                  ))}
+                </S.TagContainer>
+              )}
+            </S.SearchFilterSection>
 
             <RestrictedPeriodList
               periods={filteredRestrictedPeriods}

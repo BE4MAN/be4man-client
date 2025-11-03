@@ -115,10 +115,15 @@ export const MetaRow = styled.tr`
   }
 `;
 
+export const RequiredAsterisk = styled.span`
+  color: ${({ theme }) => theme.colors.error};
+  margin-left: 2px;
+`;
+
 export const MetaTh = styled.th`
   width: 120px;
   vertical-align: middle;
-  padding: 8px 10px;
+  padding: 8px 10px 8px 20px;
   background: ${({ theme }) => (theme.mode === 'dark' ? '#0f1520' : '#f7f9fc')};
   color: ${({ theme }) => theme.colors.textSecondary};
   font-weight: 700;
@@ -144,6 +149,57 @@ export const MetaTd = styled.td`
 
   &[data-bb] {
     border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  }
+`;
+
+export const ServiceSelectContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  width: 50%;
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+`;
+
+export const ServiceSelectWrapper = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+export const ServiceButtonsContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  flex-shrink: 0;
+`;
+
+export const ServiceButton = styled.button`
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 0.3125rem;
+  background-color: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  height: 2.2rem;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.surface};
+    border-color: ${({ theme }) => theme.colors.brand};
+  }
+
+  &:active {
+    background-color: ${({ theme }) => theme.colors.interactiveActive};
   }
 `;
 
