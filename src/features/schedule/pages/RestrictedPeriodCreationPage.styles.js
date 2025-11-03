@@ -97,7 +97,7 @@ export const MetaColGroup = styled.colgroup`
   }
 
   & > col:nth-of-type(2) {
-    width: 50%;
+    width: 75%;
   }
 
   & > col:nth-of-type(3) {
@@ -105,7 +105,7 @@ export const MetaColGroup = styled.colgroup`
   }
 
   & > col:nth-of-type(4) {
-    width: 50%;
+    width: 75%;
   }
 `;
 
@@ -118,7 +118,7 @@ export const MetaRow = styled.tr`
 export const MetaTh = styled.th`
   width: 120px;
   vertical-align: middle;
-  padding: 8px 10px 8px 20px;
+  padding: 8px 10px 8px 15px;
   background: ${({ theme }) => (theme.mode === 'dark' ? '#0f1520' : '#f7f9fc')};
   color: ${({ theme }) => theme.colors.textSecondary};
   font-weight: 700;
