@@ -1,5 +1,6 @@
-import Button from '@/components/auth/Button';
-import Modal from '@/components/auth/Modal';
+import ServiceTag from '@/components/common/ServiceTag';
+import ScheduleModal from '@/components/schedule/components/ScheduleModal';
+import { PrimaryBtn } from '@/styles/modalButtons';
 
 import * as S from './RestrictedPeriodDetailModal.styles';
 
@@ -7,7 +8,7 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
   if (!period) return null;
 
   return (
-    <Modal
+    <ScheduleModal
       isOpen={open}
       onClose={onClose}
       title="작업 금지 상세 정보"
@@ -15,22 +16,21 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
       variant="detail"
       footer={
         <S.Footer>
-          <Button variant="primary" onClick={onClose}>
-            확인
-          </Button>
+          <PrimaryBtn onClick={onClose}>확인</PrimaryBtn>
         </S.Footer>
       }
     >
       <S.Content>
-        <S.Field>
-          <S.Label>제목</S.Label>
-          <S.Value>{period.title}</S.Value>
-        </S.Field>
-
-        <S.Field>
-          <S.Label>유형</S.Label>
-          <S.Value>{period.type}</S.Value>
-        </S.Field>
+        <S.Grid>
+          <S.Field>
+            <S.Label>제목</S.Label>
+            <S.Value>{period.title}</S.Value>
+          </S.Field>
+          <S.Field>
+            <S.Label>유형</S.Label>
+            <S.Value>{period.type}</S.Value>
+          </S.Field>
+        </S.Grid>
 
         <S.Field>
           <S.Label>설명</S.Label>
@@ -51,7 +51,18 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
             </S.Value>
           </S.Field>
         </S.Grid>
+
+        {period.services && period.services.length > 0 && (
+          <S.Field>
+            <S.Label>연관 서비스</S.Label>
+            <S.ServicesContainer>
+              {period.services.map((service) => (
+                <ServiceTag key={service} service={service} />
+              ))}
+            </S.ServicesContainer>
+          </S.Field>
+        )}
       </S.Content>
-    </Modal>
+    </ScheduleModal>
   );
 }

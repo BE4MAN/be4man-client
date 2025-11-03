@@ -1,6 +1,6 @@
-import Button from '@/components/auth/Button';
-import Modal from '@/components/auth/Modal';
 import Badge from '@/components/common/Badge';
+import ScheduleModal from '@/components/schedule/components/ScheduleModal';
+import { PrimaryBtn } from '@/styles/modalButtons';
 
 import * as S from './DeploymentDetailModal.styles';
 
@@ -16,7 +16,7 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
   const statusInfo = statusConfig[deployment.status];
 
   return (
-    <Modal
+    <ScheduleModal
       isOpen={open}
       onClose={onClose}
       title="배포 상세 정보"
@@ -24,9 +24,7 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
       variant="detail"
       footer={
         <S.Footer>
-          <Button variant="primary" onClick={onClose}>
-            닫기
-          </Button>
+          <PrimaryBtn onClick={onClose}>닫기</PrimaryBtn>
         </S.Footer>
       }
     >
@@ -71,6 +69,6 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
           </S.Value>
         </S.Field>
       </S.Content>
-    </Modal>
+    </ScheduleModal>
   );
 }
