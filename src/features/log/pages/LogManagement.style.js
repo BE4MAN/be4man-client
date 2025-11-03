@@ -55,9 +55,8 @@ export const getStyles = (theme) => {
       border: `1px solid ${focused ? theme.colors.brand : theme.colors.border}`,
       borderRadius: '8px',
       outline: 'none',
-      transition: 'all 0.2s',
       backgroundColor: 'transparent',
-      color: '#ffffff',
+      color: isDark ? '#e0e0e0' : '#333333',
     }),
 
     clearButton: (hovered) => ({
@@ -71,7 +70,6 @@ export const getStyles = (theme) => {
       fontSize: '18px',
       color: hovered ? theme.colors.danger : theme.colors.textSecondary,
       padding: '4px',
-      transition: 'all 0.2s',
     }),
 
     resetButton: (hovered) => ({
@@ -86,7 +84,6 @@ export const getStyles = (theme) => {
       border: `1px solid ${theme.colors.border}`,
       borderRadius: '8px',
       cursor: 'pointer',
-      transition: 'all 0.2s',
       whiteSpace: 'nowrap',
     }),
 
@@ -111,7 +108,7 @@ export const getStyles = (theme) => {
     filterLabel: {
       fontSize: '13px',
       fontWeight: '500',
-      color: theme.colors.textSecondary,
+      color: isDark ? '#b0b0b0' : '#424242',
     },
 
     dateInput: {
@@ -123,7 +120,6 @@ export const getStyles = (theme) => {
       backgroundColor: theme.colors.background,
       color: theme.colors.text,
       minWidth: '140px',
-      transition: 'all 0.2s',
     },
 
     // 드롭다운 스타일 추가
@@ -144,7 +140,6 @@ export const getStyles = (theme) => {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      transition: 'all 0.2s',
       outline: isOpen ? `2px solid ${theme.colors.brand}` : 'none',
     }),
 
@@ -178,7 +173,6 @@ export const getStyles = (theme) => {
             : '#f5f5f5'
           : 'transparent',
       cursor: 'pointer',
-      transition: 'all 0.2s',
     }),
 
     // 날짜 선택기 스타일 추가
@@ -199,7 +193,6 @@ export const getStyles = (theme) => {
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-      transition: 'all 0.2s',
       outline: isOpen ? `2px solid ${theme.colors.brand}` : 'none',
     }),
 
@@ -328,7 +321,6 @@ export const getStyles = (theme) => {
       borderRadius: '6px',
       cursor: disabled ? 'not-allowed' : 'pointer',
       opacity: disabled ? 0.5 : 1,
-      transition: disabled ? 'none' : 'all 0.2s', // 비활성화 시 transition 없음
       userSelect: 'none',
     }),
 
@@ -355,7 +347,6 @@ export const getStyles = (theme) => {
       cursor: disabled ? 'not-allowed' : 'pointer',
       minWidth: '36px',
       opacity: disabled ? 0.5 : 1,
-      transition: disabled ? 'none' : 'all 0.2s',
       userSelect: 'none',
     }),
   };

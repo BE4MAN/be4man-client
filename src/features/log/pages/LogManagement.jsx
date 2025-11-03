@@ -40,7 +40,7 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       fontSize: '14px',
-      color: '#ffffff',
+      color: theme.mode === 'dark' ? '#e0e0e0' : '#333333',
     },
     menu: {
       position: 'absolute',
@@ -68,7 +68,11 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
           ? 'rgba(33, 150, 243, 0.3)'
           : theme.colors.brandLight || 'rgba(33, 150, 243, 0.1)'
         : 'transparent',
-      color: isSelected ? theme.colors.brand : theme.colors.text,
+      color: isSelected
+        ? theme.colors.brand
+        : theme.mode === 'dark'
+          ? '#e0e0e0'
+          : '#333333',
     }),
   };
 
