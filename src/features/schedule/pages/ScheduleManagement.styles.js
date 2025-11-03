@@ -2,10 +2,13 @@ import styled from '@emotion/styled';
 
 export const PageContainer = styled.div`
   background: ${({ theme }) => theme.colors.bg};
-  padding: ${({ theme }) => theme.spacing.md};
+  padding: 0.5rem ${({ theme }) => theme.spacing.md};
+  padding-bottom: ${({ $removeBottomPadding, theme }) =>
+    $removeBottomPadding ? 0 : theme.spacing.md};
 
-  ${({ theme }) => theme.mq.md`
-    padding: ${theme.spacing.lg};
+  ${({ theme, $removeBottomPadding }) => theme.mq.md`
+    padding: 0.75rem ${theme.spacing.lg};
+    padding-bottom: ${$removeBottomPadding ? 0 : theme.spacing.lg};
   `}
 `;
 
@@ -27,24 +30,27 @@ export const ViewButtons = styled.div`
 export const ViewButton = styled.button`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
-  height: 40px;
-  padding: 0 ${({ theme }) => theme.spacing.md};
-  border-radius: ${({ theme }) => theme.radius.md};
+  gap: 0.4537rem;
+  height: 2.2687rem;
+  padding: 0 0.5rem;
+  border-radius: 0.3125rem;
   border: 1px solid ${({ theme }) => theme.colors.border};
   background: ${({ isActive, theme }) =>
-    isActive ? theme.colors.schedule.deploymentPrimary : 'transparent'};
+    isActive ? theme.colors.surface : 'transparent'};
   color: ${({ isActive, theme }) =>
-    isActive ? 'white' : theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+    isActive ? theme.colors.textPrimary : theme.colors.textSecondary};
+  font-size: 0.7936rem;
+  font-weight: ${({ isActive, theme }) =>
+    isActive
+      ? theme.typography.fontWeight.bold
+      : theme.typography.fontWeight.medium};
   cursor: pointer;
   transition: all 0.2s ease;
   outline: none;
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 0.9075rem;
+    height: 0.9075rem;
   }
 
   span {
@@ -55,40 +61,30 @@ export const ViewButton = styled.button`
     `}
   }
 
-  &:hover {
-    background: ${({ isActive, theme }) =>
-      isActive
-        ? theme.colors.schedule.deploymentPrimary
-        : theme.colors.surface};
-    color: ${({ isActive, theme }) =>
-      isActive ? 'white' : theme.colors.textPrimary};
-    opacity: ${({ isActive }) => (isActive ? 0.9 : 1)};
-  }
-
   ${({ theme }) => theme.mq.md`
-    padding: 0 ${theme.spacing.lg};
+    padding: 0 0.75rem;
   `}
 `;
 
 export const AddButton = styled.button`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
-  height: 40px;
-  padding: 0 ${({ theme }) => theme.spacing.md};
-  border-radius: ${({ theme }) => theme.radius.md};
-  border: none;
-  background: ${({ theme }) => theme.colors.schedule.restrictedDanger};
-  color: white;
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  gap: 0.4537rem;
+  height: 2.2687rem;
+  padding: 0 0.5rem;
+  border-radius: 0.3125rem;
+  border: 1px solid ${({ theme }) => theme.colors.schedule.restrictedDanger};
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.schedule.restrictedDanger};
+  font-size: 0.7936rem;
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
   cursor: pointer;
   transition: all 0.2s ease;
   outline: none;
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 0.9075rem;
+    height: 0.9075rem;
   }
 
   span {
@@ -100,11 +96,12 @@ export const AddButton = styled.button`
   }
 
   &:hover {
-    opacity: 0.9;
+    background: ${({ theme }) => theme.colors.schedule.restrictedDanger};
+    color: white;
   }
 
   ${({ theme }) => theme.mq.md`
-    padding: 0 ${theme.spacing.lg};
+    padding: 0 0.75rem;
   `}
 `;
 
@@ -122,52 +119,128 @@ export const ListContainer = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
 `;
 
-export const FilterBar = styled.div`
-  background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.md};
-  padding: ${({ theme }) => theme.spacing.md};
+export const SearchFilterSection = styled.div`
+  padding: 20px;
   border: 1px solid ${({ theme }) => theme.colors.border};
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.md};
-
-  ${({ theme }) => theme.mq.md`
-    flex-direction: row;
-    align-items: center;
-  `}
+  border-radius: 0.3125rem;
 `;
 
-export const SearchWrapper = styled.div`
+export const TopControls = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+`;
+
+export const SearchBar = styled.div`
   position: relative;
   flex: 1;
+  max-width: 500px;
 
   .search-icon {
     position: absolute;
-    left: ${({ theme }) => theme.spacing.md};
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     color: ${({ theme }) => theme.colors.textSecondary};
     pointer-events: none;
   }
+`;
 
-  input {
-    padding-left: 2.5rem;
-    background: ${({ theme }) => theme.colors.inputBg};
-    border-color: ${({ theme }) => theme.colors.border};
-    color: ${({ theme }) => theme.colors.textPrimary};
-    height: 40px;
+export const SearchInput = styled.input`
+  width: 100%;
+  padding: 10px 40px;
+  font-size: 14px;
+  border: 1px solid
+    ${({ $focused, theme }) =>
+      $focused ? theme.colors.brand : theme.colors.border};
+  border-radius: 0.25rem;
+  outline: none;
+  transition: all 0.2s;
+  background-color: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
 
-    &::placeholder {
-      color: ${({ theme }) => theme.colors.textSecondary};
-    }
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textSecondary};
   }
 `;
 
+export const ClearButton = styled.button`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  padding: 4px;
+  transition: all 0.2s;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.error};
+  }
+`;
+
+export const ResetButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  background-color: transparent;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.brand};
+  }
+`;
+
+export const FiltersPanel = styled.div`
+  margin-top: 16px;
+`;
+
+export const FiltersRow = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.md};
+  align-items: center;
+  flex-wrap: wrap;
+`;
+
+export const FilterRowItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+`;
+
+export const FilterLabel = styled.label`
+  font-size: 13px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
 export const SelectWrapper = styled.div`
-  width: 200px;
-  flex-shrink: 0;
+  min-width: 14.0625rem;
+  width: auto;
+  height: 2.2rem;
+  display: flex;
+  align-items: center;
 
   & > div {
     width: 100%;
@@ -175,5 +248,18 @@ export const SelectWrapper = styled.div`
 
   button {
     width: 100%;
+    height: 100%;
+    background-color: ${({ theme }) => theme.colors.bg};
   }
+`;
+
+export const TagContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.md};
+  background: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  margin-top: ${({ theme }) => theme.spacing.sm};
 `;
