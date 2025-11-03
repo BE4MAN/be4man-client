@@ -26,6 +26,9 @@ const LogManagement = lazy(() => import('@/features/log/pages/LogManagement'));
 const ScheduleManagement = lazy(
   () => import('@/features/schedule/pages/ScheduleManagement'),
 );
+const RestrictedPeriodCreationPage = lazy(
+  () => import('@/features/schedule/pages/RestrictedPeriodCreationPage'),
+);
 
 export const router = createBrowserRouter([
   {
@@ -91,6 +94,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageSkeleton />}>
             <ScheduleManagement />
+          </Suspense>
+        ),
+      },
+      {
+        path: PATHS.SCHEDULE_BAN_NEW,
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <RestrictedPeriodCreationPage />
           </Suspense>
         ),
       },
