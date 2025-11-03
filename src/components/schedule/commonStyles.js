@@ -1,0 +1,6 @@
+import styled from '@emotion/styled';
+
+export const RequiredAsterisk = styled.span`
+  color: ${({ theme }) => theme.colors.error};
+  margin-left: 2px;
+`;
