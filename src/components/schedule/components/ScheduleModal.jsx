@@ -4,6 +4,7 @@ export const ScheduleModal = ({
   isOpen,
   onClose,
   title,
+  titleIcon,
   children,
   footer,
   maxWidth,
@@ -17,6 +18,7 @@ export const ScheduleModal = ({
       isOpen={isOpen}
       onClose={onClose}
       title={title}
+      titleIcon={titleIcon}
       footer={footer}
       maxWidth={maxWidth}
       variant={variant}

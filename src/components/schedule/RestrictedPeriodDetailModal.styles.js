@@ -62,3 +62,10 @@ export const ServicesContainer = styled.div`
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spacing.sm};
 `;
+
+export const BanTitleIcon = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+`;

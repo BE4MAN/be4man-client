@@ -1,6 +1,5 @@
 import { Calendar, CircleCheck, CircleX } from 'lucide-react';
 
-import Badge from '@/components/common/Badge';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
 import { PrimaryBtn } from '@/styles/modalButtons';
 
@@ -22,7 +21,7 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
     <ScheduleModal
       isOpen={open}
       onClose={onClose}
-      title="배포 상세 정보"
+      title="작업 상세 정보"
       maxWidth="600px"
       variant="detail"
       footer={
@@ -39,12 +38,12 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
 
         <S.Grid>
           <S.Field>
-            <S.Label>상태</S.Label>
+            <S.Label>배포 상태</S.Label>
             <S.StatusContainer>
               <S.StatusIconWrapper status={deployment.status}>
                 <StatusIcon size={16} />
               </S.StatusIconWrapper>
-              <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+              <S.Value>{statusInfo.label}</S.Value>
             </S.StatusContainer>
           </S.Field>
           <S.Field>

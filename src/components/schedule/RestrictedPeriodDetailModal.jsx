@@ -1,3 +1,4 @@
+import { useTheme } from '@emotion/react';
 import { CalendarOff } from 'lucide-react';
 
 import ServiceTag from '@/components/common/ServiceTag';
@@ -7,6 +8,8 @@ import { PrimaryBtn } from '@/styles/modalButtons';
 import * as S from './RestrictedPeriodDetailModal.styles';
 
 export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
+  const theme = useTheme();
+
   if (!period) return null;
 
   return (
@@ -14,11 +17,19 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
       isOpen={open}
       onClose={onClose}
       title="작업 금지 상세 정보"
+      titleIcon={
+        <S.BanTitleIcon>
+          <CalendarOff
+            size={20}
+            color={theme.colors.schedule.restrictedDanger}
+          />
+        </S.BanTitleIcon>
+      }
       maxWidth="600px"
       variant="detail"
       footer={
         <S.Footer>
-          <PrimaryBtn onClick={onClose}>확인</PrimaryBtn>
+          <PrimaryBtn onClick={onClose}>닫기</PrimaryBtn>
         </S.Footer>
       }
     >
@@ -30,12 +41,7 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
           </S.Field>
           <S.Field>
             <S.Label>유형</S.Label>
-            <S.TypeContainer>
-              <S.TypeIconWrapper>
-                <CalendarOff size={16} />
-              </S.TypeIconWrapper>
-              <S.Value>{period.type}</S.Value>
-            </S.TypeContainer>
+            <S.Value>{period.type}</S.Value>
           </S.Field>
         </S.Grid>
 

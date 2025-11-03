@@ -31,10 +31,19 @@ export const ModalHeader = styled.div`
 `;
 
 export const ModalTitle = styled.h3`
+  display: flex;
+  align-items: center;
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: ${({ theme }) => theme.typography.fontSize['2xl']};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
   margin: 0;
+`;
+
+export const TitleIconWrapper = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
 `;
 
 export const CloseButton = styled.button`

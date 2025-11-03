@@ -8,6 +8,7 @@ export const Modal = ({
   isOpen,
   onClose,
   title,
+  titleIcon,
   children,
   footer,
   maxWidth,
@@ -59,11 +60,16 @@ export const Modal = ({
         >
           {(title || showCloseButton) && (
             <S.ModalHeader>
-              {title && <S.ModalTitle>{title}</S.ModalTitle>}
+              {title && (
+                <S.ModalTitle>
+                  {titleIcon && (
+                    <S.TitleIconWrapper>{titleIcon}</S.TitleIconWrapper>
+                  )}
+                  {title}
+                </S.ModalTitle>
+              )}
               {showCloseButton && (
-                <S.CloseButton onClick={onClose} aria-label="Close modal">
-                  ✕
-                </S.CloseButton>
+                <S.CloseButton onClick={onClose} aria-label="Close modal" />
               )}
             </S.ModalHeader>
           )}
