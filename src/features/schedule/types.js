@@ -12,7 +12,6 @@
  * @property {DeploymentStatus} status - 배포 상태
  * @property {string} date - 배포 날짜 (YYYY-MM-DD)
  * @property {string} scheduledTime - 예정 시간 (HH:mm)
- * @property {string} riskLevel - 위험도
  * @property {string} prNumber - PR 번호
  * @property {string} [commitSha] - 커밋 SHA (선택)
  */

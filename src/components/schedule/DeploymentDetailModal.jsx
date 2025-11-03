@@ -53,21 +53,16 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
 
         <S.Grid>
           <S.Field>
-            <S.Label>위험도</S.Label>
-            <S.Value>{deployment.riskLevel}</S.Value>
-          </S.Field>
-          <S.Field>
             <S.Label>PR 번호</S.Label>
             <S.Value>{deployment.prNumber}</S.Value>
           </S.Field>
+          <S.Field>
+            <S.Label>예정 시간</S.Label>
+            <S.Value>
+              {deployment.date} {deployment.scheduledTime}
+            </S.Value>
+          </S.Field>
         </S.Grid>
-
-        <S.Field>
-          <S.Label>예정 시간</S.Label>
-          <S.Value>
-            {deployment.date} {deployment.scheduledTime}
-          </S.Value>
-        </S.Field>
       </S.Content>
     </ScheduleModal>
   );
