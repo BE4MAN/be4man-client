@@ -8,16 +8,19 @@ export const InputWrapper = styled.div`
 
 export const InputContainer = styled.div`
   display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xs};
 `;
 
 export const Label = styled.label`
-  color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.typography.fontSize.md};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  min-width: 80px;
-  flex-shrink: 0;
+`;
+
+export const RequiredAsterisk = styled.span`
+  color: ${({ theme }) => theme.colors.error};
+  margin-left: 2px;
 `;
 
 export const StyledInput = styled.input`
@@ -70,11 +73,9 @@ export const StyledInput = styled.input`
 export const ErrorMessage = styled.span`
   color: ${({ theme }) => theme.colors.error};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  margin-left: 96px;
 `;
 
 export const HelperText = styled.span`
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  margin-left: 96px;
 `;

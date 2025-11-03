@@ -115,6 +115,18 @@ const palette = {
       pr: { bg: '#447B58', text: '#E6EEFF' },
       jenkins: { bg: '#374764', text: '#E6EEFF' },
     },
+    // 스케줄 페이지 전용 색상
+    schedule: {
+      cellToday: '#e3f2fd',
+      deploymentPrimary: '#0969da',
+      deploymentHover: 'rgb(9 105 218 / 15%)',
+      restrictedDanger: '#cf222e',
+      restrictedBg: '#fff1f0',
+      restrictedBorder: '#ffccc7',
+      restrictedHover: 'rgb(207 34 46 / 15%)',
+      successGreen: '#1a7f37',
+      warning: '#FF9F0A',
+    },
   },
   dark: {
     bg: '#0e1116',
@@ -169,6 +181,18 @@ const palette = {
     labels: {
       pr: { bg: '#035421', text: '#86EFAC' },
       jenkins: { bg: '#647895', text: '#E6EEFF' },
+    },
+    // 스케줄 페이지 전용 색상
+    schedule: {
+      cellToday: '#2a3b5c',
+      deploymentPrimary: '#007aff',
+      deploymentHover: 'rgb(0 122 255 / 20%)',
+      restrictedDanger: '#ff453a',
+      restrictedBg: '#2a1f1f',
+      restrictedBorder: '#5a3b3b',
+      restrictedHover: 'rgb(255 69 58 / 20%)',
+      successGreen: '#30d158',
+      warning: '#FF9F0A',
     },
   },
 };

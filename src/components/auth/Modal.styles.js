@@ -9,7 +9,7 @@ export const ModalOverlay = styled(motion.div)`
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: ${({ $zIndex }) => $zIndex || 50};
 `;
 
 export const ModalContent = styled(motion.div)`
@@ -20,7 +20,6 @@ export const ModalContent = styled(motion.div)`
   box-shadow: ${({ theme }) => theme.shadow.md};
   max-width: ${({ maxWidth }) => maxWidth || '400px'};
   width: 90%;
-  max-height: 90vh;
   overflow-y: auto;
 `;
 
