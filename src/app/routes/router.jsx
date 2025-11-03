@@ -11,6 +11,7 @@ const AuthPage = lazy(() => import('@/features/auth/pages/AuthPage'));
 const AuthCallback = lazy(() => import('@/features/auth/pages/AuthCallback'));
 const Dashboard = lazy(() => import('@/features/dashboard/pages/Dashboard'));
 const Task = lazy(() => import('@/features/log/pages/LogManagement'));
+const TaskDetail = lazy(() => import('@/features/log/pages/TaskDetail'));
 const Approval = lazy(() => import('@/features/approval/pages/Approval'));
 const ApprovalFormPage = lazy(
   () => import('@/features/approval/pages/ApprovalForm'),
@@ -91,6 +92,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageSkeleton />}>
             <Task />
+          </Suspense>
+        ),
+      },
+      {
+        path: PATHS.TASK_DETAIL,
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <TaskDetail />
           </Suspense>
         ),
       },
