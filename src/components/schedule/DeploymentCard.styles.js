@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 
 export const Card = styled.div`
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.md};
+  border-radius: 0.3125rem;
   padding: ${({ theme }) => theme.spacing.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
   cursor: pointer;
@@ -10,8 +10,6 @@ export const Card = styled.div`
 
   &:hover {
     background: ${({ theme }) => theme.colors.interactiveHover};
-    box-shadow: ${({ theme }) => theme.colors.schedule.deploymentHover} 0 4px
-      12px;
   }
 `;
 
@@ -23,7 +21,7 @@ export const Content = styled.div`
 
 export const TitleBox = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: ${({ theme }) => theme.spacing.sm};
 `;
 
@@ -32,6 +30,7 @@ export const StatusCircle = styled.div`
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  margin-top: 8px;
 
   ${({ status, theme }) => {
     switch (status) {

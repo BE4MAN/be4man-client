@@ -69,6 +69,7 @@ export const TimeLabelText = styled.span`
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   color: ${({ theme }) => theme.colors.textSecondary};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  min-width: 70px;
 `;
 
 export const TimeLabel = styled.label`

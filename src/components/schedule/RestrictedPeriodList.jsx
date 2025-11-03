@@ -20,7 +20,7 @@ import {
 
 import * as S from './RestrictedPeriodList.styles';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 export default function RestrictedPeriodList({ periods, onPeriodClick }) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,31 +37,33 @@ export default function RestrictedPeriodList({ periods, onPeriodClick }) {
   const currentPeriods = sortedPeriods.slice(startIndex, endIndex);
 
   return (
-    <S.Container>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <S.TableHeadOverride>제목</S.TableHeadOverride>
-            <S.TableHeadOverride>유형</S.TableHeadOverride>
-            <S.TableHeadOverride>시작</S.TableHeadOverride>
-            <S.TableHeadOverride>종료</S.TableHeadOverride>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {currentPeriods.map((period) => (
-            <TableRow key={period.id} onClick={() => onPeriodClick(period)}>
-              <TableCell>{period.title}</TableCell>
-              <TableCell>{period.type}</TableCell>
-              <S.TimeCell>
-                {period.startDate} {period.startTime}
-              </S.TimeCell>
-              <S.TimeCell>
-                {period.endDate} {period.endTime}
-              </S.TimeCell>
+    <>
+      <S.Container>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <S.TableHeadOverride>제목</S.TableHeadOverride>
+              <S.TableHeadOverride>유형</S.TableHeadOverride>
+              <S.TableHeadOverride>시작일자</S.TableHeadOverride>
+              <S.TableHeadOverride>종료일자</S.TableHeadOverride>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {currentPeriods.map((period) => (
+              <TableRow key={period.id} onClick={() => onPeriodClick(period)}>
+                <TableCell>{period.title}</TableCell>
+                <TableCell>{period.type}</TableCell>
+                <S.TimeCell>
+                  {period.startDate} {period.startTime}
+                </S.TimeCell>
+                <S.TimeCell>
+                  {period.endDate} {period.endTime}
+                </S.TimeCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </S.Container>
       {totalPages > 1 && (
         <S.PaginationWrapper>
           <Pagination>
@@ -96,6 +98,6 @@ export default function RestrictedPeriodList({ periods, onPeriodClick }) {
           </Pagination>
         </S.PaginationWrapper>
       )}
-    </S.Container>
+    </>
   );
 }

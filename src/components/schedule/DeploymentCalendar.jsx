@@ -25,6 +25,7 @@ export default function DeploymentCalendar({
   onDateChange,
 }) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [expandedDays, setExpandedDays] = useState(new Set());
 
   const daysInMonth = getDaysInMonth(currentDate);
   const firstDayOfMonth = getDay(startOfMonth(currentDate));
@@ -66,6 +67,36 @@ export default function DeploymentCalendar({
     });
   };
 
+  const getAllTasksForDay = (day) => {
+    const dayDeployments = getDeploymentsForDay(day);
+    const dayRestrictedPeriods = getRestrictedPeriodsForDay(day);
+
+    const allTasks = [
+      ...dayRestrictedPeriods.map((period) => ({
+        type: 'restricted',
+        data: period,
+      })),
+      ...dayDeployments.map((deployment) => ({
+        type: 'deployment',
+        data: deployment,
+      })),
+    ];
+
+    return allTasks;
+  };
+
+  const toggleDayExpansion = (day) => {
+    setExpandedDays((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(day)) {
+        newSet.delete(day);
+      } else {
+        newSet.add(day);
+      }
+      return newSet;
+    });
+  };
+
   const renderCalendarDays = () => {
     const days = [];
     const totalCells = Math.ceil((firstDayOfMonth + daysInMonth) / 7) * 7;
@@ -84,29 +115,59 @@ export default function DeploymentCalendar({
       if (i < firstDayOfMonth || dayNumber > daysInMonth) {
         days.push(<S.EmptyCell key={i} />);
       } else {
-        const dayDeployments = getDeploymentsForDay(dayNumber);
-        const dayRestrictedPeriods = getRestrictedPeriodsForDay(dayNumber);
+        const allTasks = getAllTasksForDay(dayNumber);
         const isTodayCell = isTodayDay(dayNumber);
+        const isExpanded = expandedDays.has(dayNumber);
+        const hasMultipleTasks = allTasks.length > 1;
+        const shouldCollapse = hasMultipleTasks && !isExpanded;
 
         days.push(
           <S.DayCell key={i} isToday={isTodayCell}>
             <S.DayNumber isToday={isTodayCell}>{dayNumber}</S.DayNumber>
             <S.CardList>
-              {dayRestrictedPeriods.map((period) => (
-                <MonthlyRestrictedPeriodCard
-                  key={period.id}
-                  title={period.title}
-                  onClick={() => onRestrictedPeriodClick(period)}
-                />
-              ))}
-              {dayDeployments.map((deployment) => (
-                <MonthlyDeploymentCard
-                  key={deployment.id}
-                  title={deployment.title}
-                  status={deployment.status}
-                  onClick={() => onDeploymentClick(deployment)}
-                />
-              ))}
+              {allTasks.length === 0 ? null : shouldCollapse ? (
+                <>
+                  {/* 첫 번째 항목만 표시 (제목에 "+ N" 포함) */}
+                  {allTasks[0].type === 'restricted' ? (
+                    <MonthlyRestrictedPeriodCard
+                      key={allTasks[0].data.id}
+                      title={allTasks[0].data.title}
+                      onClick={() => toggleDayExpansion(dayNumber)}
+                      isCollapsed
+                      additionalCount={allTasks.length - 1}
+                    />
+                  ) : (
+                    <MonthlyDeploymentCard
+                      key={allTasks[0].data.id}
+                      title={allTasks[0].data.title}
+                      status={allTasks[0].data.status}
+                      onClick={() => toggleDayExpansion(dayNumber)}
+                      isCollapsed
+                      additionalCount={allTasks.length - 1}
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* 모든 항목 표시 */}
+                  {allTasks.map((task) =>
+                    task.type === 'restricted' ? (
+                      <MonthlyRestrictedPeriodCard
+                        key={task.data.id}
+                        title={task.data.title}
+                        onClick={() => onRestrictedPeriodClick(task.data)}
+                      />
+                    ) : (
+                      <MonthlyDeploymentCard
+                        key={task.data.id}
+                        title={task.data.title}
+                        status={task.data.status}
+                        onClick={() => onDeploymentClick(task.data)}
+                      />
+                    ),
+                  )}
+                </>
+              )}
             </S.CardList>
           </S.DayCell>,
         );

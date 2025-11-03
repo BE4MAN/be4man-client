@@ -9,27 +9,29 @@ export const Container = styled.div`
 export const NavigationBar = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
+  justify-content: space-between;
+  gap: 0.75rem;
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.sm};
-  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  border-radius: 0.1875rem;
+  padding: 0.375rem 1.125rem;
   border: 1px solid ${({ theme }) => theme.colors.border};
   margin: 0 auto ${({ theme }) => theme.spacing.md};
-  min-width: 300px;
+  width: 20%;
+  min-width: fit-content;
 `;
 
 export const WeekTitle = styled.h2`
   color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.typography.fontSize.md};
+  font-size: 16px;
   font-weight: ${({ theme }) => theme.typography.fontWeight.normal};
   margin: 0;
-  text-align: center;
-  width: 160px;
+  text-align: left;
 `;
 
 export const NavButtons = styled.div`
   display: flex;
   gap: ${({ theme }) => theme.spacing.xs};
+  margin-left: auto;
 
   button {
     height: 28px;
@@ -50,7 +52,7 @@ export const NavButtons = styled.div`
 
 export const CalendarWrapper = styled.div`
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.sm};
+  border-radius: 0.1875rem;
   padding: ${({ theme }) => theme.spacing.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
 `;

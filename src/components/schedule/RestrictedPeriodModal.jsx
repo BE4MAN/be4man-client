@@ -2,17 +2,29 @@ import { useState } from 'react';
 
 import Button from '@/components/auth/Button';
 import Input from '@/components/auth/Input';
-import Modal from '@/components/auth/Modal';
-import DateTimePicker from '@/components/common/DateTimePicker';
+import DateTimeRangePicker from '@/components/common/DateTimeRangePicker';
+import ServiceTag from '@/components/common/ServiceTag';
 import Textarea from '@/components/common/Textarea';
+import ScheduleCustomSelect from '@/components/schedule/components/ScheduleCustomSelect';
+import ScheduleModal from '@/components/schedule/components/ScheduleModal';
+import { DEPARTMENT_REVERSE_MAP } from '@/constants/accounts';
+import { useAuthStore } from '@/stores/authStore';
 
 import * as S from './RestrictedPeriodModal.styles';
 
-export default function RestrictedPeriodModal({ open, onClose }) {
+export default function RestrictedPeriodModal({
+  open,
+  onClose,
+  availableServices = [],
+}) {
+  const { user } = useAuthStore();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [startDateTime, setStartDateTime] = useState('');
-  const [endDateTime, setEndDateTime] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [selectedServices, setSelectedServices] = useState([]);
 
   const handleSave = () => {
     // TODO: API 호출
@@ -20,11 +32,21 @@ export default function RestrictedPeriodModal({ open, onClose }) {
   };
 
   const isTitleValid = title.trim().length > 0;
-  const isDateTimeValid = startDateTime && endDateTime;
+  const isDateTimeValid = startDate && endDate && startTime && endTime;
   const isFormValid = isTitleValid && isDateTimeValid;
 
+  const handleDateRangeChange = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+  };
+
+  const handleTimeChange = (start, end) => {
+    setStartTime(start);
+    setEndTime(end);
+  };
+
   return (
-    <Modal
+    <ScheduleModal
       isOpen={open}
       onClose={onClose}
       title="작업 금지 기간 추가"
@@ -47,6 +69,18 @@ export default function RestrictedPeriodModal({ open, onClose }) {
     >
       <S.Content>
         <S.MainContent>
+          <S.UserInfoBox>
+            <Input label="등록자" value={user?.name || ''} readOnly />
+            <Input
+              label="등록부서"
+              value={
+                user?.department
+                  ? DEPARTMENT_REVERSE_MAP[user.department] || user.department
+                  : '없음'
+              }
+              readOnly
+            />
+          </S.UserInfoBox>
           <Input
             label="제목 *"
             value={title}
@@ -64,22 +98,53 @@ export default function RestrictedPeriodModal({ open, onClose }) {
             placeholder="금지 기간에 대한 설명을 입력하세요"
             rows={3}
           />
+
+          <S.ServicesField>
+            <S.ServicesSelectWrapper>
+              <ScheduleCustomSelect
+                label="연관 서비스"
+                value={Array.isArray(selectedServices) ? selectedServices : []}
+                onChange={(value) => {
+                  // Headless UI Listbox가 multiple 모드에서 선택된 배열을 직접 반환
+                  setSelectedServices(Array.isArray(value) ? value : []);
+                }}
+                options={availableServices}
+                multiple
+                placeholder="전체"
+              />
+            </S.ServicesSelectWrapper>
+
+            {Array.isArray(selectedServices) && selectedServices.length > 0 && (
+              <S.ServicesTagContainer>
+                {selectedServices.map((service) => (
+                  <ServiceTag
+                    key={service}
+                    service={service}
+                    onRemove={() =>
+                      setSelectedServices((prev) => {
+                        const prevArray = Array.isArray(prev) ? prev : [];
+                        return prevArray.filter((s) => s !== service);
+                      })
+                    }
+                  />
+                ))}
+              </S.ServicesTagContainer>
+            )}
+          </S.ServicesField>
         </S.MainContent>
 
         <S.DateTimeSection>
-          <DateTimePicker
-            label="시작일자 *"
-            value={startDateTime}
-            onChange={setStartDateTime}
-          />
-
-          <DateTimePicker
-            label="종료일자 *"
-            value={endDateTime}
-            onChange={setEndDateTime}
+          <DateTimeRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            startTime={startTime}
+            endTime={endTime}
+            onDateChange={handleDateRangeChange}
+            onTimeChange={handleTimeChange}
+            showLabel
           />
         </S.DateTimeSection>
       </S.Content>
-    </Modal>
+    </ScheduleModal>
   );
 }

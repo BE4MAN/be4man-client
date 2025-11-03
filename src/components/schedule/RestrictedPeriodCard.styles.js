@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 
 export const Card = styled.div`
   background: ${({ theme }) => theme.colors.schedule.restrictedBg};
-  border-radius: ${({ theme }) => theme.radius.md};
+  border-radius: 0.3125rem;
   padding: ${({ theme }) => theme.spacing.md};
   border: 1px solid ${({ theme }) => theme.colors.schedule.restrictedBorder};
   cursor: pointer;
@@ -10,8 +10,6 @@ export const Card = styled.div`
 
   &:hover {
     opacity: 0.9;
-    box-shadow: ${({ theme }) => theme.colors.schedule.restrictedHover} 0 4px
-      12px;
   }
 `;
 
@@ -23,15 +21,16 @@ export const Content = styled.div`
 
 export const TitleBox = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 export const BanIcon = styled.svg`
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   color: ${({ theme }) => theme.colors.schedule.restrictedDanger};
   flex-shrink: 0;
+  margin-top: 6px;
 `;
 
 export const Details = styled.div`
