@@ -112,11 +112,19 @@ export default function Sidebar() {
     pathname === PATHS.APPROVAL_NEW ||
     pathname.startsWith('/approval/');
 
+  const isTasksFamily =
+    pathname === PATHS.TASKS || pathname.startsWith('/tasks/');
+
   return (
     <S.Aside open={sidebarOpen}>
       <S.MenuWrap>
         {items.map((it) => {
-          const forceActive = it.key === 'approvals' ? isApprovalFamily : false;
+          const forceActive =
+            it.key === 'approvals'
+              ? isApprovalFamily
+              : it.key === 'tasks'
+                ? isTasksFamily
+                : false;
 
           return (
             <S.Item
