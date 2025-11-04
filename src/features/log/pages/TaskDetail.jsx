@@ -40,7 +40,15 @@ export default function TaskDetail() {
     );
   }
 
-  const { planInfo, detailInfo, approval, jenkinsLog, report } = taskItem;
+  const {
+    planInfo,
+    detailInfo,
+    detailContent,
+    approval,
+    jenkinsLog,
+    report,
+    reportContent,
+  } = taskItem;
 
   // 계획서 상태 판별 함수
   const getPlanApprovalStatus = () => {
@@ -65,19 +73,6 @@ export default function TaskDetail() {
       return true; // 모든 탭 활성화
     }
     return tabName === 'plan'; // 기본값
-  };
-
-  const getRiskEmoji = (level) => {
-    switch (level) {
-      case '높음':
-        return '🔴';
-      case '중간':
-        return '🟡';
-      case '낮음':
-        return '🟢';
-      default:
-        return '⚪';
-    }
   };
 
   // 승인 핸들러
@@ -427,20 +422,6 @@ export default function TaskDetail() {
                         </div>
 
                         <div style={styles.infoItem}>
-                          <span style={styles.infoLabel}>위험도</span>
-                          <span style={styles.infoValue}>
-                            {getRiskEmoji(planInfo.risk.level)}{' '}
-                            {planInfo.risk.level}
-                            <span
-                              style={{
-                                fontSize: '12px',
-                                color: theme.colors.textSecondary,
-                              }}
-                            ></span>
-                          </span>
-                        </div>
-
-                        <div style={styles.infoItem}>
                           <span style={styles.infoLabel}>기안자</span>
                           <span style={styles.infoValue}>
                             {taskItem.drafter} ({taskItem.department})
@@ -490,74 +471,11 @@ export default function TaskDetail() {
                     <div style={styles.planBody}>
                       <div style={styles.detailSection}>
                         <div style={styles.detailItem}>
-                          <span style={styles.detailLabel}>1. 개요</span>
-                          <p style={styles.detailText}>{detailInfo.overview}</p>
-                        </div>
-
-                        <div style={styles.detailItem}>
-                          <span style={styles.detailLabel}>2. 목표</span>
-                          <ul style={styles.detailList}>
-                            {detailInfo.goals?.map((goal, idx) => (
-                              <li key={idx} style={styles.detailListItem}>
-                                {goal}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div style={styles.detailItem}>
-                          <span style={styles.detailLabel}>3. 일정</span>
-                          <p style={styles.detailText}>
-                            {detailInfo.schedule?.start} ~{' '}
-                            {detailInfo.schedule?.end}
-                          </p>
-                        </div>
-
-                        <div style={styles.detailItem}>
-                          <span style={styles.detailLabel}>4. 수행 내용</span>
-                          <ul style={styles.detailList}>
-                            {detailInfo.activities?.map((activity, idx) => (
-                              <li key={idx} style={styles.detailListItem}>
-                                {activity}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div style={styles.detailItem}>
-                          <span style={styles.detailLabel}>5. 리스크</span>
-                          <div style={styles.riskList}>
-                            {detailInfo.risks?.map((risk, idx) => (
-                              <div key={idx} style={styles.riskItem}>
-                                <p style={styles.riskDescription}>
-                                  <strong>문제:</strong> {risk.description}
-                                </p>
-                                <p style={styles.riskMitigation}>
-                                  <strong>대응:</strong> {risk.mitigation}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div style={styles.detailItem}>
-                          <span style={styles.detailLabel}>6. 백업 계획</span>
-                          <p style={styles.detailText}>
-                            {detailInfo.backupPlan}
-                          </p>
-                        </div>
-
-                        <div style={styles.detailItem}>
-                          <span style={styles.detailLabel}>
-                            7. 실패 시 복구 방안
-                          </span>
-                          <ul style={styles.detailList}>
-                            {detailInfo.recoveryPlan?.map((plan, idx) => (
-                              <li key={idx} style={styles.detailListItem}>
-                                {plan}
-                              </li>
-                            ))}
-                          </ul>
+                          <pre style={styles.detailTextContent}>
+                            {detailContent ||
+                              detailInfo?.overview ||
+                              '상세 정보가 없습니다.'}
+                          </pre>
                         </div>
                       </div>
 
@@ -760,7 +678,7 @@ export default function TaskDetail() {
                 </>
               )}
 
-              {activeTab === 'report' && report && (
+              {activeTab === 'report' && (reportContent || report) && (
                 <div style={styles.planCard}>
                   <div style={styles.planHeader}>
                     <span style={styles.planIcon}></span>
@@ -768,61 +686,12 @@ export default function TaskDetail() {
                   </div>
                   <div style={styles.planBody}>
                     <div style={styles.reportSection}>
-                      <h3 style={styles.reportSectionTitle}>요약</h3>
-                      <p style={styles.reportText}>{report.summary}</p>
+                      <pre style={styles.detailTextContent}>
+                        {reportContent ||
+                          report?.summary ||
+                          '결과 보고 내용이 없습니다.'}
+                      </pre>
                     </div>
-
-                    {report.performanceMetrics && (
-                      <div style={styles.reportSection}>
-                        <h3 style={styles.reportSectionTitle}>성능 지표</h3>
-                        <div style={styles.reportMetricsGrid}>
-                          <div style={styles.reportMetricItem}>
-                            <span style={styles.reportMetricLabel}>이전</span>
-                            <span style={styles.reportMetricValue}>
-                              {report.performanceMetrics.before}
-                            </span>
-                          </div>
-                          <div style={styles.reportMetricItem}>
-                            <span style={styles.reportMetricLabel}>현재</span>
-                            <span style={styles.reportMetricValue}>
-                              {report.performanceMetrics.after}
-                            </span>
-                          </div>
-                          <div style={styles.reportMetricItem}>
-                            <span style={styles.reportMetricLabel}>개선율</span>
-                            <span style={styles.reportMetricImprovement}>
-                              {report.performanceMetrics.improvement}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {report.issuesFound && report.issuesFound.length > 0 && (
-                      <div style={styles.reportSection}>
-                        <h3 style={styles.reportSectionTitle}>발견된 이슈</h3>
-                        <ul style={styles.reportList}>
-                          {report.issuesFound.map((issue, idx) => (
-                            <li key={idx} style={styles.reportListItem}>
-                              {issue}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {report.nextSteps && report.nextSteps.length > 0 && (
-                      <div style={styles.reportSection}>
-                        <h3 style={styles.reportSectionTitle}>다음 단계</h3>
-                        <ul style={styles.reportList}>
-                          {report.nextSteps.map((step, idx) => (
-                            <li key={idx} style={styles.reportListItem}>
-                              {step}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}

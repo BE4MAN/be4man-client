@@ -931,6 +931,19 @@ export const getStyles = (theme) => {
       paddingLeft: '4px',
     },
 
+    detailTextContent: {
+      fontSize: '14px',
+      color: theme.colors.text,
+      margin: 0,
+      lineHeight: '1.8',
+      paddingLeft: '4px',
+      whiteSpace: 'pre-wrap',
+      wordWrap: 'break-word',
+      fontFamily: 'inherit',
+      backgroundColor: 'transparent',
+      border: 'none',
+    },
+
     detailList: {
       margin: 0,
       paddingLeft: '24px',
