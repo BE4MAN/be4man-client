@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 
 import mockData from '../../../mock/taskManage';
 
+import JenkinsTab from './JenkinsTab';
 import { getStyles } from './TaskDetail.style';
 
 export default function TaskDetail() {
@@ -434,7 +435,7 @@ export default function TaskDetail() {
                             <span
                               style={{
                                 fontSize: '12px',
-                                color: theme.colors.textSecondary,
+                                color: theme.colors.textsecondary,
                               }}
                             ></span>
                           </span>
@@ -605,159 +606,17 @@ export default function TaskDetail() {
                 </>
               )}
 
-              {activeTab === 'jenkins' && jenkinsLog && (
-                <>
-                  {/* Pipeline 단계 */}
-                  <div style={styles.planCard}>
-                    <div style={styles.planHeader}>
-                      <span style={styles.planIcon}></span>
-                      <h2 style={styles.planTitle}>Pipeline</h2>
-                    </div>
-                    <div style={styles.planBody}>
-                      <div style={styles.pipelineContainer}>
-                        {jenkinsLog.pipeline?.map((stage, idx) => (
-                          <React.Fragment key={idx}>
-                            <div style={styles.pipelineStage}>
-                              <div
-                                style={styles.pipelineStageIcon(stage.status)}
-                              >
-                                {renderPipelineIcon(stage.status)}
-                              </div>
-                              <div style={styles.pipelineStageName}>
-                                {stage.name}
-                              </div>
-                            </div>
-                            {idx < jenkinsLog.pipeline.length - 1 && (
-                              <div style={styles.pipelineLine} />
-                            )}
-                          </React.Fragment>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Stats 정보 */}
-                  <div style={styles.planCard}>
-                    <div style={styles.planHeader}>
-                      <span style={styles.planIcon}></span>
-                      <h2 style={styles.planTitle}>Stats</h2>
-                    </div>
-                    <div style={styles.planBody}>
-                      <div style={styles.statsGrid}>
-                        <div style={styles.statsItem}>
-                          <div style={styles.statsIcon}>✓</div>
-                          <div style={styles.statsContent}>
-                            <div style={styles.statsLabel}>빌드 상태</div>
-                            <div style={styles.statsValue(jenkinsLog.status)}>
-                              {jenkinsLog.status}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div style={styles.statsItem}>
-                          <div style={styles.statsIcon}></div>
-                          <div style={styles.statsContent}>
-                            <div style={styles.statsLabel}>빌드 소요 시간</div>
-                            <div style={styles.statsValue()}>
-                              {jenkinsLog.duration || '-'}
-                            </div>
-                          </div>
-                        </div>
-
-                        {jenkinsLog.branch && (
-                          <div style={styles.statsItem}>
-                            <div style={styles.statsIcon}></div>
-                            <div style={styles.statsContent}>
-                              <div style={styles.statsLabel}>브랜치</div>
-                              <div style={styles.statsValue()}>
-                                {jenkinsLog.branch}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {jenkinsLog.pr && (
-                          <div style={styles.statsItem}>
-                            <div style={styles.statsIcon}></div>
-                            <div style={styles.statsContent}>
-                              <div style={styles.statsLabel}>배포된 PR</div>
-                              <div style={styles.statsValue()}>
-                                {jenkinsLog.pr}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Console Output */}
-                  <div style={styles.planCard}>
-                    <div style={styles.planHeader}>
-                      <span style={styles.planIcon}></span>
-                      <h2 style={styles.planTitle}>
-                        Build #{jenkinsLog.buildNumber} Console Output
-                      </h2>
-                    </div>
-                    <div style={styles.planBody}>
-                      <div style={styles.consoleHeader}>
-                        <span style={styles.consoleTitle}>Console</span>
-                        <div style={styles.consoleActions}>
-                          <button style={styles.consoleButton}>
-                            ⬇ Download
-                          </button>
-                          <button style={styles.consoleButton}>
-                            ⛶ Fullscreen
-                          </button>
-                        </div>
-                      </div>
-                      <div style={styles.consoleOutput}>
-                        {jenkinsLog.logs?.map((log, idx) => (
-                          <div key={idx} style={styles.consoleLine}>
-                            <span style={styles.consoleTime}>[{log.time}]</span>
-                            <span style={styles.consoleLevel(log.level)}>
-                              [{log.level}]
-                            </span>
-                            <span style={styles.consoleMessage}>
-                              {log.message}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 문제 요약 */}
-                  {jenkinsLog.errorSummary && (
-                    <div style={styles.planCard}>
-                      <div style={styles.planHeader}>
-                        <span style={styles.planIcon}></span>
-                        <h2 style={styles.planTitle}>문제 요약</h2>
-                      </div>
-                      <div style={styles.planBody}>
-                        <div style={styles.issuesSummary}>
-                          <p style={styles.issuesText}>
-                            {jenkinsLog.errorSummary}
-                          </p>
-                          {jenkinsLog.issueDetails && (
-                            <div style={styles.issuesDetails}>
-                              <h4 style={styles.issuesDetailsTitle}>
-                                주요 에러내역
-                              </h4>
-                              <ul style={styles.issuesList}>
-                                {jenkinsLog.issueDetails.map((issue, idx) => (
-                                  <li key={idx} style={styles.issuesListItem}>
-                                    {issue}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </>
+              {activeTab === 'jenkins' && (
+                <JenkinsTab
+                  id={id}
+                  theme={theme}
+                  baseStyles={{
+                    planCard: styles.planCard,
+                    planHeader: styles.planHeader,
+                    planBody: styles.planBody,
+                  }}
+                  jenkinsLog={jenkinsLog}
+                />
               )}
 
               {activeTab === 'report' && report && (
@@ -1158,50 +1017,5 @@ function renderStepIcon(step, isLastStep, styles) {
         />
       </svg>
     </span>
-  );
-}
-
-// 파이프라인 아이콘 렌더링 함수
-function renderPipelineIcon(status) {
-  if (status === 'SUCCESS' || status === '성공') {
-    return (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <circle cx="12" cy="12" r="10" fill="#4caf50" />
-        <path
-          d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-          fill="white"
-        />
-      </svg>
-    );
-  }
-
-  if (status === 'FAILURE' || status === '실패') {
-    return (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <circle cx="12" cy="12" r="10" fill="#f44336" />
-        <path
-          d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"
-          fill="white"
-        />
-      </svg>
-    );
-  }
-
-  if (status === 'IN_PROGRESS' || status === '진행중') {
-    return (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <circle cx="12" cy="12" r="10" fill="#2196f3" />
-        <path
-          d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"
-          fill="white"
-        />
-      </svg>
-    );
-  }
-
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-      <circle cx="12" cy="12" r="10" fill="#9e9e9e" />
-    </svg>
   );
 }
