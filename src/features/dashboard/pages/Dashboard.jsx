@@ -7,6 +7,7 @@ import {
   WEEKLY_EVENTS,
   DEPLOYMENT_BLACKOUTS,
   RECOVERY,
+  STATS,
 } from '../../../mock/dashboard';
 
 import * as S from './Dashboard.styles';
@@ -125,30 +126,6 @@ export default function Dashboard() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const STATS = [
-    {
-      id: 'pending',
-      label: '승인 대기',
-      value: PENDING_APPROVALS.length,
-      desc: '결재가 필요한 문서',
-      color: '#2563eb',
-    },
-    {
-      id: 'tasks',
-      label: '진행중인 업무',
-      value: IN_PROGRESS_TASKS.length,
-      desc: '내가 승인한 후 배포 대기',
-      color: '#7c3aed',
-    },
-    {
-      id: 'notifications',
-      label: '알림',
-      value: NOTIFICATIONS.length,
-      desc: '취소/반려 알림',
-      color: '#dc2626',
-    },
-  ];
 
   const todayMidnight = new Date(now);
   todayMidnight.setHours(0, 0, 0, 0);
