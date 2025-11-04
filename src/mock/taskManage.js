@@ -1,7 +1,7 @@
 const mockData = [
   // ========== 3. 레포트: 1명만 승인, 계획서는 5명 모두 승인 ==========
   {
-    id: 503,
+    id: 2,
     drafter: '정서진',
     department: '개발3팀',
     serviceName: 'Frontend Framework',
@@ -24,16 +24,33 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '프론트엔드 프레임워크 최신 버전 업그레이드',
-      goals: ['빌드 시간 40% 단축', '번들 크기 30% 감소'],
-      schedule: { start: '2025-08-13 14:00', end: '2025-08-13 16:00' },
-      assignees: [{ name: '정서진', role: '개발자', department: '개발3팀' }],
-      activities: ['프레임워크 업그레이드', '의존성 업데이트', '테스트'],
-      risks: [],
-      backupPlan: '이전 버전 유지',
-      recoveryPlan: ['즉시 롤백'],
-    },
+    detailInfo: `1. 개요
+프론트엔드 프레임워크를 최신 버전으로 업그레이드하여 빌드 성능과 번들 크기를 최적화합니다.
+
+2. 목표
+- 빌드 시간 40% 단축
+- 번들 크기 30% 감소
+- 최신 기능 활용 및 보안 패치 적용
+
+3. 일정
+시작: 2025-08-13 14:00
+종료: 2025-08-13 16:00
+
+4. 수행 내용
+- 프레임워크 업그레이드 (v16 → v18)
+- 의존성 패키지 최신화
+- 테스트 코드 실행 및 검증
+- 배포 스크립트 업데이트
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 버전 유지 및 Git 태그 생성
+
+7. 실패 시 복구 방안
+- 즉시 이전 버전으로 롤백
+- Git 태그를 이용한 신속한 복구`,
 
     approval: {
       canApprove: false,
@@ -159,16 +176,20 @@ const mockData = [
       },
     },
 
-    report: {
-      summary: '프론트엔드 업그레이드 배포 완료. 성능 목표 달성.',
-      performanceMetrics: {
-        before: '빌드 시간 60초, 번들 크기 500KB',
-        after: '빌드 시간 36초, 번들 크기 350KB',
-        improvement: '40% 빌드 시간 단축, 30% 번들 크기 감소',
-      },
-      issuesFound: [],
-      nextSteps: ['성능 모니터링'],
-    },
+    report: `요약
+프론트엔드 프레임워크 업그레이드 배포가 성공적으로 완료되었습니다. 목표했던 성능 개선이 모두 달성되었습니다.
+
+성능 지표
+- 이전: 빌드 시간 60초, 번들 크기 500KB
+- 현재: 빌드 시간 36초, 번들 크기 350KB
+- 개선율: 빌드 시간 40% 단축, 번들 크기 30% 감소
+
+발견된 이슈
+특이사항 없음
+
+다음 단계
+- 프로덕션 성능 모니터링 지속
+- 사용자 피드백 수집`,
 
     jenkinsLog: {
       buildNumber: '2872',
@@ -225,16 +246,28 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: 'ML 모델 실시간 배포',
-      goals: ['모델 정확도 95% 달성'],
-      schedule: { start: '2025-08-14 09:00', end: '2025-08-14 11:00' },
-      assignees: [{ name: '이준호', role: '개발자', department: '개발5팀' }],
-      activities: ['모델 로드', '검증'],
-      risks: [],
-      backupPlan: '이전 모델 유지',
-      recoveryPlan: ['즉시 롤백'],
-    },
+    detailInfo: `1. 개요
+ML 모델 실시간 배포
+
+2. 목표
+- 모델 정확도 95% 달성
+
+3. 일정
+시작: 2025-08-14 09:00
+종료: 2025-08-14 11:00
+
+4. 수행 내용
+- 모델 로드
+- 검증
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 모델 유지
+
+7. 실패 시 복구 방안
+- 즉시 롤백`,
 
     approval: {
       canApprove: false,
@@ -344,16 +377,27 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '실시간 분석 시스템 배포',
-      goals: ['응답시간 100ms 이하'],
-      schedule: { start: '2025-08-14 14:00', end: '2025-08-14 16:00' },
-      assignees: [{ name: '김석주', role: '개발자', department: '개발6팀' }],
-      activities: ['시스템 배포'],
-      risks: [],
-      backupPlan: '이전 시스템 유지',
-      recoveryPlan: ['즉시 롤백'],
-    },
+    detailInfo: `1. 개요
+실시간 분석 시스템 배포
+
+2. 목표
+- 응답시간 100ms 이하
+
+3. 일정
+시작: 2025-08-14 14:00
+종료: 2025-08-14 16:00
+
+4. 수행 내용
+- 시스템 배포
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 시스템 유지
+
+7. 실패 시 복구 방안
+- 즉시 롤백`,
 
     approval: {
       canApprove: false,
@@ -452,16 +496,27 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '메시지 큐 성능 최적화',
-      goals: ['처리량 50% 향상'],
-      schedule: { start: '2025-08-15 10:00', end: '2025-08-15 11:00' },
-      assignees: [{ name: '임영준', role: '개발자', department: '개발8팀' }],
-      activities: ['성능 튜닝'],
-      risks: [],
-      backupPlan: '이전 큐 유지',
-      recoveryPlan: ['롤백'],
-    },
+    detailInfo: `1. 개요
+메시지 큐 성능 최적화
+
+2. 목표
+- 처리량 50% 향상
+
+3. 일정
+시작: 2025-08-15 10:00
+종료: 2025-08-15 11:00
+
+4. 수행 내용
+- 성능 튜닝
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 큐 유지
+
+7. 실패 시 복구 방안
+- 롤백`,
 
     approval: {
       canApprove: false,
@@ -515,16 +570,19 @@ const mockData = [
       },
     },
 
-    report: {
-      summary: '메시지 큐 최적화 배포 완료.',
-      performanceMetrics: {
-        before: '처리량 1000/s',
-        after: '처리량 1500/s',
-        improvement: '50% 향상',
-      },
-      issuesFound: [],
-      nextSteps: ['모니터링'],
-    },
+    report: `요약
+메시지 큐 최적화 배포 완료.
+
+성능 지표
+- 이전: 처리량 1000/s
+- 현재: 처리량 1500/s
+- 개선율: 50% 향상
+
+발견된 이슈
+특이사항 없음
+
+다음 단계
+- 모니터링`,
 
     jenkinsLog: {
       buildNumber: '2875',
@@ -559,7 +617,7 @@ const mockData = [
 
   // ========== 9. 레포트 모든 단계 승인 완료 ==========
   {
-    id: 509,
+    id: 1,
     drafter: '강명수',
     department: '개발9팀',
     serviceName: 'Data Pipeline',
@@ -582,16 +640,27 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '데이터 파이프라인 확장',
-      goals: ['데이터 처리량 2배'],
-      schedule: { start: '2025-08-15 14:00', end: '2025-08-15 15:00' },
-      assignees: [{ name: '강명수', role: '개발자', department: '개발9팀' }],
-      activities: ['파이프라인 확장'],
-      risks: [],
-      backupPlan: '이전 파이프라인',
-      recoveryPlan: ['롤백'],
-    },
+    detailInfo: `1. 개요
+데이터 파이프라인 확장
+
+2. 목표
+- 데이터 처리량 2배
+
+3. 일정
+시작: 2025-08-15 14:00
+종료: 2025-08-15 15:00
+
+4. 수행 내용
+- 파이프라인 확장
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 파이프라인
+
+7. 실패 시 복구 방안
+- 롤백`,
 
     approval: {
       canApprove: false,
@@ -649,16 +718,19 @@ const mockData = [
       nextReportApprover: null,
     },
 
-    report: {
-      summary: '데이터 파이프라인 확장 완료.',
-      performanceMetrics: {
-        before: '처리량 100GB/day',
-        after: '처리량 200GB/day',
-        improvement: '2배 처리량 증가',
-      },
-      issuesFound: [],
-      nextSteps: ['추가 모니터링'],
-    },
+    report: `요약
+데이터 파이프라인 확장 완료.
+
+성능 지표
+- 이전: 처리량 100GB/day
+- 현재: 처리량 200GB/day
+- 개선율: 2배 처리량 증가
+
+발견된 이슈
+특이사항 없음
+
+다음 단계
+- 추가 모니터링`,
 
     jenkinsLog: {
       buildNumber: '2876',

@@ -10,9 +10,13 @@ export const getStyles = (theme) => {
       flex: '1 1 auto',
       minHeight: 0,
       overflow: 'auto',
-      padding: '24px',
+      padding: '1.5rem',
       backgroundColor: theme.colors.background,
-      gap: '20px',
+      gap: '1.25rem',
+      '@media (max-width: 768px)': {
+        padding: '1rem',
+        gap: '1rem',
+      },
     },
 
     notFound: {
@@ -34,81 +38,101 @@ export const getStyles = (theme) => {
             : '#fff3e0',
       border:
         type === 'rejected'
-          ? `2px solid ${isDark ? '#ef5350' : '#f44336'}`
-          : `2px solid ${isDark ? '#ffb74d' : '#ff9800'}`,
-      borderRadius: '12px',
-      padding: '20px 24px',
-      marginBottom: '20px',
+          ? `0.125rem solid ${isDark ? '#ef5350' : '#f44336'}`
+          : `0.125rem solid ${isDark ? '#ffb74d' : '#ff9800'}`,
+      borderRadius: '0.75rem',
+      padding: '1.25rem 1.5rem',
+      marginBottom: '1.25rem',
+      '@media (max-width: 768px)': {
+        padding: '1rem',
+        marginBottom: '1rem',
+      },
     }),
 
     alertHeader: {
       display: 'flex',
       alignItems: 'center',
-      gap: '12px',
-      marginBottom: '12px',
+      gap: '0.75rem',
+      marginBottom: '0.75rem',
     },
 
     alertIcon: {
-      fontSize: '24px',
+      fontSize: '1.5rem',
+      '@media (max-width: 768px)': {
+        fontSize: '1.25rem',
+      },
     },
 
     alertTitle: {
-      fontSize: '18px',
+      fontSize: '1.125rem',
       fontWeight: '700',
       color: theme.colors.text,
+      '@media (max-width: 768px)': {
+        fontSize: '1rem',
+      },
     },
 
     alertBody: {
       display: 'flex',
       flexDirection: 'column',
-      gap: '8px',
+      gap: '0.5rem',
     },
 
     alertInfo: {
-      fontSize: '13px',
+      fontSize: '0.8125rem',
       color: theme.colors.textSecondary,
       fontWeight: '500',
     },
 
     alertReason: {
-      fontSize: '14px',
+      fontSize: '0.875rem',
       color: theme.colors.text,
       lineHeight: '1.6',
-      padding: '12px',
+      padding: '0.75rem',
       backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.5)',
-      borderRadius: '8px',
+      borderRadius: '0.5rem',
     },
 
     // ===== 메인 컨텐츠 래퍼 (좌우 레이아웃) =====
     mainContentWrapper: {
       display: 'flex',
-      gap: '20px',
+      gap: '1.25rem',
       alignItems: 'flex-start',
-      '@media (max-width: 1200px)': {
+      '@media (max-width: 1024px)': {
         flexDirection: 'column',
+        gap: '1rem',
       },
     },
 
     leftContent: {
-      flex: '1 1 60%',
+      flex: '1 1 75%',
       minWidth: 0,
       display: 'flex',
       flexDirection: 'column',
-      gap: '20px',
+      gap: '1.25rem',
+      '@media (max-width: 1024px)': {
+        flex: '1 1 auto',
+        width: '100%',
+      },
     },
 
     // ===== 서브 탭 스타일 =====
     subTabContainer: {
       display: 'flex',
-      gap: '8px',
-      padding: '16px 24px 0',
+      gap: '0.5rem',
+      padding: '1rem 1.5rem 0',
       borderBottom: `1px solid ${theme.colors.border}`,
       backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
+      '@media (max-width: 768px)': {
+        padding: '0.75rem 1rem 0',
+        gap: '0.375rem',
+        overflowX: 'auto',
+      },
     },
 
     subTabButton: (isActive, isEnabled) => ({
-      padding: '10px 20px',
-      fontSize: '13px',
+      padding: '0.625rem 1.25rem',
+      fontSize: '0.8125rem',
       fontWeight: '600',
       color: isActive
         ? theme.colors.brand
@@ -118,54 +142,75 @@ export const getStyles = (theme) => {
             : '#cccccc'
           : isDark
             ? '#ffffff'
-            : theme.colors.text, // ← 수정: 다크모드일 때 흰색
+            : theme.colors.text,
       backgroundColor: 'transparent',
       border: 'none',
       borderBottom: isActive
-        ? `3px solid ${theme.colors.brand}`
-        : '3px solid transparent',
+        ? `0.1875rem solid ${theme.colors.brand}`
+        : '0.1875rem solid transparent',
       cursor: isEnabled ? 'pointer' : 'default',
       opacity: !isEnabled ? 0.5 : 1,
-      marginBottom: '-1px',
+      marginBottom: '-0.0625rem',
+      whiteSpace: 'nowrap',
+      '@media (max-width: 768px)': {
+        padding: '0.5rem 0.875rem',
+        fontSize: '0.75rem',
+      },
     }),
 
     tabContentWrapper: {
       display: 'flex',
       flexDirection: 'column',
-      gap: '32px',
+      gap: '2rem',
+      '@media (max-width: 768px)': {
+        gap: '1.5rem',
+      },
     },
 
     // ===== 전체 높이 승인 사이드바 =====
     approvalSidebarFull: {
-      flex: '0 0 450px',
+      flex: '0 0 25%',
+      maxWidth: '300px',
+      minWidth: '250px',
       backgroundColor: isDark ? '#1e1e1e' : '#fafafa',
       border: `1px solid ${theme.colors.border}`,
-      borderRadius: '12px',
+      borderRadius: '0.75rem',
       display: 'flex',
       flexDirection: 'column',
-      minHeight: '600px',
-      maxHeight: '800px',
+      minHeight: '37.5rem',
+      maxHeight: '50rem',
       position: 'sticky',
-      top: '20px',
+      top: '1.25rem',
       overflow: 'hidden',
-      '@media (max-width: 1200px)': {
+      '@media (max-width: 1024px)': {
         flex: '1 1 auto',
+        maxWidth: '100%',
+        minWidth: 'auto',
         minHeight: 'auto',
         maxHeight: 'none',
         position: 'relative',
         top: 0,
       },
+      '@media (max-width: 768px)': {
+        minHeight: 'auto',
+      },
     },
 
     sidebarHeader: {
-      padding: '24px 24px 0',
+      padding: '1.5rem 1.5rem 0',
+      '@media (max-width: 768px)': {
+        padding: '1rem 1rem 0',
+      },
     },
 
     // ===== 승인 프로세스 스타일 =====
     approvalProcessSection: {
-      padding: '0 24px',
-      maxHeight: '500px',
+      padding: '0 1.5rem',
+      maxHeight: '31.25rem',
       overflowY: 'auto',
+      '@media (max-width: 768px)': {
+        padding: '0 1rem',
+      },
     },
 
     approvalProcessTitle: {
@@ -346,50 +391,70 @@ export const getStyles = (theme) => {
     planCard: {
       backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
       border: `1px solid ${theme.colors.border}`,
-      borderRadius: '12px',
+      borderRadius: '0.75rem',
       overflow: 'hidden',
       boxShadow: isDark
-        ? '0 2px 8px rgba(0,0,0,0.3)'
-        : '0 2px 8px rgba(0,0,0,0.1)',
+        ? '0 0.125rem 0.5rem rgba(0,0,0,0.3)'
+        : '0 0.125rem 0.5rem rgba(0,0,0,0.1)',
     },
 
     planHeader: {
       display: 'flex',
       alignItems: 'center',
-      gap: '12px',
-      padding: '20px 24px',
+      gap: '0.75rem',
+      padding: '1.25rem 1.5rem',
       borderBottom: `1px solid ${theme.colors.border}`,
       backgroundColor: isDark ? '#222222' : '#f8f9fa',
+      '@media (max-width: 768px)': {
+        padding: '1rem',
+        gap: '0.5rem',
+      },
     },
 
     planIcon: {
-      fontSize: '24px',
+      fontSize: '1.5rem',
+      '@media (max-width: 768px)': {
+        fontSize: '1.25rem',
+      },
     },
 
     planTitle: {
-      fontSize: '20px',
+      fontSize: '1.25rem',
       fontWeight: '600',
       color: theme.colors.text,
       margin: 0,
+      '@media (max-width: 768px)': {
+        fontSize: '1.125rem',
+      },
     },
 
     planBody: {
-      padding: '24px',
+      padding: '1.5rem',
+      '@media (max-width: 768px)': {
+        padding: '1rem',
+      },
     },
 
     // ===== 좌우 레이아웃 스타일 =====
     planBodyWrapper: {
       display: 'flex',
-      gap: '24px',
-      padding: '24px',
+      gap: '1.5rem',
+      padding: '1.5rem',
       '@media (max-width: 1024px)': {
         flexDirection: 'column',
+        gap: '1rem',
+      },
+      '@media (max-width: 768px)': {
+        padding: '1rem',
       },
     },
 
     planBodyLeft: {
       flex: '1 1 65%',
       minWidth: 0,
+      '@media (max-width: 1024px)': {
+        flex: '1 1 auto',
+      },
     },
 
     // ===== 1컬럼 그리드 (간결한 수직 레이아웃) =====
@@ -401,12 +466,17 @@ export const getStyles = (theme) => {
 
     infoItem: {
       display: 'grid',
-      gridTemplateColumns: '140px 1fr',
-      gap: '20px',
+      gridTemplateColumns: '8.75rem 1fr',
+      gap: '1.25rem',
       alignItems: 'center',
-      padding: '12px 0',
+      padding: '0.75rem 0',
       borderBottom: `1px solid ${isDark ? '#2a2a2a' : '#f0f0f0'}`,
-      minHeight: '48px',
+      minHeight: '3rem',
+      '@media (max-width: 768px)': {
+        gridTemplateColumns: '1fr',
+        gap: '0.5rem',
+        padding: '0.75rem 0',
+      },
     },
 
     infoLabel: {
@@ -1386,80 +1456,132 @@ export const getStyles = (theme) => {
     // Pipeline 스타일
     pipelineContainer: {
       display: 'flex',
+      /* center items vertically so connector lines align with icon centers */
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '20px 0',
+      padding: '1.25rem 0 2.75rem 0',
       gap: '0',
+      overflowX: 'auto',
+      position: 'relative',
+      '@media (max-width: 768px)': {
+        padding: '1rem 0 2.25rem 0',
+        gap: '0.5rem',
+      },
     },
 
     pipelineStage: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: '12px',
+      gap: '0.75rem',
       flex: 1,
+      minWidth: '5rem',
+      position: 'relative',
+      zIndex: 1,
+      '@media (max-width: 768px)': {
+        minWidth: '4rem',
+        gap: '0.5rem',
+      },
     },
 
     pipelineStageIcon: () => ({
-      width: '48px',
-      height: '48px',
+      width: '3rem',
+      height: '3rem',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: '50%',
       backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
-      border: `2px solid ${theme.colors.border}`,
+      border: `0.125rem solid ${theme.colors.border}`,
       boxShadow: isDark
-        ? '0 2px 8px rgba(0,0,0,0.3)'
-        : '0 2px 8px rgba(0,0,0,0.1)',
+        ? '0 0.125rem 0.5rem rgba(0,0,0,0.3)'
+        : '0 0.125rem 0.5rem rgba(0,0,0,0.1)',
+      flexShrink: 0,
+      position: 'relative',
+      zIndex: 2,
+      '@media (maxWidth: 768px)': {
+        width: '2.5rem',
+        height: '2.5rem',
+      },
     }),
 
     pipelineStageName: {
-      fontSize: '13px',
+      fontSize: '0.8125rem',
       fontWeight: '600',
       color: theme.colors.text,
       textAlign: 'center',
-      maxWidth: '120px',
+      maxWidth: '7.5rem',
       whiteSpace: 'nowrap',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
+      '@media (maxWidth: 768px)': {
+        fontSize: '0.75rem',
+        maxWidth: '5rem',
+      },
     },
 
     pipelineLine: {
       flex: 1,
-      height: '2px',
-      backgroundColor: theme.colors.border,
-      margin: '0 -12px',
-      position: 'relative',
-      top: '-24px',
+      height: '0.1rem',
+      backgroundColor: isDark ? '#ffffff' : '#000000',
+      minWidth: '1rem',
+      transform: 'translateY(-0.6rem)',
+      alignSelf: 'center',
+      marginTop: 0,
+      '@media (maxWidth: 768px)': {
+        marginTop: 0,
+      },
     },
 
     // Stats 스타일
     statsGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-      gap: '16px',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+      gap: '1rem',
+      justifyItems: 'stretch',
+      alignItems: 'stretch',
+      '@media (min-width: 1200px)': {
+        gridTemplateColumns: 'repeat(5, 1fr)',
+      },
+      '@media (maxWidth: 1200px)': {
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '0.75rem',
+      },
+      '@media (maxWidth: 768px)': {
+        gridTemplateColumns: '1fr',
+        gap: '0.5rem',
+      },
     },
 
     statsItem: {
       display: 'flex',
       alignItems: 'center',
-      gap: '12px',
-      padding: '16px',
+      gap: '0.75rem',
+      padding: '0.875rem',
       backgroundColor: isDark ? '#1e1e1e' : '#fafafa',
-      borderRadius: '8px',
+      borderRadius: '0.5rem',
       border: `1px solid ${theme.colors.border}`,
+      '@media (maxWidth: 768px)': {
+        padding: '0.6rem',
+        gap: '0.5rem',
+      },
     },
 
     statsIcon: {
-      fontSize: '24px',
-      width: '40px',
-      height: '40px',
+      fontSize: '1.75rem',
+      width: '3rem',
+      height: '3rem',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0',
-      borderRadius: '8px',
+      borderRadius: '0.5rem',
+      flexShrink: 0,
+      '@media (max-width: 768px)': {
+        fontSize: '1.25rem',
+        width: '2.25rem',
+        height: '2.25rem',
+      },
     },
 
     statsContent: {
@@ -1470,8 +1592,8 @@ export const getStyles = (theme) => {
     },
 
     statsLabel: {
-      fontSize: '12px',
-      fontWeight: '500',
+      fontSize: '13px',
+      fontWeight: '600',
       color: theme.colors.textSecondary,
     },
 
@@ -1489,7 +1611,7 @@ export const getStyles = (theme) => {
       }
 
       return {
-        fontSize: '16px',
+        fontSize: '14px',
         fontWeight: '700',
         color: color,
       };
@@ -1500,47 +1622,81 @@ export const getStyles = (theme) => {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '12px 16px',
+      padding: '0.75rem 1rem',
       backgroundColor: isDark ? '#0d0d0d' : '#f5f5f5',
       borderBottom: `1px solid ${theme.colors.border}`,
-      marginBottom: '16px',
+      marginBottom: '1rem',
+      flexWrap: 'wrap',
+      gap: '0.5rem',
+      '@media (max-width: 768px)': {
+        padding: '0.5rem 0.75rem',
+        marginBottom: '0.75rem',
+      },
     },
 
     consoleTitle: {
-      fontSize: '14px',
+      fontSize: '0.875rem',
       fontWeight: '600',
       color: theme.colors.text,
+      '@media (max-width: 768px)': {
+        fontSize: '0.8125rem',
+      },
     },
 
     consoleActions: {
       display: 'flex',
-      gap: '8px',
+      gap: '0.5rem',
+      flexWrap: 'wrap',
     },
 
     consoleButton: {
-      padding: '6px 12px',
-      fontSize: '12px',
+      padding: '0.5rem 1rem',
+      fontSize: '0.8125rem',
       fontWeight: '500',
-      color: theme.colors.text,
-      backgroundColor: 'transparent',
+      color: theme.colors.textPrimary,
+      backgroundColor: isDark
+        ? 'rgba(255, 255, 255, 0.05)'
+        : 'rgba(0, 0, 0, 0.03)',
       border: `1px solid ${theme.colors.border}`,
-      borderRadius: '4px',
+      borderRadius: '0.375rem',
       cursor: 'pointer',
-      '&:hover': {
-        backgroundColor: isDark ? '#2a2a2a' : '#e0e0e0',
+      transition: 'all 0.2s ease',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.375rem',
+      whiteSpace: 'nowrap',
+      '&:hover:not(:disabled)': {
+        backgroundColor: isDark
+          ? 'rgba(255, 255, 255, 0.1)'
+          : 'rgba(0, 0, 0, 0.08)',
+        borderColor: theme.colors.brand,
+      },
+      '&:disabled': {
+        opacity: 0.5,
+        cursor: 'not-allowed',
+      },
+      '@media (max-width: 768px)': {
+        padding: '0.375rem 0.75rem',
+        fontSize: '0.75rem',
+        gap: '0.25rem',
       },
     },
 
     consoleOutput: {
       backgroundColor: isDark ? '#0d0d0d' : '#fafafa',
-      padding: '16px',
-      borderRadius: '8px',
-      maxHeight: '600px',
+      padding: '1rem',
+      borderRadius: '0.5rem',
+      maxHeight: '37.5rem',
       overflowY: 'auto',
       fontFamily: 'monospace',
-      fontSize: '13px',
+      fontSize: '0.8125rem',
       lineHeight: '1.6',
       border: `1px solid ${theme.colors.border}`,
+      '@media (max-width: 768px)': {
+        padding: '0.75rem',
+        maxHeight: '25rem',
+        fontSize: '0.75rem',
+      },
     },
 
     consoleLine: {
@@ -1588,6 +1744,10 @@ export const getStyles = (theme) => {
       backgroundColor: isDark ? 'rgba(244, 67, 54, 0.08)' : '#ffebee',
       borderLeft: `4px solid ${isDark ? '#ef5350' : '#d32f2f'}`,
       borderRadius: '8px',
+      // >>> 작은 상자 제거 후 내부 정렬/간격 보강
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
     },
 
     issuesText: {
@@ -1599,12 +1759,9 @@ export const getStyles = (theme) => {
       fontWeight: '500',
     },
 
+    // (작은 상자였던 issuesDetails는 스타일 유지: 헤더나 리스트에 그대로 사용)
     issuesDetails: {
-      marginTop: '16px',
-      padding: '16px',
-      backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#ffffff',
-      borderRadius: '6px',
-      border: `1px solid ${theme.colors.border}`,
+      // 더 이상 컨테이너로 쓰지 않지만, 호환성 위해 남겨둠 (미사용 가능)
     },
 
     issuesDetailsTitle: {
@@ -1733,8 +1890,12 @@ export const getStyles = (theme) => {
     approvalListContainer: {
       flex: 1,
       overflowY: 'auto',
-      padding: '0 24px 16px',
-      maxHeight: 'calc(10 * 60px)', // 최대 10개 항목 높이
+      padding: '0 1.5rem 1rem',
+      maxHeight: '37.5rem',
+      '@media (max-width: 768px)': {
+        padding: '0 1rem 1rem',
+        maxHeight: 'none',
+      },
     },
 
     approverListItem: (isCurrentTurn, isCancelled, isRejected) => ({
