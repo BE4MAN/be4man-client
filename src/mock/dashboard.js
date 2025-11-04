@@ -23,7 +23,7 @@ export const IN_PROGRESS_TASKS = [
   {
     id: 201,
     title: '사용자 서비스 신규 배포',
-    due: '2025-10-30',
+    due: '2025-10-30 16:00',
     status: '배포 대기',
     owner: '김민호',
     progress: 65,
@@ -33,7 +33,7 @@ export const IN_PROGRESS_TASKS = [
   {
     id: 202,
     title: '검색 서비스 인덱스 재구성',
-    due: '2025-10-31',
+    due: '2025-10-31 18:00',
     status: '배포 준비',
     owner: '김민호',
     progress: 40,
@@ -85,22 +85,22 @@ export const DEPLOYMENT_BLACKOUTS = [
   {
     id: 1,
     name: '월말 정산 작업 금지',
-    start: '2025-10-31T00:00:00+09:00',
-    end: '2025-10-31T23:59:59+09:00',
+    start: '2025-10-31 00:00:00',
+    end: '2025-10-31 23:59:59',
     reason: '월말 정산으로 인한 배포 제한',
   },
   {
     id: 2,
     name: '금요일 야간 배포 금지',
-    start: '2025-10-24T18:00:00+09:00',
-    end: '2025-10-25T06:00:00+09:00',
+    start: '2025-10-24 18:00:00',
+    end: '2025-10-25 06:00:00',
     reason: '야간 안정성 확보',
   },
   {
     id: 3,
     name: '금요일 야간 배포 금지',
-    start: '2025-11-03T18:00:00+09:00',
-    end: '2025-11-05T06:00:00+09:00',
+    start: '2025-11-03 18:00:00',
+    end: '2025-11-05 06:00:00',
     reason: '야간 안정성 확보',
   },
 ];
@@ -129,5 +129,29 @@ export const RECOVERY = [
     status: '분석중',
     duration: '-',
     team: '프론트팀',
+  },
+];
+
+export const STATS = [
+  {
+    id: 'pending',
+    label: '승인 대기',
+    value: PENDING_APPROVALS.length,
+    desc: '결재가 필요한 문서',
+    color: '#2563eb',
+  },
+  {
+    id: 'tasks',
+    label: '진행중인 업무',
+    value: IN_PROGRESS_TASKS.length,
+    desc: '내가 승인한 후 배포 대기',
+    color: '#7c3aed',
+  },
+  {
+    id: 'notifications',
+    label: '알림',
+    value: NOTIFICATIONS.length,
+    desc: '취소/반려 알림',
+    color: '#dc2626',
   },
 ];
