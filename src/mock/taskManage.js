@@ -1,7 +1,7 @@
 const mockData = [
   // ========== 3. 레포트: 1명만 승인, 계획서는 5명 모두 승인 ==========
   {
-    id: 503,
+    id: 2,
     drafter: '정서진',
     department: '개발3팀',
     serviceName: 'Frontend Framework',
@@ -559,7 +559,7 @@ const mockData = [
 
   // ========== 9. 레포트 모든 단계 승인 완료 ==========
   {
-    id: 509,
+    id: 1,
     drafter: '강명수',
     department: '개발9팀',
     serviceName: 'Data Pipeline',
