@@ -23,7 +23,7 @@ export const IN_PROGRESS_TASKS = [
   {
     id: 201,
     title: '사용자 서비스 신규 배포',
-    due: '2025-10-30',
+    due: '2025-10-30 16:00',
     status: '배포 대기',
     owner: '김민호',
     progress: 65,
@@ -33,7 +33,7 @@ export const IN_PROGRESS_TASKS = [
   {
     id: 202,
     title: '검색 서비스 인덱스 재구성',
-    due: '2025-10-31',
+    due: '2025-10-31 18:00',
     status: '배포 준비',
     owner: '김민호',
     progress: 40,

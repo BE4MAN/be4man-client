@@ -553,7 +553,7 @@ export default function Dashboard() {
                         <S.TaskTitle>{ev.label}</S.TaskTitle>
                         <S.TaskMeta>
                           <div>유형: {ev.type}</div>
-                          <div>날짜: {selectedDay.dateKey}</div>
+                          <div>날짜: {selectedDay.dateKey} 00:00</div>
                         </S.TaskMeta>
                       </div>
                       <S.TaskBadge>
@@ -582,7 +582,7 @@ export default function Dashboard() {
                         🚫 작업 금지: {selectedDayDetail.data.name}
                       </S.DetailTitle>
                       <S.DetailMeta>
-                        <li>날짜: {selectedDayDetail.dateKey}</li>
+                        <li>날짜: {selectedDayDetail.dateKey} 00:00</li>
                         <li>사유: {selectedDayDetail.data.reason}</li>
                         <li>시작: {selectedDayDetail.data.start}</li>
                         <li>종료: {selectedDayDetail.data.end}</li>
@@ -605,7 +605,7 @@ export default function Dashboard() {
                         {selectedDayDetail.data.label}
                       </S.DetailTitle>
                       <S.DetailMeta>
-                        <li>날짜: {selectedDayDetail.dateKey}</li>
+                        <li>날짜: {selectedDayDetail.dateKey} 00:00</li>
                         <li>유형: {selectedDayDetail.data.type}</li>
                       </S.DetailMeta>
                       <S.Divider />
