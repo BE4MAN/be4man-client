@@ -434,7 +434,7 @@ export default function TaskDetail() {
                             <span
                               style={{
                                 fontSize: '12px',
-                                color: theme.colors.textSecondary,
+                                color: theme.colors.textsecondary,
                               }}
                             ></span>
                           </span>
