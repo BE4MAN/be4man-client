@@ -11,7 +11,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-10-20',
     scheduledTime: '14:00',
-    riskLevel: '중',
     prNumber: '#124',
   },
   {
@@ -23,7 +22,6 @@ export const mockDeployments = [
     status: 'success',
     date: '2025-10-10',
     scheduledTime: '10:30',
-    riskLevel: '상',
     prNumber: '#142',
   },
   {
@@ -35,7 +33,6 @@ export const mockDeployments = [
     status: 'failed',
     date: '2025-10-12',
     scheduledTime: '16:45',
-    riskLevel: '하',
     prNumber: '#156',
   },
   {
@@ -47,7 +44,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-10-25',
     scheduledTime: '11:00',
-    riskLevel: '중',
     prNumber: '#167',
   },
   {
@@ -59,7 +55,6 @@ export const mockDeployments = [
     status: 'success',
     date: '2025-10-14',
     scheduledTime: '09:00',
-    riskLevel: '하',
     prNumber: '#189',
   },
   {
@@ -71,7 +66,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-10-28',
     scheduledTime: '15:30',
-    riskLevel: '상',
     prNumber: '#201',
   },
   {
@@ -83,7 +77,6 @@ export const mockDeployments = [
     status: 'success',
     date: '2025-10-08',
     scheduledTime: '15:00',
-    riskLevel: '중',
     prNumber: '#130',
   },
   {
@@ -95,7 +88,6 @@ export const mockDeployments = [
     status: 'failed',
     date: '2025-10-09',
     scheduledTime: '22:30',
-    riskLevel: '상',
     prNumber: '#138',
   },
   {
@@ -107,7 +99,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-10-20',
     scheduledTime: '16:30',
-    riskLevel: '중',
     prNumber: '#215',
   },
   // 11월 배포 작업
@@ -120,7 +111,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-11-05',
     scheduledTime: '10:00',
-    riskLevel: '중',
     prNumber: '#245',
   },
   // 11월 6일 긴 제목 배포 작업
@@ -133,7 +123,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-11-06',
     scheduledTime: '09:00',
-    riskLevel: '상',
     prNumber: '#325',
   },
   {
@@ -145,7 +134,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-11-06',
     scheduledTime: '14:00',
-    riskLevel: '중',
     prNumber: '#338',
   },
   {
@@ -158,7 +146,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-11-06',
     scheduledTime: '16:30',
-    riskLevel: '상',
     prNumber: '#341',
   },
   {
@@ -170,7 +157,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-11-12',
     scheduledTime: '14:00',
-    riskLevel: '상',
     prNumber: '#268',
   },
   {
@@ -182,7 +168,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-11-15',
     scheduledTime: '11:30',
-    riskLevel: '하',
     prNumber: '#271',
   },
   {
@@ -194,7 +179,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-11-18',
     scheduledTime: '09:00',
-    riskLevel: '중',
     prNumber: '#289',
   },
   {
@@ -206,7 +190,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-11-22',
     scheduledTime: '16:00',
-    riskLevel: '상',
     prNumber: '#302',
   },
   {
@@ -218,7 +201,6 @@ export const mockDeployments = [
     status: 'scheduled',
     date: '2025-11-25',
     scheduledTime: '13:00',
-    riskLevel: '중',
     prNumber: '#318',
   },
 ];

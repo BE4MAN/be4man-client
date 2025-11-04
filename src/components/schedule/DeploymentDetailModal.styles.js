@@ -40,6 +40,33 @@ export const Value = styled.p`
   margin: 0;
 `;
 
+export const StatusContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+export const StatusIconWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    ${({ status, theme }) => {
+      switch (status) {
+        case 'scheduled':
+          return `color: ${theme.colors.textPrimary};`;
+        case 'success':
+          return `color: ${theme.colors.schedule.successGreen};`;
+        case 'failed':
+          return `color: ${theme.colors.schedule.restrictedDanger};`;
+        default:
+          return `color: ${theme.colors.textPrimary};`;
+      }
+    }}
+  }
+`;
+
 export const Footer = styled.div`
   display: flex;
   justify-content: flex-end;

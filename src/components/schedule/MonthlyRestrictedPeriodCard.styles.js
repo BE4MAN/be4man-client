@@ -25,6 +25,8 @@ export const BanIcon = styled.svg`
   color: ${({ theme }) => theme.colors.schedule.restrictedDanger};
   flex-shrink: 0;
   margin-top: 2px;
+  margin-left: 4px;
+  margin-right: 4px;
 `;
 
 export const TitleWrapper = styled.div`
@@ -43,19 +45,11 @@ export const Title = styled.h3`
   margin: 0;
   line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: ${({ isCollapsed }) => (isCollapsed ? 1 : 2)};
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   overflow-wrap: break-word;
   flex: 1;
   min-width: 0;
-`;
-
-export const AdditionalCount = styled.span`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.typography.fontSize.xs};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  flex-shrink: 0;
-  margin-left: auto;
 `;

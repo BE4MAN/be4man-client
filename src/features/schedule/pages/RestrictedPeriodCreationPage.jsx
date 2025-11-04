@@ -303,7 +303,7 @@ export default function RestrictedPeriodCreationPage() {
         footer={
           <>
             <SecondaryBtn onClick={() => setCancelModalOpen(false)}>
-              돌아가기
+              취소
             </SecondaryBtn>
             <PrimaryBtn onClick={confirmCancel}>확인</PrimaryBtn>
           </>
@@ -322,7 +322,7 @@ export default function RestrictedPeriodCreationPage() {
         footer={
           <>
             <SecondaryBtn onClick={() => setRegisterModalOpen(false)}>
-              돌아가기
+              취소
             </SecondaryBtn>
             <PrimaryBtn onClick={confirmRegister}>확인</PrimaryBtn>
           </>

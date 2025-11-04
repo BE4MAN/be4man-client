@@ -25,6 +25,7 @@ export const globalStyles = (theme) => css`
   body,
   #root {
     height: 100%;
+    scrollbar-gutter: stable;
   }
 
   html {

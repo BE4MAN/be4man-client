@@ -93,10 +93,37 @@ export const DayCell = styled.div`
 `;
 
 export const DayNumber = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.spacing.xs};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   color: ${({ isToday, theme }) =>
     isToday ? theme.colors.textPrimary : theme.colors.textSecondary};
   margin-bottom: ${({ theme }) => theme.spacing.sm};
+  padding-right: 2px;
+`;
+
+export const ExpandButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.textPrimary};
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
 `;
 
 export const CardList = styled.div`
