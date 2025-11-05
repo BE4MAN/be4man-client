@@ -3,7 +3,13 @@ import { useTheme } from '@emotion/react';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// ========== [IMPORT 전환] 백엔드 사용 시 아래 주석 해제 ==========
+// import { getTasks } from '../../../api/taskManagement';
+// ========== [IMPORT 전환 끝] ==========
+
+// ========== [IMPORT 전환] 목 데이터 사용 시 아래 주석 해제 ==========
 import mockData from '../../../mock/taskManage';
+// ========== [IMPORT 전환 끝] ==========
 
 import DateRangePicker from './DateRangePicker';
 import { getStyles } from './LogManagement.style';
@@ -126,6 +132,14 @@ export default function LogManagement() {
 
   const PAGE_SIZE = 8;
 
+  // ========== [상태 변수 전환] 백엔드 사용 시 아래 주석 해제 ==========
+  // const [tasks, setTasks] = useState([]);
+  // const [totalPages, setTotalPages] = useState(0);
+  // const [totalElements, setTotalElements] = useState(0);
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState(null);
+  // ========== [상태 변수 전환 끝] ==========
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     작업단계: '전체',
@@ -137,7 +151,6 @@ export default function LogManagement() {
   });
   const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
-  //   const [hoveredRow, setHoveredRow] = useState(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const [clearBtnHovered, setClearBtnHovered] = useState(false);
   const [resetBtnHovered, setResetBtnHovered] = useState(false);
@@ -167,23 +180,54 @@ export default function LogManagement() {
     });
     setSortOrder('desc');
     setSearchQuery('');
+    setCurrentPage(1);
   };
 
-  // 각 단계별 허용된 상태 정의
-  const stageStatusMap = {
-    계획서: ['승인대기'],
-    배포: ['진행중', '종료', '취소'],
-    결과보고: ['승인대기', '반려', '완료'],
-  };
+  // ========== [데이터 로직 전환] 백엔드 사용 시 아래 주석 해제 ==========
+  // const fetchTasks = async () => {
+  //   try {
+  //     setLoading(true);
+  //     setError(null);
+  //
+  //     const params = {
+  //       page: currentPage - 1, // 백엔드는 0부터 시작
+  //       size: PAGE_SIZE,
+  //       searchQuery: searchQuery,
+  //       stage: filters.작업단계,
+  //       status: filters.작업상태,
+  //       result: filters.결과,
+  //       sortBy: filters.순서,
+  //     };
+  //
+  //     const response = await getTasks(params);
+  //
+  //     setTasks(response.content);
+  //     setTotalPages(response.totalPages);
+  //     setTotalElements(response.totalElements);
+  //   } catch (err) {
+  //     console.error('작업 목록 조회 실패:', err);
+  //     setError('작업 목록을 불러오는데 실패했습니다.');
+  //     setTasks([]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  //
+  // // 필터 또는 검색어 변경 시 페이지를 1로 리셋
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [searchQuery, filters]);
+  //
+  // // 필터, 검색어, 페이지 변경 시 API 호출
+  // useEffect(() => {
+  //   fetchTasks();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [currentPage, searchQuery, filters]);
+  // ========== [데이터 로직 전환 끝] ==========
 
+  // ========== [데이터 로직 전환] 목 데이터 사용 시 아래 주석 해제 ==========
   const filteredData = mockData
     .filter((item) => {
-      // 단계별 허용된 상태인지 먼저 체크
-      const allowedStatuses = stageStatusMap[item.stage];
-      if (allowedStatuses && !allowedStatuses.includes(item.status)) {
-        return false;
-      }
-
       const matchesSearch =
         searchQuery === '' ||
         item.id.toString().includes(searchQuery) ||
@@ -221,6 +265,13 @@ export default function LogManagement() {
 
   const start = (currentPage - 1) * PAGE_SIZE;
   const pageData = filteredData.slice(start, start + PAGE_SIZE);
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+
+  // 필터 또는 검색어 변경 시 페이지를 1로 리셋
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filters]);
+  // ========== [데이터 로직 전환 끝] ==========
 
   const renderBadge = (text, type) => {
     return <span style={styles.badge(type, text)}>{text}</span>;
@@ -232,12 +283,6 @@ export default function LogManagement() {
     }
     return <span style={{ color: theme.colors.textSecondary }}>-</span>;
   };
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, filters]);
-
-  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
 
   // 상세보기 페이지로 이동
   const handleDetailClick = (itemId) => {
@@ -275,7 +320,7 @@ export default function LogManagement() {
 
   return (
     <div style={styles.container}>
-      {/* 검색 및 필터 영역 (이전 코드 동일) */}
+      {/* 검색 및 필터 영역 */}
       <div style={styles.searchFilterSection}>
         <div style={styles.topControls}>
           <div style={styles.searchBar}>
@@ -345,15 +390,7 @@ export default function LogManagement() {
               <label style={styles.filterLabel}>작업 상태</label>
               <CustomDropdown
                 label=""
-                options={[
-                  '전체',
-                  '승인대기',
-                  '진행중',
-                  '취소',
-                  '반려',
-                  '완료',
-                  '종료',
-                ]}
+                options={['전체', '대기', '진행중', '취소', '반려', '완료']}
                 value={filters.작업상태}
                 onChange={(val) => handleFilter('작업상태', val)}
               />
@@ -408,6 +445,7 @@ export default function LogManagement() {
               <th style={{ ...styles.th, textAlign: 'center' }}>상세</th>
             </tr>
           </thead>
+          {/* ========== [테이블 렌더링 전환] 목 데이터 사용 시 아래 영역 유지 ========== */}
           <tbody>
             {pageData.length > 0 ? (
               pageData.map((item) => (
@@ -468,16 +506,24 @@ export default function LogManagement() {
               ))
             ) : (
               <tr>
-                <td colSpan="10" style={{ ...styles.td, padding: '40px' }}>
+                <td
+                  colSpan="10"
+                  style={{
+                    ...styles.td,
+                    padding: '40px',
+                    textAlign: 'center',
+                  }}
+                >
                   검색 결과가 없습니다.
                 </td>
               </tr>
             )}
           </tbody>
+          {/* ========== [테이블 렌더링 전환 끝] ========== */}
         </table>
       </div>
 
-      {/* 페이지네이션 (이전 코드 동일) */}
+      {/* 페이지네이션 */}
       <div style={styles.pagination}>
         <button
           style={{
@@ -485,7 +531,7 @@ export default function LogManagement() {
               currentPage === 1,
               hoveredPaginationBtn === 'prev',
             ),
-            pointerEvents: currentPage === 1 ? 'none' : 'auto', // ← 추가
+            pointerEvents: currentPage === 1 ? 'none' : 'auto',
           }}
           onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
           disabled={currentPage === 1}
@@ -531,14 +577,13 @@ export default function LogManagement() {
           ));
         })()}
 
-        {/* 다음 페이지 버튼 */}
         <button
           style={{
             ...styles.paginationArrow(
               currentPage === totalPages,
               hoveredPaginationBtn === 'next',
             ),
-            pointerEvents: currentPage === totalPages ? 'none' : 'auto', // ← 추가
+            pointerEvents: currentPage === totalPages ? 'none' : 'auto',
           }}
           onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
           disabled={currentPage === totalPages}
