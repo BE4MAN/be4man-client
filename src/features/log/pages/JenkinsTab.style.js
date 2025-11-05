@@ -185,7 +185,7 @@ export const getJenkinsInlineStyles = (theme) => {
       flex: 1,
     },
     statsLabel: {
-      fontSize: '13px',
+      fontSize: '0.875rem',
       fontWeight: 600,
       color: theme.colors.textSecondary,
     },
@@ -200,7 +200,7 @@ export const getJenkinsInlineStyles = (theme) => {
       } else if (status === 'ABORTED') {
         color = isDark ? '#ffb74d' : '#f57c00';
       }
-      return { fontSize: '14px', fontWeight: 700, color };
+      return { fontSize: '0.875rem', fontWeight: 700, color };
     },
 
     /* ───────────────────────── Console ───────────────────────── */
@@ -263,7 +263,7 @@ export const getJenkinsInlineStyles = (theme) => {
     consoleTime: {
       color: theme.colors.textSecondary,
       minWidth: '90px',
-      fontSize: '12px',
+      fontSize: '0.875rem',
     },
     consoleLevel: (level) => {
       let color;
@@ -272,12 +272,12 @@ export const getJenkinsInlineStyles = (theme) => {
       else if (level === 'INFO') color = isDark ? '#90caf9' : '#1976d2';
       else color = theme.colors.textSecondary;
 
-      return { color, fontWeight: 700, minWidth: '70px', fontSize: '12px' };
+      return { color, fontWeight: 700, minWidth: '70px', fontSize: '0.875rem' };
     },
     consoleMessage: {
       color: theme.colors.text,
       flex: 1,
-      fontSize: '13px',
+      fontSize: '0.875rem',
     },
 
     /* ───────────────────── Issues ───────────────────── */
@@ -293,7 +293,7 @@ export const getJenkinsInlineStyles = (theme) => {
       borderRadius: '8px',
     },
     issuesText: {
-      fontSize: '14px',
+      fontSize: '0.875rem',
       color: theme.colors.text,
       margin: 0,
       marginBottom: '16px',
@@ -308,7 +308,7 @@ export const getJenkinsInlineStyles = (theme) => {
       border: `1px solid ${theme.colors.border}`,
     },
     issuesDetailsTitle: {
-      fontSize: '13px',
+      fontSize: '0.875rem',
       fontWeight: 700,
       color: isDark ? '#ef5350' : '#d32f2f',
       margin: 0,
@@ -320,7 +320,7 @@ export const getJenkinsInlineStyles = (theme) => {
       listStyleType: 'disc',
     },
     issuesListItem: {
-      fontSize: '13px',
+      fontSize: '0.875rem',
       color: theme.colors.text,
       lineHeight: 1.8,
       marginBottom: '6px',
