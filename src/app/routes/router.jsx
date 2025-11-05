@@ -20,15 +20,15 @@ const ApprovalDetailPage = lazy(
   () => import('@/features/approval/pages/ApprovalDetail'),
 );
 
-const renderPlaceholder = (label) => (
-  <div style={{ padding: 16, color: '#8B95A8' }}>{label} — Coming soon</div>
-);
 const LogManagement = lazy(() => import('@/features/log/pages/LogManagement'));
 const ScheduleManagement = lazy(
   () => import('@/features/schedule/pages/ScheduleManagement'),
 );
 const RestrictedPeriodCreationPage = lazy(
   () => import('@/features/schedule/pages/RestrictedPeriodCreationPage'),
+);
+const AnalyticsPage = lazy(
+  () => import('@/features/analytics/pages/AnalyticsPage'),
 );
 
 export const router = createBrowserRouter([
@@ -124,7 +124,11 @@ export const router = createBrowserRouter([
       },
       {
         path: PATHS.ANALYTICS,
-        element: renderPlaceholder('Analytics'),
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <AnalyticsPage />
+          </Suspense>
+        ),
       },
     ],
   },
