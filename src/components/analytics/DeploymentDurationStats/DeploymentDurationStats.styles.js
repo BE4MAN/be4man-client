@@ -36,7 +36,7 @@ export const PanelTitle = styled.h3`
 `;
 
 export const PanelContent = styled.div`
-  padding: 0 ${({ theme }) => theme.spacing.lg}
+  padding: 20px ${({ theme }) => theme.spacing.lg}
     ${({ theme }) => theme.spacing.lg};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   ${({ flex }) =>

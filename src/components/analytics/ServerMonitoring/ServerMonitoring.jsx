@@ -93,106 +93,155 @@ export default function ServerMonitoring() {
           </S.MetricCard>
         </S.MetricsGrid>
 
-        <S.ChartWrapper height="180px">
-          <svg
-            width="100%"
-            height="100%"
-            viewBox={`0 0 ${width} ${height}`}
-            preserveAspectRatio="xMidYMid meet"
-          >
-            {[0, 25, 50, 75, 100].map((percent) => {
-              const y = yScale(percent);
-              return (
-                <line
-                  key={percent}
-                  x1={padding.left}
-                  y1={y}
-                  x2={width - padding.right}
-                  y2={y}
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  style={{ color: 'var(--chart-grid-color)' }}
+        <S.ChartsContainer>
+          <S.ChartWrapper height="180px">
+            <S.ChartTitle>CPU 사용률</S.ChartTitle>
+            <svg
+              width="100%"
+              height="100%"
+              viewBox={`0 0 ${width} ${height}`}
+              preserveAspectRatio="xMidYMid meet"
+            >
+              {[0, 25, 50, 75, 100].map((percent) => {
+                const y = yScale(percent);
+                return (
+                  <line
+                    key={percent}
+                    x1={padding.left}
+                    y1={y}
+                    x2={width - padding.right}
+                    y2={y}
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    style={{ color: 'var(--chart-grid-color)' }}
+                  />
+                );
+              })}
+
+              <path
+                d={createPath('cpu')}
+                fill="none"
+                stroke="#EA580C"
+                strokeWidth="2"
+              />
+
+              {cpuData.map((d, i) => (
+                <circle
+                  key={`cpu-${i}`}
+                  cx={xScale(i)}
+                  cy={yScale(d.cpu)}
+                  r="3"
+                  fill="#EA580C"
                 />
-              );
-            })}
+              ))}
 
-            <path
-              d={createPath('cpu')}
-              fill="none"
-              stroke="#EA580C"
-              strokeWidth="2"
-            />
-
-            <path
-              d={createPath('memory')}
-              fill="none"
-              stroke="#16A34A"
-              strokeWidth="2"
-            />
-
-            {cpuData.map((d, i) => (
-              <circle
-                key={`cpu-${i}`}
-                cx={xScale(i)}
-                cy={yScale(d.cpu)}
-                r="3"
-                fill="#EA580C"
-              />
-            ))}
-
-            {cpuData.map((d, i) => (
-              <circle
-                key={`mem-${i}`}
-                cx={xScale(i)}
-                cy={yScale(d.memory)}
-                r="3"
-                fill="#16A34A"
-              />
-            ))}
-
-            {cpuData.map((d, i) => (
-              <text
-                key={i}
-                x={xScale(i)}
-                y={height - 10}
-                fontSize="11"
-                fill="currentColor"
-                textAnchor="middle"
-                style={{ color: 'var(--chart-text-color)' }}
-              >
-                {d.date}
-              </text>
-            ))}
-
-            {[0, 25, 50, 75, 100].map((percent) => {
-              const y = yScale(percent);
-              return (
+              {cpuData.map((d, i) => (
                 <text
-                  key={percent}
-                  x={padding.left - 10}
-                  y={y + 4}
+                  key={i}
+                  x={xScale(i)}
+                  y={height - 10}
                   fontSize="11"
                   fill="currentColor"
-                  textAnchor="end"
+                  textAnchor="middle"
                   style={{ color: 'var(--chart-text-color)' }}
                 >
-                  {percent}%
+                  {d.date}
                 </text>
-              );
-            })}
-          </svg>
-        </S.ChartWrapper>
+              ))}
 
-        <S.LegendContainer>
-          <S.LegendItem>
-            <S.LegendLine color="#EA580C" />
-            <S.LegendLabelSmall>CPU</S.LegendLabelSmall>
-          </S.LegendItem>
-          <S.LegendItem>
-            <S.LegendLine color="#16A34A" />
-            <S.LegendLabelSmall>메모리</S.LegendLabelSmall>
-          </S.LegendItem>
-        </S.LegendContainer>
+              {[0, 25, 50, 75, 100].map((percent) => {
+                const y = yScale(percent);
+                return (
+                  <text
+                    key={percent}
+                    x={padding.left - 10}
+                    y={y + 4}
+                    fontSize="11"
+                    fill="currentColor"
+                    textAnchor="end"
+                    style={{ color: 'var(--chart-text-color)' }}
+                  >
+                    {percent}%
+                  </text>
+                );
+              })}
+            </svg>
+          </S.ChartWrapper>
+
+          <S.ChartWrapper height="180px">
+            <S.ChartTitle>메모리 사용률</S.ChartTitle>
+            <svg
+              width="100%"
+              height="100%"
+              viewBox={`0 0 ${width} ${height}`}
+              preserveAspectRatio="xMidYMid meet"
+            >
+              {[0, 25, 50, 75, 100].map((percent) => {
+                const y = yScale(percent);
+                return (
+                  <line
+                    key={percent}
+                    x1={padding.left}
+                    y1={y}
+                    x2={width - padding.right}
+                    y2={y}
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    style={{ color: 'var(--chart-grid-color)' }}
+                  />
+                );
+              })}
+
+              <path
+                d={createPath('memory')}
+                fill="none"
+                stroke="#16A34A"
+                strokeWidth="2"
+              />
+
+              {cpuData.map((d, i) => (
+                <circle
+                  key={`mem-${i}`}
+                  cx={xScale(i)}
+                  cy={yScale(d.memory)}
+                  r="3"
+                  fill="#16A34A"
+                />
+              ))}
+
+              {cpuData.map((d, i) => (
+                <text
+                  key={i}
+                  x={xScale(i)}
+                  y={height - 10}
+                  fontSize="11"
+                  fill="currentColor"
+                  textAnchor="middle"
+                  style={{ color: 'var(--chart-text-color)' }}
+                >
+                  {d.date}
+                </text>
+              ))}
+
+              {[0, 25, 50, 75, 100].map((percent) => {
+                const y = yScale(percent);
+                return (
+                  <text
+                    key={percent}
+                    x={padding.left - 10}
+                    y={y + 4}
+                    fontSize="11"
+                    fill="currentColor"
+                    textAnchor="end"
+                    style={{ color: 'var(--chart-text-color)' }}
+                  >
+                    {percent}%
+                  </text>
+                );
+              })}
+            </svg>
+          </S.ChartWrapper>
+        </S.ChartsContainer>
       </S.PanelContent>
     </S.PanelContainer>
   );

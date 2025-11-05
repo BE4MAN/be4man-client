@@ -11,6 +11,7 @@ export const PanelContainer = styled.div`
 export const PanelHeader = styled.div`
   width: 100%;
   padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -29,7 +30,7 @@ export const PanelTitle = styled.h3`
 `;
 
 export const PanelContent = styled.div`
-  padding: 0 ${({ theme }) => theme.spacing.lg}
+  padding: 20px ${({ theme }) => theme.spacing.lg}
     ${({ theme }) => theme.spacing.lg};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   --chart-grid-color: ${({ theme }) =>
@@ -54,12 +55,6 @@ export const MetricCard = styled.div`
   border-radius: ${({ theme }) => theme.radius.sm};
   background: ${({ bgColor }) => bgColor};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  transition: all 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${({ theme }) => theme.shadow.md};
-  }
 `;
 
 export const MetricHeader = styled.div`
@@ -93,11 +88,30 @@ export const MetricStatus = styled.div`
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
 `;
 
+// Charts Container
+export const ChartsContainer = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.lg};
+  flex-direction: column;
+
+  ${({ theme }) => theme.mq.md`
+    flex-direction: row;
+  `}
+`;
+
 // Chart
 export const ChartWrapper = styled.div`
   position: relative;
   width: 100%;
   height: ${({ height }) => height || '250px'};
+`;
+
+export const ChartTitle = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+  text-align: center;
 `;
 
 // Legend

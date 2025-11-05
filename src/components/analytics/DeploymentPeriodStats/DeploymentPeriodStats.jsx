@@ -17,14 +17,15 @@ export default function DeploymentPeriodStats() {
       : generateYearlyDeploymentData();
 
   const width = 800;
-  const height = 275;
-  const padding = { top: 10, right: 20, bottom: 30, left: 50 };
-  const chartWidth = width - padding.left - padding.right;
+  const height = 247;
+  const padding = { top: 10, right: 20, bottom: 30, left: 65 };
+  const chartWidth = width - padding.left - padding.right - 15;
   const chartHeight = height - padding.top - padding.bottom;
+  const firstBarOffset = 15;
 
   const maxValue = Math.max(...data.map((d) => d.deployments));
   const xScale = (index) =>
-    padding.left + (index / (data.length - 1)) * chartWidth;
+    padding.left + firstBarOffset + (index / (data.length - 1)) * chartWidth;
   const yScale = (value) =>
     padding.top + chartHeight - (value / maxValue) * chartHeight;
 
@@ -77,7 +78,7 @@ export default function DeploymentPeriodStats() {
           </S.ToggleContainer>
         </S.FilterRow>
 
-        <S.ChartWrapper height="275px">
+        <S.ChartWrapper height="247px">
           <svg
             width="100%"
             height="100%"
@@ -89,7 +90,7 @@ export default function DeploymentPeriodStats() {
               return (
                 <line
                   key={percent}
-                  x1={padding.left}
+                  x1={padding.left + firstBarOffset}
                   y1={y}
                   x2={width - padding.right}
                   y2={y}
@@ -102,20 +103,11 @@ export default function DeploymentPeriodStats() {
 
             {data.map((d, i) => {
               const x = xScale(i) - barWidth / 2;
-              const barHeight = chartHeight * (d.deployments / maxValue);
               const successHeight = chartHeight * (d.success / maxValue);
               const failedHeight = chartHeight * (d.failed / maxValue);
 
               return (
                 <g key={i}>
-                  <rect
-                    x={x}
-                    y={padding.top + chartHeight - barHeight}
-                    width={barWidth}
-                    height={barHeight}
-                    fill="#93C5FD"
-                    opacity="0.3"
-                  />
                   <rect
                     x={x}
                     y={padding.top + chartHeight - successHeight}
@@ -126,7 +118,7 @@ export default function DeploymentPeriodStats() {
                   />
                   <rect
                     x={x}
-                    y={padding.top + chartHeight - barHeight}
+                    y={padding.top + chartHeight - successHeight - failedHeight}
                     width={barWidth}
                     height={failedHeight}
                     fill="#DC2626"

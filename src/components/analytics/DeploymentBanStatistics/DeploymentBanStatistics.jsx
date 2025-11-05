@@ -16,14 +16,15 @@ export default function DeploymentBanStatistics() {
   const width = 800;
   const height = 250;
   const padding = { top: 10, right: 20, bottom: 30, left: 50 };
-  const chartWidth = width - padding.left - padding.right;
+  const chartWidth = width - padding.left - padding.right - 15;
   const chartHeight = height - padding.top - padding.bottom;
+  const firstBarOffset = 15;
 
   const maxValue = Math.max(
     ...banData.map((d) => d.serverMaintenance + d.dbMigration),
   );
   const xScale = (index) =>
-    padding.left + (index / (banData.length - 1)) * chartWidth;
+    padding.left + firstBarOffset + (index / (banData.length - 1)) * chartWidth;
   const yScale = (value) =>
     padding.top + chartHeight - (value / maxValue) * chartHeight;
 
@@ -88,7 +89,7 @@ export default function DeploymentBanStatistics() {
               return (
                 <line
                   key={percent}
-                  x1={padding.left}
+                  x1={padding.left + firstBarOffset}
                   y1={y}
                   x2={width - padding.right}
                   y2={y}
