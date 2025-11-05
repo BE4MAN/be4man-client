@@ -74,7 +74,7 @@ export default function ErrorAnalyticsPanel() {
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
 
-  const maxValue = Math.max(...errorData.map((d) => d.errorRate));
+  const maxValue = Math.max(...errorData.map((d) => d.errorCount));
   const xScale = (index) =>
     padding.left + (index / (errorData.length - 1)) * chartWidth;
   const yScale = (value) =>
@@ -84,7 +84,7 @@ export default function ErrorAnalyticsPanel() {
     return errorData
       .map((d, i) => {
         const x = xScale(i);
-        const y = yScale(d.errorRate);
+        const y = yScale(d.errorCount);
         return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
       })
       .join(' ');
@@ -117,7 +117,7 @@ export default function ErrorAnalyticsPanel() {
         </S.SubSection>
 
         <S.SubSection>
-          <S.SectionSubtitle>최근 12개월간 발생률 추이</S.SectionSubtitle>
+          <S.SectionSubtitle>최근 12개월간 발생 건수 추이</S.SectionSubtitle>
           <S.ChartsContainer>
             <S.LineChartWrapper>
               <svg
@@ -154,7 +154,7 @@ export default function ErrorAnalyticsPanel() {
                   <circle
                     key={i}
                     cx={xScale(i)}
-                    cy={yScale(d.errorRate)}
+                    cy={yScale(d.errorCount)}
                     r="3"
                     fill="currentColor"
                     style={{ color: 'var(--chart-error-color)' }}
@@ -176,7 +176,7 @@ export default function ErrorAnalyticsPanel() {
                 ))}
 
                 {[0, 25, 50, 75, 100].map((percent) => {
-                  const value = (maxValue * (percent / 100)).toFixed(1);
+                  const value = Math.round(maxValue * (percent / 100));
                   const y = yScale(maxValue * (percent / 100));
                   return (
                     <text
@@ -188,7 +188,7 @@ export default function ErrorAnalyticsPanel() {
                       textAnchor="end"
                       style={{ color: 'var(--chart-text-color)' }}
                     >
-                      {value}%
+                      {value}
                     </text>
                   );
                 })}
@@ -196,7 +196,7 @@ export default function ErrorAnalyticsPanel() {
             </S.LineChartWrapper>
 
             <S.PieChartWrapper>
-              <S.PieChartTitle>Top 5 실패 유형</S.PieChartTitle>
+              <S.PieChartTitle>실패 유형별 통계</S.PieChartTitle>
               <S.PieChartContent>
                 <svg width="160" height="160" viewBox="0 0 160 160">
                   {createPieSlices().map((slice, index) => (

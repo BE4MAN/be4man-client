@@ -14,18 +14,6 @@ export const AppContainer = styled.div`
 export const ContentWrapper = styled.div`
   max-width: 1440px;
   margin: 0 auto;
-  animation: fade-in 0.5s ease-in;
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 `;
 
 export const Section = styled.div`

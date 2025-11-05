@@ -29,8 +29,8 @@ export const PanelTitle = styled.h3`
 `;
 
 export const PanelContent = styled.div`
-  padding: 0 ${({ theme }) => theme.spacing.lg}
-    ${({ theme }) => theme.spacing.lg};
+  padding: 20px ${({ theme }) => theme.spacing.lg}
+    calc(${({ theme }) => theme.spacing.lg} + 30px);
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   --chart-grid-color: ${({ theme }) =>
     theme.mode === 'light' ? '#F3F4F6' : '#374151'};

@@ -135,7 +135,7 @@ export const generateErrorData = () => {
     date.setMonth(date.getMonth() - (months - i - 1));
     data.push({
       date: monthNames[date.getMonth()],
-      errorRate: 3 + Math.random() * 8,
+      errorCount: Math.floor(Math.random() * 80) + 20,
     });
   }
   return data;
