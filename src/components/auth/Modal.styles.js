@@ -18,8 +18,19 @@ export const ModalContent = styled(motion.div)`
   border-radius: ${({ theme }) => theme.radius.lg};
   padding: ${({ theme }) => theme.spacing.lg};
   box-shadow: ${({ theme }) => theme.shadow.md};
-  max-width: ${({ maxWidth }) => maxWidth || '400px'};
-  width: 90%;
+  ${({ variant, maxWidth }) =>
+    variant === 'detail'
+      ? `
+    display: flex;
+    flex-direction: column;
+    min-width: 50vh;
+    width: 75%;
+  `
+      : `
+    max-width: ${maxWidth || '400px'};
+    width: 90%;
+  `}
+
   overflow-y: auto;
 `;
 
@@ -27,14 +38,15 @@ export const ModalHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: ${({ theme }) => theme.spacing.md};
+  margin-bottom: 24px;
 `;
 
 export const ModalTitle = styled.h3`
   display: flex;
   align-items: center;
   color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.typography.fontSize['2xl']};
+  font-size: ${({ theme }) =>
+    `calc(${theme.typography.fontSize['2xl']} * 0.8)`};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
   margin: 0;
 `;
@@ -65,6 +77,12 @@ export const CloseButton = styled.button`
 export const ModalBody = styled.div`
   color: ${({ theme }) => theme.colors.textSecondary};
   line-height: 1.6;
+  ${({ variant }) =>
+    variant === 'detail'
+      ? `
+    flex: 1;
+  `
+      : ''}
 `;
 
 export const ModalFooter = styled.div`
@@ -72,6 +90,4 @@ export const ModalFooter = styled.div`
   gap: ${({ theme }) => theme.spacing.sm};
   justify-content: flex-end;
   margin-top: ${({ theme }) => theme.spacing.lg};
-  padding-top: ${({ theme }) => theme.spacing.md};
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
 `;

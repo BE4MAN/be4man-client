@@ -112,6 +112,29 @@ export const OptionsPanel = styled.div`
   }
 `;
 
+export const SelectAllOption = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  cursor: pointer;
+  border-radius: ${({ theme }) => theme.radius.sm};
+  transition: all 0.2s ease;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  background: transparent;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.interactiveHover};
+  }
+
+  svg {
+    color: ${({ theme }) => theme.colors.brand};
+    flex-shrink: 0;
+  }
+`;
+
 export const Option = styled.div`
   display: flex;
   align-items: center;

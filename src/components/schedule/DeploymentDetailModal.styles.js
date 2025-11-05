@@ -1,69 +1,76 @@
 import styled from '@emotion/styled';
 
 export const Content = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.md};
   padding: ${({ theme }) => theme.spacing.md} 0;
 `;
 
-export const Grid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: ${({ theme }) => theme.spacing.md};
-
-  ${({ theme }) => theme.mq.md`
-    grid-template-columns: 1fr 1fr;
-  `}
+export const InfoTable = styled.table`
+  width: 100%;
+  table-layout: fixed;
+  border-right: 1px solid ${({ theme }) => theme.colors.border};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
 `;
 
-export const Field = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.xs};
+export const InfoColGroup = styled.colgroup`
+  & > col:nth-of-type(1) {
+    width: 120px;
+  }
 
-  /* Badge가 전체 너비를 차지하지 않도록 */
-  & > span {
-    align-self: flex-start;
+  & > col:nth-of-type(2) {
+    width: 50%;
+  }
+
+  & > col:nth-of-type(3) {
+    width: 120px;
+  }
+
+  & > col:nth-of-type(4) {
+    width: 50%;
   }
 `;
 
-export const Label = styled.label`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+export const InfoRow = styled.tr`
+  &:not(:first-of-type) {
+    border-top: 1px solid ${({ theme }) => theme.colors.border};
+  }
 `;
 
-export const Value = styled.p`
+export const InfoTh = styled.th`
+  width: 120px;
+  vertical-align: middle;
+  padding: 8px 10px;
+  background: ${({ theme }) => (theme.mode === 'dark' ? '#0f1520' : '#f7f9fc')};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-weight: 700;
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  border-left: 1px solid ${({ theme }) => theme.colors.border};
+  border-right: 1px solid ${({ theme }) => theme.colors.border};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  text-align: center;
+`;
+
+export const InfoTd = styled.td`
+  vertical-align: middle;
+  padding: 8px 10px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: ${({ theme }) => theme.typography.fontSize.md};
-  margin: 0;
 `;
 
-export const StatusContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
+export const TitleLink = styled.span`
+  color: ${({ theme }) => theme.colors.brand || '#2563EB'};
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: ${({ theme }) => theme.colors.brand || '#2563EB'}40;
+  transition: all 0.2s ease;
 
-export const StatusIconWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  svg {
-    ${({ status, theme }) => {
-      switch (status) {
-        case 'scheduled':
-          return `color: ${theme.colors.textPrimary};`;
-        case 'success':
-          return `color: ${theme.colors.schedule.successGreen};`;
-        case 'failed':
-          return `color: ${theme.colors.schedule.restrictedDanger};`;
-        default:
-          return `color: ${theme.colors.textPrimary};`;
-      }
-    }}
+  &:hover {
+    color: ${({ theme }) => theme.colors.brand || '#2563EB'};
+    text-decoration-color: ${({ theme }) => theme.colors.brand || '#2563EB'};
   }
 `;
 

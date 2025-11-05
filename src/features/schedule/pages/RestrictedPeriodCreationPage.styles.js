@@ -210,3 +210,64 @@ export const DateTimeCell = styled.div`
   align-items: center;
   gap: 0.5rem;
 `;
+
+export const RecurrenceContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+export const RecurrenceTypeSelect = styled.div`
+  width: 200px;
+`;
+
+export const RecurrenceField = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  width: 200px;
+`;
+
+export const RecurrenceLabel = styled.label`
+  min-width: 80px;
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+`;
+
+export const RecurrenceTimeFields = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  flex-wrap: wrap;
+`;
+
+export const TimeInput = styled.input`
+  ${({ theme }) => vars(theme)}
+  ${baseInput}
+
+  width: 150px;
+`;
+
+export const RestrictedHoursInputWrapper = styled.div`
+  position: relative;
+  width: 150px;
+`;
+
+export const RestrictedHoursInput = styled.input`
+  ${({ theme }) => vars(theme)}
+  ${baseInput}
+
+  width: 100%;
+  padding-right: 50px;
+`;
+
+export const HoursUnit = styled.span`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  pointer-events: none;
+`;

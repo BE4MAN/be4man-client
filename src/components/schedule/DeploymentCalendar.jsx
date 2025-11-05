@@ -12,6 +12,7 @@ import { ChevronLeft, ChevronRight, ChevronsDownUp } from 'lucide-react';
 import { useState } from 'react';
 
 import Button from '@/components/auth/Button';
+import { getBansForDate } from '@/features/schedule/utils/banCalculator';
 
 import * as S from './DeploymentCalendar.styles';
 import MonthlyDeploymentCard from './MonthlyDeploymentCard';
@@ -59,12 +60,7 @@ export default function DeploymentCalendar({
       new Date(currentDate.getFullYear(), currentDate.getMonth(), day),
       'yyyy-MM-dd',
     );
-    return restrictedPeriods.filter((p) => {
-      const periodStart = new Date(p.startDate);
-      const periodEnd = new Date(p.endDate);
-      const currentDay = new Date(dateStr);
-      return currentDay >= periodStart && currentDay <= periodEnd;
-    });
+    return getBansForDate(restrictedPeriods, dateStr);
   };
 
   const getAllTasksForDay = (day) => {

@@ -12,6 +12,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
 import Button from '@/components/auth/Button';
+import { getBansForDate } from '@/features/schedule/utils/banCalculator';
 
 import DeploymentCard from './DeploymentCard';
 import RestrictedPeriodCard from './RestrictedPeriodCard';
@@ -61,30 +62,49 @@ export default function WeeklyCalendar({
 
   const getRestrictedPeriodsForDay = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return restrictedPeriods
-      .filter((p) => {
-        const periodStart = new Date(p.startDate);
-        const periodEnd = new Date(p.endDate);
-        const currentDay = new Date(dateStr);
-        return currentDay >= periodStart && currentDay <= periodEnd;
-      })
-      .map((p) => {
-        const periodStart = new Date(p.startDate);
-        const periodEnd = new Date(p.endDate);
-        const currentDay = new Date(dateStr);
+    const bansForDay = getBansForDate(restrictedPeriods, dateStr);
 
-        const isFirstCard =
-          format(currentDay, 'yyyy-MM-dd') ===
-          format(periodStart, 'yyyy-MM-dd');
-        const isLastCard =
-          format(currentDay, 'yyyy-MM-dd') === format(periodEnd, 'yyyy-MM-dd');
+    return bansForDay.map((p) => {
+      const periodStart = new Date(p.startDate);
+      const periodEnd = p.endDate ? new Date(p.endDate) : null;
+      const currentDay = new Date(dateStr);
 
-        return {
-          ...p,
-          isFirstCard,
-          isLastCard,
-        };
-      });
+      // 금지 시간 계산
+      const start = new Date(`2000-01-01T${p.startTime || '00:00'}:00`);
+      const end = p.endTime ? new Date(`2000-01-01T${p.endTime}:00`) : null;
+      let restrictedHours = 0;
+      if (end) {
+        const endDate = new Date(end);
+        if (endDate < start) {
+          endDate.setDate(endDate.getDate() + 1);
+        }
+        restrictedHours = Math.floor((endDate - start) / (1000 * 60 * 60));
+      }
+
+      // 종료 날짜 계산 (금지 시간 기반)
+      let calculatedEndDate = periodEnd;
+      if (restrictedHours > 0) {
+        const startDateTime = new Date(
+          `${p.startDate}T${p.startTime || '00:00'}:00`,
+        );
+        const endDateTime = new Date(startDateTime);
+        endDateTime.setHours(endDateTime.getHours() + restrictedHours);
+        calculatedEndDate = new Date(endDateTime);
+      }
+
+      const isFirstCard =
+        format(currentDay, 'yyyy-MM-dd') === format(periodStart, 'yyyy-MM-dd');
+      const isLastCard = calculatedEndDate
+        ? format(currentDay, 'yyyy-MM-dd') ===
+          format(calculatedEndDate, 'yyyy-MM-dd')
+        : isFirstCard;
+
+      return {
+        ...p,
+        isFirstCard,
+        isLastCard,
+      };
+    });
   };
 
   const startOfWeekDay = weekDays[0];

@@ -63,6 +63,7 @@ export const TimeInputField = styled.div`
   align-items: center;
   gap: ${({ theme }) => theme.spacing.sm};
   min-width: 180px;
+  position: relative;
 `;
 
 export const TimeLabelText = styled.span`
@@ -107,4 +108,52 @@ export const TimeInput = styled.input`
       ${({ $hasError, theme }) =>
         $hasError ? `${theme.colors.error}20` : `${theme.colors.brand}20`};
   }
+`;
+
+export const RestrictedHoursInput = styled.input`
+  width: 100%;
+  height: 40px;
+  padding: 8px 40px 8px 12px;
+  border: 1px solid
+    ${({ $hasError, theme }) =>
+      $hasError ? theme.colors.error : theme.colors.border};
+  border-radius: calc(6px * 0.5);
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${({ $hasError, theme }) =>
+      $hasError ? theme.colors.error : theme.colors.brand};
+  }
+
+  &:focus {
+    border-color: ${({ $hasError, theme }) =>
+      $hasError ? theme.colors.error : theme.colors.brand};
+    box-shadow: 0 0 0 2px
+      ${({ $hasError, theme }) =>
+        $hasError ? `${theme.colors.error}20` : `${theme.colors.brand}20`};
+  }
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  &[type='number'] {
+    appearance: textfield;
+  }
+`;
+
+export const HoursUnit = styled.span`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  pointer-events: none;
 `;

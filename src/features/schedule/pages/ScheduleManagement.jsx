@@ -149,10 +149,6 @@ export default function ScheduleManagement() {
     setPeriodEndDate('');
   };
 
-  const handleSelectAllServices = () => {
-    setSelectedServices(availableServices.map((service) => service.value));
-  };
-
   // location state에서 viewMode 확인
   useEffect(() => {
     if (location.state?.viewMode === 'list') {
@@ -263,30 +259,23 @@ export default function ScheduleManagement() {
 
                   <S.FilterRowItem>
                     <S.FilterLabel>연관 서비스</S.FilterLabel>
-                    <S.ServiceSelectContainer>
-                      <S.SelectWrapper>
-                        <ScheduleCustomSelect
-                          value={
-                            Array.isArray(selectedServices)
-                              ? selectedServices
-                              : []
-                          }
-                          onChange={(value) => {
-                            setSelectedServices(
-                              Array.isArray(value) ? value : [],
-                            );
-                          }}
-                          options={availableServices}
-                          multiple
-                        />
-                      </S.SelectWrapper>
-                      <S.FilterButton
-                        type="button"
-                        onClick={handleSelectAllServices}
-                      >
-                        전체
-                      </S.FilterButton>
-                    </S.ServiceSelectContainer>
+                    <S.SelectWrapper>
+                      <ScheduleCustomSelect
+                        value={
+                          Array.isArray(selectedServices)
+                            ? selectedServices
+                            : []
+                        }
+                        onChange={(value) => {
+                          setSelectedServices(
+                            Array.isArray(value) ? value : [],
+                          );
+                        }}
+                        options={availableServices}
+                        multiple
+                        showSelectAll
+                      />
+                    </S.SelectWrapper>
                   </S.FilterRowItem>
 
                   <S.FilterRowItem>

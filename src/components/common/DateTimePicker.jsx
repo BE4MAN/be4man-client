@@ -1,91 +1,116 @@
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import { Calendar, Clock } from 'lucide-react';
-import { useState } from 'react';
-import DatePicker from 'react-datepicker';
+import { useState, useEffect, useMemo } from 'react';
 
-import 'react-datepicker/dist/react-datepicker.css';
-import * as S from './DateTimePicker.styles';
+import DatePicker from './DatePicker';
+import * as S from './DateTimeRangePicker.styles';
 
-export default function DateTimePicker({ label, value, onChange, error }) {
-  const [selectedDate, setSelectedDate] = useState(
-    value ? new Date(value) : null,
-  );
-  const [selectedTime, setSelectedTime] = useState(
-    value ? format(new Date(value), 'HH:mm') : '00:00',
-  );
+export default function DateTimePicker({
+  date,
+  startTime,
+  endTime,
+  onDateChange,
+  onTimeChange,
+  showLabel = false,
+  error = false,
+}) {
+  // 금지 시간 계산 (시간 차이)
+  const restrictedHours = useMemo(() => {
+    if (!startTime || !endTime) return '';
+    const start = new Date(`2000-01-01T${startTime}:00`);
+    const end = new Date(`2000-01-01T${endTime}:00`);
+    // 하루를 넘어가는 경우 처리
+    if (end < start) {
+      end.setDate(end.getDate() + 1);
+    }
+    const diffMs = end - start;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    return diffHours.toString();
+  }, [startTime, endTime]);
 
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
-    if (date) {
-      // 기존 시간을 유지하면서 날짜만 변경
-      const [hours, minutes] = selectedTime.split(':');
-      const dateWithTime = new Date(date);
-      dateWithTime.setHours(parseInt(hours), parseInt(minutes));
-      onChange(format(dateWithTime, "yyyy-MM-dd'T'HH:mm"));
+  const [restrictedHoursInput, setRestrictedHoursInput] =
+    useState(restrictedHours);
+
+  useEffect(() => {
+    setRestrictedHoursInput(restrictedHours);
+  }, [restrictedHours]);
+
+  const handleStartTimeChange = (e) => {
+    const newStartTime = e.target.value;
+    // 시작 시간이 변경되면, 금지 시간을 기준으로 종료 시간 계산
+    if (newStartTime && restrictedHoursInput) {
+      const hours = parseInt(restrictedHoursInput, 10);
+      if (!isNaN(hours) && hours > 0) {
+        const start = new Date(`2000-01-01T${newStartTime}:00`);
+        start.setHours(start.getHours() + hours);
+        const newEndTime = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+        onTimeChange?.(newStartTime, newEndTime);
+      } else {
+        onTimeChange?.(newStartTime, endTime);
+      }
     } else {
-      onChange('');
+      onTimeChange?.(newStartTime, endTime);
     }
   };
 
-  const handleTimeChange = (e) => {
-    const newTime = e.target.value;
-    setSelectedTime(newTime);
-    if (selectedDate) {
-      const [hours, minutes] = newTime.split(':');
-      const dateWithTime = new Date(selectedDate);
-      dateWithTime.setHours(parseInt(hours), parseInt(minutes));
-      onChange(format(dateWithTime, "yyyy-MM-dd'T'HH:mm"));
+  const handleRestrictedHoursChange = (e) => {
+    const value = e.target.value;
+    setRestrictedHoursInput(value);
+    // 금지 시간이 변경되면, 시작 시간을 기준으로 종료 시간 계산
+    if (startTime && value) {
+      const hours = parseInt(value, 10);
+      if (!isNaN(hours) && hours > 0) {
+        const start = new Date(`2000-01-01T${startTime}:00`);
+        start.setHours(start.getHours() + hours);
+        const newEndTime = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+        onTimeChange?.(startTime, newEndTime);
+      }
     }
-  };
-
-  const renderLabel = () => {
-    if (!label) return null;
-
-    if (label.includes('*')) {
-      const parts = label.split('*');
-      return (
-        <S.Label>
-          {parts[0]}
-          <S.RequiredAsterisk>*</S.RequiredAsterisk>
-          {parts[1]}
-        </S.Label>
-      );
-    }
-
-    return <S.Label>{label}</S.Label>;
   };
 
   return (
-    <S.Container>
-      {renderLabel()}
+    <>
+      {showLabel && (
+        <S.LabelContainer>
+          <S.DateRangeLabel>
+            날짜<S.RequiredAsterisk> *</S.RequiredAsterisk>
+          </S.DateRangeLabel>
+          <S.TimeLabel>
+            시작 시간<S.RequiredAsterisk> *</S.RequiredAsterisk>
+          </S.TimeLabel>
+          <S.TimeLabel>
+            금지 시간<S.RequiredAsterisk> *</S.RequiredAsterisk>
+          </S.TimeLabel>
+        </S.LabelContainer>
+      )}
+      <S.Container>
+        <S.ErrorWrapper $hasError={error}>
+          <S.DateRangeWrapper>
+            <DatePicker value={date} onChange={onDateChange} />
+          </S.DateRangeWrapper>
+        </S.ErrorWrapper>
 
-      <S.DateTimeWrapper>
-        <S.DatePickerWrapper>
-          <DatePicker
-            selected={selectedDate}
-            onChange={handleDateChange}
-            dateFormat="yyyy-MM-dd"
-            placeholderText=""
-            locale={ko}
-            popperPlacement="bottom-start"
-            className="custom-datepicker"
-            wrapperClassName="custom-datepicker-wrapper"
-          />
-          <Calendar className="calendar-icon" />
-        </S.DatePickerWrapper>
-
-        <S.TimePickerWrapper>
+        <S.TimeInputField>
+          <S.TimeLabelText>시작시각</S.TimeLabelText>
           <S.TimeInput
             type="time"
-            value={selectedTime}
-            onChange={handleTimeChange}
+            value={startTime || ''}
+            onChange={handleStartTimeChange}
+            $hasError={error}
           />
-          <Clock className="clock-icon" />
-        </S.TimePickerWrapper>
-      </S.DateTimeWrapper>
+        </S.TimeInputField>
 
-      {error && <S.ErrorText>{error}</S.ErrorText>}
-    </S.Container>
+        <S.TimeInputField>
+          <S.TimeLabelText>금지 시간</S.TimeLabelText>
+          <S.RestrictedHoursInput
+            type="number"
+            min="1"
+            value={restrictedHoursInput || ''}
+            onChange={handleRestrictedHoursChange}
+            placeholder="시간"
+            $hasError={error}
+          />
+          <S.HoursUnit>시간</S.HoursUnit>
+        </S.TimeInputField>
+      </S.Container>
+    </>
   );
 }

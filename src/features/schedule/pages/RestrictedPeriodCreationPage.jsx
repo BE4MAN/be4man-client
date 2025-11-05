@@ -2,7 +2,7 @@ import { RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import DateTimeRangePicker from '@/components/common/DateTimeRangePicker';
+import DateTimePicker from '@/components/common/DateTimePicker';
 import ServiceTag from '@/components/common/ServiceTag';
 import { RequiredAsterisk } from '@/components/schedule/commonStyles';
 import ScheduleCustomSelect from '@/components/schedule/components/ScheduleCustomSelect';
@@ -21,9 +21,11 @@ export default function RestrictedPeriodCreationPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [recurrenceType, setRecurrenceType] = useState(''); // '매일', '매주', '매월', ''
+  const [recurrenceWeekday, setRecurrenceWeekday] = useState(''); // 요일 (월~일)
+  const [recurrenceWeekOfMonth, setRecurrenceWeekOfMonth] = useState(''); // N번째 주 (1~4)
   const [selectedServices, setSelectedServices] = useState([]);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
@@ -46,7 +48,7 @@ export default function RestrictedPeriodCreationPage() {
   const handleSaveClick = () => {
     // 필수 필드 검증
     const titleError = !title.trim();
-    const dateTimeError = !(startDate && endDate && startTime && endTime);
+    const dateTimeError = !(startDate && startTime && endTime);
     const servicesError =
       !Array.isArray(selectedServices) || selectedServices.length === 0;
 
@@ -84,23 +86,18 @@ export default function RestrictedPeriodCreationPage() {
   };
 
   const isTitleValid = title.trim().length > 0;
-  const isDateTimeValid = startDate && endDate && startTime && endTime;
+  const isDateTimeValid = startDate && startTime && endTime;
   const isServicesValid =
     Array.isArray(selectedServices) && selectedServices.length > 0;
   const isFormValid = isTitleValid && isDateTimeValid && isServicesValid;
 
-  const handleDateRangeChange = (start, end) => {
-    setStartDate(start);
-    setEndDate(end);
+  const handleDateChange = (date) => {
+    setStartDate(date);
   };
 
   const handleTimeChange = (start, end) => {
     setStartTime(start);
     setEndTime(end);
-  };
-
-  const handleSelectAllServices = () => {
-    setSelectedServices(availableServices);
   };
 
   const handleResetServices = () => {
@@ -180,17 +177,16 @@ export default function RestrictedPeriodCreationPage() {
               기간 <RequiredAsterisk>*</RequiredAsterisk>
             </S.MetaTh>
             <S.MetaTd>
-              <DateTimeRangePicker
-                startDate={startDate}
-                endDate={endDate}
+              <DateTimePicker
+                date={startDate}
                 startTime={startTime}
                 endTime={endTime}
-                onDateChange={(start, end) => {
-                  handleDateRangeChange(start, end);
+                onDateChange={(date) => {
+                  handleDateChange(date);
                   if (touched.dateTime) {
                     setErrors((prev) => ({
                       ...prev,
-                      dateTime: !(start && end && startTime && endTime),
+                      dateTime: !(date && startTime && endTime),
                     }));
                   }
                 }}
@@ -199,7 +195,7 @@ export default function RestrictedPeriodCreationPage() {
                   if (touched.dateTime) {
                     setErrors((prev) => ({
                       ...prev,
-                      dateTime: !(startDate && endDate && start && end),
+                      dateTime: !(startDate && start && end),
                     }));
                   }
                 }}
@@ -213,6 +209,140 @@ export default function RestrictedPeriodCreationPage() {
                   기간을 입력해주세요
                 </div>
               )}
+            </S.MetaTd>
+          </S.MetaRow>
+
+          <S.MetaRow>
+            <S.MetaTh>금지 주기</S.MetaTh>
+            <S.MetaTd colSpan={3}>
+              <S.RecurrenceContainer>
+                <S.RecurrenceTypeSelect>
+                  <ScheduleCustomSelect
+                    value={recurrenceType}
+                    onChange={(value) => setRecurrenceType(value || '')}
+                    options={[
+                      { value: '매일', label: '매일' },
+                      { value: '매주', label: '매주' },
+                      { value: '매월', label: '매월' },
+                    ]}
+                    placeholder="반복 주기 선택"
+                  />
+                </S.RecurrenceTypeSelect>
+
+                {recurrenceType === '매주' && (
+                  <S.RecurrenceField>
+                    <S.RecurrenceLabel>요일</S.RecurrenceLabel>
+                    <ScheduleCustomSelect
+                      value={recurrenceWeekday}
+                      onChange={(value) => setRecurrenceWeekday(value || '')}
+                      options={[
+                        { value: '월요일', label: '월요일' },
+                        { value: '화요일', label: '화요일' },
+                        { value: '수요일', label: '수요일' },
+                        { value: '목요일', label: '목요일' },
+                        { value: '금요일', label: '금요일' },
+                        { value: '토요일', label: '토요일' },
+                        { value: '일요일', label: '일요일' },
+                      ]}
+                      placeholder="요일 선택"
+                    />
+                  </S.RecurrenceField>
+                )}
+
+                {recurrenceType === '매월' && (
+                  <>
+                    <S.RecurrenceField>
+                      <S.RecurrenceLabel>N번째 주</S.RecurrenceLabel>
+                      <ScheduleCustomSelect
+                        value={recurrenceWeekOfMonth}
+                        onChange={(value) =>
+                          setRecurrenceWeekOfMonth(value || '')
+                        }
+                        options={[
+                          { value: '1', label: '첫째 주' },
+                          { value: '2', label: '둘째 주' },
+                          { value: '3', label: '셋째 주' },
+                          { value: '4', label: '넷째 주' },
+                        ]}
+                        placeholder="주 선택"
+                      />
+                    </S.RecurrenceField>
+                    <S.RecurrenceField>
+                      <S.RecurrenceLabel>요일</S.RecurrenceLabel>
+                      <ScheduleCustomSelect
+                        value={recurrenceWeekday}
+                        onChange={(value) => setRecurrenceWeekday(value || '')}
+                        options={[
+                          { value: '월요일', label: '월요일' },
+                          { value: '화요일', label: '화요일' },
+                          { value: '수요일', label: '수요일' },
+                          { value: '목요일', label: '목요일' },
+                          { value: '금요일', label: '금요일' },
+                          { value: '토요일', label: '토요일' },
+                          { value: '일요일', label: '일요일' },
+                        ]}
+                        placeholder="요일 선택"
+                      />
+                    </S.RecurrenceField>
+                  </>
+                )}
+
+                {(recurrenceType === '매일' ||
+                  recurrenceType === '매주' ||
+                  recurrenceType === '매월') && (
+                  <S.RecurrenceTimeFields>
+                    <S.RecurrenceField>
+                      <S.RecurrenceLabel>시작 시각</S.RecurrenceLabel>
+                      <S.TimeInput
+                        type="time"
+                        value={startTime || ''}
+                        onChange={(e) => setStartTime(e.target.value)}
+                      />
+                    </S.RecurrenceField>
+                    <S.RecurrenceField>
+                      <S.RecurrenceLabel>금지 시간</S.RecurrenceLabel>
+                      <S.RestrictedHoursInputWrapper>
+                        <S.RestrictedHoursInput
+                          type="number"
+                          min="1"
+                          value={
+                            startTime && endTime
+                              ? (() => {
+                                  const start = new Date(
+                                    `2000-01-01T${startTime}:00`,
+                                  );
+                                  const end = new Date(
+                                    `2000-01-01T${endTime}:00`,
+                                  );
+                                  if (end < start) {
+                                    end.setDate(end.getDate() + 1);
+                                  }
+                                  const diffMs = end - start;
+                                  return Math.floor(
+                                    diffMs / (1000 * 60 * 60),
+                                  ).toString();
+                                })()
+                              : ''
+                          }
+                          onChange={(e) => {
+                            const hours = parseInt(e.target.value, 10);
+                            if (!isNaN(hours) && hours > 0 && startTime) {
+                              const start = new Date(
+                                `2000-01-01T${startTime}:00`,
+                              );
+                              start.setHours(start.getHours() + hours);
+                              const newEndTime = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+                              setEndTime(newEndTime);
+                            }
+                          }}
+                          placeholder="시간"
+                        />
+                        <S.HoursUnit>시간</S.HoursUnit>
+                      </S.RestrictedHoursInputWrapper>
+                    </S.RecurrenceField>
+                  </S.RecurrenceTimeFields>
+                )}
+              </S.RecurrenceContainer>
             </S.MetaTd>
           </S.MetaRow>
 
@@ -244,16 +374,11 @@ export default function RestrictedPeriodCreationPage() {
                       label: service,
                     }))}
                     multiple
+                    showSelectAll
                     error={touched.services && errors.services ? '' : ''}
                   />
                 </S.ServiceSelectWrapper>
                 <S.ServiceButtonsContainer>
-                  <S.ServiceButton
-                    type="button"
-                    onClick={handleSelectAllServices}
-                  >
-                    전체
-                  </S.ServiceButton>
                   <S.ServiceButton type="button" onClick={handleResetServices}>
                     <RotateCcw size={14} />
                     <span>초기화</span>

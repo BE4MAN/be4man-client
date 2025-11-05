@@ -16,6 +16,7 @@ export const ScheduleCustomSelect = React.forwardRef(
       onBlur,
       multiple = false,
       placeholder,
+      showSelectAll = false,
       ...props
     },
     ref,
@@ -32,6 +33,21 @@ export const ScheduleCustomSelect = React.forwardRef(
     const hasValue = multiple
       ? selectedValues.length > 0
       : !!value && value !== '';
+
+    const allSelected =
+      multiple &&
+      options.length > 0 &&
+      selectedValues.length === options.length;
+
+    const handleSelectAll = () => {
+      if (allSelected) {
+        // 모두 선택된 경우: 모두 해제
+        onChange([]);
+      } else {
+        // 모두 선택되지 않은 경우: 모두 선택
+        onChange(options.map((opt) => opt.value));
+      }
+    };
 
     return (
       <S.SelectOuterWrapper ref={ref}>
@@ -59,6 +75,12 @@ export const ScheduleCustomSelect = React.forwardRef(
                 </Listbox.Button>
 
                 <Listbox.Options as={S.OptionsPanel}>
+                  {multiple && showSelectAll && (
+                    <S.SelectAllOption onClick={handleSelectAll}>
+                      <span>전체</span>
+                      {allSelected && <Check size={16} />}
+                    </S.SelectAllOption>
+                  )}
                   {options.map((option) => (
                     <Listbox.Option
                       key={option.value}
