@@ -41,11 +41,6 @@ export const StyledInput = styled.input`
     color: rgb(107 114 128 / 40%);
   }
 
-  &&:focus {
-    border-color: ${({ $hasError, theme }) =>
-      $hasError ? theme.colors.error : theme.colors.brand};
-  }
-
   &&:disabled {
     opacity: 0.5;
     cursor: not-allowed;

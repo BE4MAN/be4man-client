@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react';
 import React, { useState, useRef, useEffect } from 'react';
 
-const DatePicker = ({ value, onChange }) => {
+const DatePicker = ({ value, onChange, disabled = false }) => {
   const theme = useTheme();
   const isDark = theme.mode === 'dark';
   const [isOpen, setIsOpen] = useState(false);
@@ -9,8 +9,6 @@ const DatePicker = ({ value, onChange }) => {
     value ? new Date(value) : new Date(),
   );
   const [hoveredNavBtn, setHoveredNavBtn] = useState(null);
-  const [hoveredActionBtn, setHoveredActionBtn] = useState(null);
-  const [hoveredDate, setHoveredDate] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -214,7 +212,11 @@ const DatePicker = ({ value, onChange }) => {
 
   const isDateSelected = (date) => {
     if (!date || !value) return false;
-    const dateStr = date.toISOString().split('T')[0];
+    // 로컬 날짜 기준으로 YYYY-MM-DD 형식 생성 (시간대 문제 방지)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     return dateStr === value;
   };
 
@@ -230,16 +232,13 @@ const DatePicker = ({ value, onChange }) => {
 
   const handleDateClick = (date) => {
     if (!date) return;
-    const dateStr = date.toISOString().split('T')[0];
+    // 로컬 날짜 기준으로 YYYY-MM-DD 형식 생성 (시간대 문제 방지)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     onChange(dateStr);
-  };
-
-  const handleClear = () => {
-    onChange('');
-  };
-
-  const handleApply = () => {
-    setIsOpen(false);
+    setIsOpen(false); // 날짜 선택 시 자동으로 닫기
   };
 
   const renderMonth = () => {
@@ -292,13 +291,9 @@ const DatePicker = ({ value, onChange }) => {
                 isToday(day),
                 isDateSelected(day),
                 false,
-                hoveredDate &&
-                  day &&
-                  day.toDateString() === hoveredDate.toDateString(),
+                false,
               )}
               onClick={() => handleDateClick(day)}
-              onMouseEnter={() => day && setHoveredDate(day)}
-              onMouseLeave={() => setHoveredDate(null)}
             >
               {day ? day.getDate() : ''}
             </div>
@@ -312,8 +307,13 @@ const DatePicker = ({ value, onChange }) => {
     <div ref={dropdownRef} style={styles.container}>
       <button
         type="button"
-        style={styles.inputButton}
-        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          ...styles.inputButton,
+          opacity: disabled ? 0.5 : 1,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+        }}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
       >
         {value ? formatDate(value) : '날짜 선택'}
         <svg
@@ -333,37 +333,7 @@ const DatePicker = ({ value, onChange }) => {
         </svg>
       </button>
 
-      {isOpen && (
-        <div style={styles.dropdown}>
-          {renderMonth()}
-
-          <div style={styles.footer}>
-            <div style={styles.selectedDate}>
-              {value
-                ? `선택된 날짜: ${formatDate(value)}`
-                : '날짜를 선택하세요'}
-            </div>
-            <div style={styles.buttons}>
-              <button
-                style={styles.button(false, hoveredActionBtn === 'clear')}
-                onClick={handleClear}
-                onMouseEnter={() => setHoveredActionBtn('clear')}
-                onMouseLeave={() => setHoveredActionBtn(null)}
-              >
-                초기화
-              </button>
-              <button
-                style={styles.button(true, hoveredActionBtn === 'apply')}
-                onClick={handleApply}
-                onMouseEnter={() => setHoveredActionBtn('apply')}
-                onMouseLeave={() => setHoveredActionBtn(null)}
-              >
-                적용
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {isOpen && <div style={styles.dropdown}>{renderMonth()}</div>}
     </div>
   );
 };
