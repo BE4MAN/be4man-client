@@ -281,7 +281,7 @@ export default function LogManagement() {
     if (result) {
       return renderBadge(result, 'result');
     }
-    return <span style={{ color: theme.colors.textSecondary }}>-</span>;
+    return <span style={{ color: theme.colors.textsecondary }}>-</span>;
   };
 
   // 상세보기 페이지로 이동
@@ -469,7 +469,7 @@ export default function LogManagement() {
                   </td>
                   <td style={{ ...styles.td, textAlign: 'center' }}>
                     {item.completionTime || (
-                      <span style={{ color: theme.colors.textSecondary }}>
+                      <span style={{ color: theme.colors.textsecondary }}>
                         -
                       </span>
                     )}
@@ -531,6 +531,7 @@ export default function LogManagement() {
               currentPage === 1,
               hoveredPaginationBtn === 'prev',
             ),
+            /* stylelint-disable-next-line value-keyword-case */
             pointerEvents: currentPage === 1 ? 'none' : 'auto',
           }}
           onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
@@ -583,6 +584,7 @@ export default function LogManagement() {
               currentPage === totalPages,
               hoveredPaginationBtn === 'next',
             ),
+            /* stylelint-disable-next-line value-keyword-case */
             pointerEvents: currentPage === totalPages ? 'none' : 'auto',
           }}
           onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
