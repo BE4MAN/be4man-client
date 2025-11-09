@@ -51,7 +51,7 @@ export default function DeployManagement({
       setSelectedId(item.id);
       setDetail(buildDetailFromItem(item, detailProp));
     },
-    [detailProp, topTab],
+    [detailProp],
   );
 
   const handleTopTab = useCallback(

@@ -1,8 +1,7 @@
 import { useTheme } from '@emotion/react';
-import { CalendarOff, ChevronLeft } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { CalendarOff } from 'lucide-react';
+import { useState } from 'react';
 
-import DateTimePicker from '@/components/common/DateTimePicker';
 import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
@@ -11,19 +10,7 @@ import * as S from './RestrictedPeriodDetailModal.styles';
 
 export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
   const theme = useTheme();
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editStartDate, setEditStartDate] = useState('');
-  const [editStartTime, setEditStartTime] = useState('');
-  const [editEndTime, setEditEndTime] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-
-  useEffect(() => {
-    if (period) {
-      setEditStartDate(period.startDate || '');
-      setEditStartTime(period.startTime || '');
-      setEditEndTime(period.endTime || '');
-    }
-  }, [period]);
 
   if (!period) return null;
 
@@ -47,13 +34,6 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
     return `${period.startDate} ${period.startTime}:00`;
   };
 
-  const handleAdjustClick = () => {
-    setIsEditMode(true);
-    setEditStartDate(period.startDate);
-    setEditStartTime(period.startTime);
-    setEditEndTime(period.endTime);
-  };
-
   const handleCancelClick = () => {
     setShowConfirmModal(true);
   };
@@ -69,140 +49,93 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
     setShowConfirmModal(false);
   };
 
-  const handleCancelEdit = () => {
-    setIsEditMode(false);
-    // 편집 취소 시 원래 값으로 복원
-    setEditStartDate(period.startDate || '');
-    setEditStartTime(period.startTime || '');
-    setEditEndTime(period.endTime || '');
-  };
-
-  const handleCompleteEdit = () => {
-    setIsEditMode(false);
-    // TODO: API 호출하여 수정 처리
-    // period 업데이트 필요
-  };
-
-  const handleBackClick = () => {
-    setIsEditMode(false);
-  };
-
   return (
     <ScheduleModal
       isOpen={open}
       onClose={onClose}
-      title={isEditMode ? '일정 조정' : '작업 금지 상세 정보'}
+      title="작업 금지 상세 정보"
       titleIcon={
-        !isEditMode ? (
-          <S.BanTitleIcon>
-            <CalendarOff
-              size={20}
-              color={theme.colors.schedule.restrictedDanger}
-            />
-          </S.BanTitleIcon>
-        ) : (
-          <S.BackButton onClick={handleBackClick}>
-            <ChevronLeft size={20} />
-          </S.BackButton>
-        )
+        <S.BanTitleIcon>
+          <CalendarOff
+            size={20}
+            color={theme.colors.schedule.restrictedDanger}
+          />
+        </S.BanTitleIcon>
       }
       maxWidth="600px"
       variant="detail"
       footer={
         <S.Footer>
-          {isEditMode ? (
-            <>
-              <SecondaryBtn onClick={handleCancelEdit}>취소</SecondaryBtn>
-              <PrimaryBtn onClick={handleCompleteEdit}>조정 완료</PrimaryBtn>
-            </>
-          ) : (
-            <>
-              <SecondaryBtn onClick={handleAdjustClick}>조정</SecondaryBtn>
-              <S.CancelButton onClick={handleCancelClick}>
-                일정 취소
-              </S.CancelButton>
-              <PrimaryBtn onClick={onClose}>닫기</PrimaryBtn>
-            </>
-          )}
+          <S.CancelButton onClick={handleCancelClick}>일정 취소</S.CancelButton>
+          <PrimaryBtn onClick={onClose}>닫기</PrimaryBtn>
         </S.Footer>
       }
     >
-      <S.ContentWrapper>
-        {!isEditMode ? (
-          <S.Content>
-            <S.InfoTable role="table">
-              <S.InfoColGroup>
-                <col />
-                <col />
-                <col />
-                <col />
-              </S.InfoColGroup>
+      <S.Content>
+        <S.InfoTable role="table">
+          <S.InfoColGroup>
+            <col />
+            <col />
+            <col />
+            <col />
+          </S.InfoColGroup>
 
-              <S.InfoRow>
-                <S.InfoTh>제목</S.InfoTh>
-                <S.InfoTd>{period.title}</S.InfoTd>
-                <S.InfoTh>유형</S.InfoTh>
-                <S.InfoTd>{period.type}</S.InfoTd>
-              </S.InfoRow>
+          <S.InfoRow>
+            <S.InfoTh>제목</S.InfoTh>
+            <S.InfoTd>{period.title}</S.InfoTd>
+            <S.InfoTh>유형</S.InfoTh>
+            <S.InfoTd>{period.type}</S.InfoTd>
+          </S.InfoRow>
 
-              <S.InfoRow>
-                <S.InfoTh>등록자</S.InfoTh>
-                <S.InfoTd>{period.registrant || '—'}</S.InfoTd>
-                <S.InfoTh>등록부서</S.InfoTh>
-                <S.InfoTd>{period.registrantDepartment || '—'}</S.InfoTd>
-              </S.InfoRow>
+          <S.InfoRow>
+            <S.InfoTh>등록자</S.InfoTh>
+            <S.InfoTd>{period.registrant || '—'}</S.InfoTd>
+            <S.InfoTh>등록부서</S.InfoTh>
+            <S.InfoTd>{period.registrantDepartment || '—'}</S.InfoTd>
+          </S.InfoRow>
 
-              <S.InfoRow>
-                <S.InfoTh>연관 서비스</S.InfoTh>
-                <S.InfoTd colSpan={3}>
-                  {period.services && period.services.length > 0 ? (
-                    <S.ServicesContainer>
-                      {period.services.map((service) => (
-                        <ServiceTag key={service} service={service} />
-                      ))}
-                    </S.ServicesContainer>
-                  ) : (
-                    '—'
-                  )}
-                </S.InfoTd>
-              </S.InfoRow>
+          <S.InfoRow>
+            <S.InfoTh>연관 서비스</S.InfoTh>
+            <S.InfoTd colSpan={3}>
+              {period.services && period.services.length > 0 ? (
+                <S.ServicesContainer>
+                  {period.services.map((service) => (
+                    <ServiceTag key={service} service={service} />
+                  ))}
+                </S.ServicesContainer>
+              ) : (
+                '—'
+              )}
+            </S.InfoTd>
+          </S.InfoRow>
 
-              <S.InfoRow>
-                <S.InfoTh>시작일자</S.InfoTh>
-                <S.InfoTd colSpan={3}>{getStartDateTime()}</S.InfoTd>
-              </S.InfoRow>
+          <S.InfoRow>
+            <S.InfoTh>시작일자</S.InfoTh>
+            <S.InfoTd colSpan={3}>{getStartDateTime()}</S.InfoTd>
+          </S.InfoRow>
 
-              <S.InfoRow>
-                <S.InfoTh>금지 시간</S.InfoTh>
-                <S.InfoTd>{getRestrictedTime()}</S.InfoTd>
-                <S.InfoTh>금지 주기</S.InfoTh>
-                <S.InfoTd>{period.recurrenceCycle || '—'}</S.InfoTd>
-              </S.InfoRow>
+          <S.InfoRow>
+            <S.InfoTh>금지 시간</S.InfoTh>
+            <S.InfoTd>{getRestrictedTime()}</S.InfoTd>
+            <S.InfoTh>금지 주기</S.InfoTh>
+            <S.InfoTd>{period.recurrenceCycle || '—'}</S.InfoTd>
+          </S.InfoRow>
+        </S.InfoTable>
 
-              <S.InfoRow>
-                <S.InfoTh>설명</S.InfoTh>
-                <S.InfoTd colSpan={3}>{period.description || '—'}</S.InfoTd>
-              </S.InfoRow>
-            </S.InfoTable>
-          </S.Content>
-        ) : (
-          <S.EditSection>
-            <DateTimePicker
-              date={editStartDate}
-              startTime={editStartTime}
-              endTime={editEndTime}
-              onDateChange={(date) => {
-                setEditStartDate(date);
-              }}
-              onTimeChange={(start, end) => {
-                setEditStartTime(start);
-                setEditEndTime(end);
-              }}
-              showLabel
-            />
-          </S.EditSection>
-        )}
-      </S.ContentWrapper>
+        <S.InfoTable role="table">
+          <S.InfoColGroup>
+            <col />
+            <col />
+            <col />
+            <col />
+          </S.InfoColGroup>
+
+          <S.InfoRow>
+            <S.InfoTh>설명</S.InfoTh>
+            <S.InfoTd colSpan={3}>{period.description || '—'}</S.InfoTd>
+          </S.InfoRow>
+        </S.InfoTable>
+      </S.Content>
 
       {/* 확인 모달 */}
       <ScheduleModal

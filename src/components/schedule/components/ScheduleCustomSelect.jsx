@@ -88,7 +88,10 @@ export const ScheduleCustomSelect = React.forwardRef(
                       as={Fragment}
                     >
                       {({ active, selected: isSelected }) => (
-                        <S.Option $active={active} $selected={isSelected}>
+                        <S.Option
+                          $active={multiple ? active : false}
+                          $selected={isSelected}
+                        >
                           <span>{option.label}</span>
                           {isSelected && <Check size={16} />}
                         </S.Option>

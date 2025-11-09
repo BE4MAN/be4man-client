@@ -47,14 +47,13 @@ const baseInput = `
   min-width: 0;
   height: 36px;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: 0.3125rem;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--fg);
   outline: none;
   transition: border-color .15s ease, box-shadow .15s ease;
   &::placeholder { color: var(--muted); }
-  &:focus { border-color: var(--border-strong); box-shadow: 0 0 0 3px var(--ring); }
   &:disabled { background: var(--bg); color: var(--fg); opacity: 1; cursor: default; }
   &[readonly] { cursor: pointer; }
 `;
@@ -113,6 +112,10 @@ export const MetaRow = styled.tr`
   &:not(:first-of-type) {
     border-top: 1px solid ${({ theme }) => theme.colors.border};
   }
+
+  &:first-of-type {
+    border-top: 1px solid ${({ theme }) => theme.colors.border};
+  }
 `;
 
 export const MetaTh = styled.th`
@@ -125,38 +128,99 @@ export const MetaTh = styled.th`
   text-align: left;
   border-left: 1px solid ${({ theme }) => theme.colors.border};
   border-right: 1px solid ${({ theme }) => theme.colors.border};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
   &[data-bb] {
     border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   }
 `;
 
+// 기본 MetaTd 스타일
 export const MetaTd = styled.td`
   vertical-align: middle;
   padding: 8px 18px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+`;
 
-  & > input,
-  & > select,
-  & > textarea,
+// 등록자/등록부서 (텍스트만)
+export const MetaTdText = styled(MetaTd)`
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.typography.fontSize.md};
+`;
+
+// 제목
+export const MetaTdTitle = styled(MetaTd)`
+  & > input {
+    width: 100%;
+  }
+`;
+
+// 금지 주기 (RecurrenceContainer)
+export const MetaTdRecurrence = styled(MetaTd)`
+  & > div {
+    width: 100% !important;
+  }
+`;
+
+// 금지 일자 (DateTimePicker)
+export const MetaTdDate = styled(MetaTd)`
   & > div {
     width: 100%;
   }
+`;
 
-  &[data-bb] {
-    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+// 시작 시각 (TimeInput)
+export const MetaTdTime = styled(MetaTd)`
+  & > input {
+    width: 55.5%;
+    min-width: 80px;
   }
+`;
+
+// 금지 시간 (RestrictedHoursInput)
+export const MetaTdRestrictedHours = styled(MetaTd)`
+  & > div {
+    width: 30%;
+    min-width: 80px;
+  }
+`;
+
+// 연관 서비스 (ServiceSelectContainer)
+export const MetaTdService = styled(MetaTd)`
+  & > div {
+    width: 100%;
+  }
+`;
+
+// 설명 (Textarea)
+export const MetaTdDescription = styled(MetaTd)`
+  & > textarea {
+    width: 100%;
+  }
+`;
+
+// RecurrenceContainer는 MetaTd의 직접 자식이므로 별도 처리
+export const RecurrenceContainerWrapper = styled.div`
+  width: 100% !important;
 `;
 
 export const ServiceSelectContainer = styled.div`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
-  width: 50%;
+  gap: 25px;
+  width: 25%;
   margin-bottom: ${({ theme }) => theme.spacing.xs};
 `;
 
+export const ServiceInputContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  width: 25%;
+`;
+
 export const ServiceSelectWrapper = styled.div`
-  flex: 1;
+  flex: 0.75;
   min-width: 0;
 `;
 
@@ -202,7 +266,11 @@ export const ServicesTagContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spacing.sm};
-  margin-top: ${({ theme }) => theme.spacing.xs};
+  margin-top: ${({ theme }) => theme.spacing.sm};
+
+  & > * {
+    padding-left: 13px;
+  }
 `;
 
 export const DateTimeCell = styled.div`
@@ -213,19 +281,28 @@ export const DateTimeCell = styled.div`
 
 export const RecurrenceContainer = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.md};
+  flex-direction: row;
+  align-items: center;
+  gap: 4.5rem;
+  flex-wrap: wrap;
+  width: 100%;
 `;
 
 export const RecurrenceTypeSelect = styled.div`
-  width: 200px;
+  width: 144px;
 `;
 
 export const RecurrenceField = styled.div`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.sm};
-  width: 200px;
+  width: 150px;
+  margin-left: 30px;
+
+  & > div {
+    flex: 1;
+    min-width: 0;
+  }
 `;
 
 export const RecurrenceLabel = styled.label`
@@ -246,12 +323,20 @@ export const TimeInput = styled.input`
   ${({ theme }) => vars(theme)}
   ${baseInput}
 
-  width: 150px;
+  width: 100%;
+  min-width: 80px;
+
+  &:focus,
+  &:active {
+    outline: none;
+    box-shadow: none;
+  }
 `;
 
 export const RestrictedHoursInputWrapper = styled.div`
   position: relative;
-  width: 150px;
+  width: 100%;
+  min-width: 80px;
 `;
 
 export const RestrictedHoursInput = styled.input`
@@ -260,6 +345,12 @@ export const RestrictedHoursInput = styled.input`
 
   width: 100%;
   padding-right: 50px;
+
+  &:focus,
+  &:active {
+    outline: none;
+    box-shadow: none;
+  }
 `;
 
 export const HoursUnit = styled.span`

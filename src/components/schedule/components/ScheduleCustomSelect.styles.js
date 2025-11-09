@@ -31,7 +31,7 @@ export const SelectWrapper = styled.div`
 export const SelectButton = styled.button`
   width: 100%;
   height: 2.2rem;
-  border-radius: ${({ theme }) => `calc(${theme.radius.md} * 0.5)`};
+  border-radius: 0.3125rem;
   background-color: ${({ theme }) => theme.colors.bg};
   border: 1px solid
     ${({ $hasError, theme }) =>
@@ -51,11 +51,6 @@ export const SelectButton = styled.button`
   span {
     font-size: 14px;
     color: ${({ theme }) => theme.colors.textSecondary};
-  }
-
-  &:focus {
-    border-color: ${({ $hasError, theme }) =>
-      $hasError ? theme.colors.error : theme.colors.brand};
   }
 
   &:disabled {
@@ -85,7 +80,7 @@ export const OptionsPanel = styled.div`
   z-index: 50;
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.md};
+  border-radius: 0.3125rem;
   box-shadow: ${({ theme }) => theme.shadow.md};
   max-height: 200px;
   overflow-y: auto;
@@ -118,7 +113,7 @@ export const SelectAllOption = styled.div`
   justify-content: space-between;
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   cursor: pointer;
-  border-radius: ${({ theme }) => theme.radius.sm};
+  border-radius: 0.3125rem;
   transition: all 0.2s ease;
   color: ${({ theme }) => theme.colors.textPrimary};
   background: transparent;
@@ -141,7 +136,7 @@ export const Option = styled.div`
   justify-content: space-between;
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   cursor: pointer;
-  border-radius: ${({ theme }) => theme.radius.sm};
+  border-radius: 0.3125rem;
   transition: all 0.2s ease;
   color: ${({ theme }) => theme.colors.textPrimary};
   background: ${({ $active, theme }) =>

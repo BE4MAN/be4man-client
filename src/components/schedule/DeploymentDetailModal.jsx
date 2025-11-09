@@ -40,13 +40,11 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
 
           <S.InfoRow>
             <S.InfoTh>제목</S.InfoTh>
-            <S.InfoTd>
+            <S.InfoTd colSpan={3}>
               <S.TitleLink onClick={handleTitleClick}>
                 {deployment.title}
               </S.TitleLink>
             </S.InfoTd>
-            <S.InfoTh>유형</S.InfoTh>
-            <S.InfoTd>{deployment.type || '—'}</S.InfoTd>
           </S.InfoRow>
 
           <S.InfoRow>
@@ -74,13 +72,8 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
                     ? '실패'
                     : deployment.deploymentStatus || '—'}
             </S.InfoTd>
-            <S.InfoTh>서비스</S.InfoTh>
-            <S.InfoTd>{deployment.service || '—'}</S.InfoTd>
-          </S.InfoRow>
-
-          <S.InfoRow>
             <S.InfoTh>작업 시각</S.InfoTh>
-            <S.InfoTd colSpan={3}>
+            <S.InfoTd>
               {deployment.date} {deployment.scheduledTime}
             </S.InfoTd>
           </S.InfoRow>
