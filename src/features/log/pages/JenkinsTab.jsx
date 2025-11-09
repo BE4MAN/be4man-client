@@ -105,7 +105,6 @@ export default function JenkinsTab({
   id,
   theme,
   baseStyles, // planCard / planHeader / planBody 재사용
-  jenkinsLog, // 상위 mock/taskManage의 기본 로그/파이프라인 정보
 }) {
   const s = useMemo(() => getJenkinsInlineStyles(theme), [theme]);
 
@@ -120,6 +119,8 @@ export default function JenkinsTab({
   const [buildResultData, setBuildResultData] = useState(null);
   const [buildResultLoading, setBuildResultLoading] = useState(false);
   const [buildResultError, setBuildResultError] = useState(null);
+  // 빌드 목록 (새 요구사항: 먼저 목록을 보여줌)
+  const [buildList, setBuildList] = useState([]);
 
   const [pipelineStages, setPipelineStages] = useState([]);
   const [pipelineLoading, setPipelineLoading] = useState(false);
@@ -128,13 +129,20 @@ export default function JenkinsTab({
 
   // API: 콘솔 로그
   useEffect(() => {
-    if (!id) return;
+    // 새 API: /api/console-log/{deploymentId}/{buildRunId}
+    const buildRunId = buildResultData?.buildRunId;
+    if (!id || !buildRunId) {
+      // 빌드가 선택되지 않았으면 이전 로그 초기화
+      setJenkinsLogData(null);
+      return;
+    }
+
     (async () => {
-      console.log('[JenkinsTab] fetchConsoleLog: start', { id });
+      console.log('[JenkinsTab] fetchConsoleLog: start', { id, buildRunId });
       setJenkinsLogLoading(true);
       setJenkinsLogError(null);
       try {
-        const res = await taskAPI.fetchConsoleLog(id);
+        const res = await taskAPI.fetchConsoleLog(id, buildRunId);
         console.log('[JenkinsTab] fetchConsoleLog: response', res);
         const processedLog = processEscapeChars(res?.log || '');
         setJenkinsLogData({ ...res, processedLog });
@@ -146,7 +154,7 @@ export default function JenkinsTab({
         console.log('[JenkinsTab] fetchConsoleLog: end');
       }
     })();
-  }, [id]);
+  }, [id, buildResultData?.buildRunId]);
 
   // API: 빌드 결과
   useEffect(() => {
@@ -158,7 +166,37 @@ export default function JenkinsTab({
       try {
         const res = await taskAPI.fetchBuildResult(id);
         console.log('[JenkinsTab] fetchBuildResult: response', res);
-        setBuildResultData(res);
+        // API now returns an array of build results. 저장 및 기본 선택(first) 처리
+        if (Array.isArray(res)) {
+          setBuildList(res);
+          // 기본으로 첫 빌드를 선택하면 상세 정보를 다시 조회해서 최신 데이터를 가져옴
+          const first = res[0];
+          if (first) {
+            try {
+              const detail = await taskAPI.fetchBuildResult(
+                id,
+                first.buildRunId,
+              );
+              setBuildResultData(detail || first);
+            } catch (detailErr) {
+              // 상세 조회 실패 시 목록 항목으로 내려놓기
+              console.error(
+                '[JenkinsTab] fetchBuildResult: detail fetch error',
+                detailErr,
+              );
+              setBuildResultData(first);
+            }
+          } else {
+            setBuildResultData(null);
+          }
+        } else if (res && typeof res === 'object') {
+          // 이전 단일 객체 응답과의 하위호환
+          setBuildList([res]);
+          setBuildResultData(res);
+        } else {
+          setBuildList([]);
+          setBuildResultData(null);
+        }
       } catch (e) {
         console.error('[JenkinsTab] fetchBuildResult: error', e);
         setBuildResultError('빌드 결과를 불러오는데 실패했습니다.');
@@ -171,13 +209,19 @@ export default function JenkinsTab({
 
   // API: 파이프라인 stages
   useEffect(() => {
-    if (!id) return;
+    // Fetch pipeline stages for the selected buildRunId (new API expects buildRunId in path)
+    const buildRunId = buildResultData?.buildRunId;
+    if (!id || !buildRunId) {
+      setPipelineStages([]);
+      return;
+    }
+
     (async () => {
-      console.log('[JenkinsTab] fetchAllStages: start', { id });
+      console.log('[JenkinsTab] fetchAllStages: start', { buildRunId });
       setPipelineLoading(true);
       setPipelineError(null);
       try {
-        const response = await taskAPI.fetchAllStages(id);
+        const response = await taskAPI.fetchAllStages(buildRunId);
         console.log('[JenkinsTab] fetchAllStages: response', response);
         const sorted = [...response].sort(
           (a, b) => a.orderIndex - b.orderIndex,
@@ -192,7 +236,7 @@ export default function JenkinsTab({
         console.log('[JenkinsTab] fetchAllStages: end');
       }
     })();
-  }, [id]);
+  }, [id, buildResultData?.buildRunId]);
 
   // Fullscreen 상태 추적
   useEffect(() => {
@@ -233,29 +277,146 @@ export default function JenkinsTab({
   const selectedStage =
     selectedStageIndex !== null ? pipelineStages[selectedStageIndex] : null;
 
-  // 선택된 스테이지의 이슈/해결책 또는 상위 요약
+  // 선택된 스테이지의 이슈/해결책 (mock 사용 금지: API 응답만 사용)
   const issueSummary =
-    (!selectedStage?.isSuccess &&
-      (selectedStage?.problemSummary || selectedStage?.problemSolution)) ||
-    jenkinsLog?.errorSummary
+    !selectedStage?.isSuccess &&
+    (selectedStage?.problemSummary ||
+      selectedStage?.problemSolution ||
+      jenkinsLogData?.errorSummary)
       ? {
           summary:
-            selectedStage?.problemSummary || jenkinsLog?.errorSummary || '',
+            selectedStage?.problemSummary || jenkinsLogData?.errorSummary || '',
           solution: selectedStage?.problemSolution || '',
-          details: jenkinsLog?.issueDetails || [],
+          details: jenkinsLogData?.issueDetails || [],
         }
       : null;
+
+  // Builds list inline styles (로그 목록과 유사한 테이블 형식)
+  const buildListStyles = {
+    wrapper: { overflowX: 'auto' },
+    table: {
+      width: '100%',
+      borderCollapse: 'collapse',
+    },
+    thead: {
+      backgroundColor:
+        theme.colors.backgroundHover ||
+        (theme.mode === 'dark' ? '#2a2a2a' : '#f8f9fa'),
+    },
+    th: {
+      padding: '12px 14px',
+      textAlign: 'left',
+      fontSize: '13px',
+      fontWeight: 600,
+      color: theme.colors.textsecondary,
+      borderBottom: `1px solid ${theme.colors.border}`,
+    },
+    td: {
+      padding: '12px 14px',
+      fontSize: '14px',
+      color: theme.colors.text,
+      borderBottom: `1px solid ${theme.colors.border}`,
+    },
+    row: (isSelected) => ({
+      cursor: 'pointer',
+      backgroundColor: isSelected
+        ? theme.mode === 'dark'
+          ? 'rgba(33,150,243,0.06)'
+          : 'rgba(33,150,243,0.03)'
+        : 'transparent',
+    }),
+  };
 
   return (
     <>
       {/* 전역 반응형/가상선택자 및 스크롤바 숨김 CSS */}
       <Global styles={buildJenkinsGlobalStyles()} />
 
+      {/* Builds 목록 (새 요구사항) - 로그 목록과 유사한 테이블 형태 */}
+      <div style={baseStyles.planCard}>
+        <div style={baseStyles.planHeader}>
+          <span style={baseStyles.planIcon}></span>
+          <h2 style={baseStyles.planTitle}>빌드 목록</h2>
+        </div>
+
+        <div style={baseStyles.planBody}>
+          {buildResultLoading ? (
+            <div style={{ padding: 16, color: theme.colors.textsecondary }}>
+              빌드 목록을 불러오는 중...
+            </div>
+          ) : buildResultError ? (
+            <div style={{ padding: 16, color: theme.colors.error }}>
+              {buildResultError}
+            </div>
+          ) : buildList && buildList.length > 0 ? (
+            <div style={buildListStyles.wrapper}>
+              <table style={buildListStyles.table}>
+                <thead style={buildListStyles.thead}>
+                  <tr>
+                    <th style={buildListStyles.th}>작업 번호</th>
+                    <th style={buildListStyles.th}>빌드 번호</th>
+                    <th style={buildListStyles.th}>배포 결과</th>
+                    <th style={buildListStyles.th}>배포 소요 시간</th>
+                    <th style={buildListStyles.th}>배포 시작시간</th>
+                    <th style={buildListStyles.th}>배포 종료시간</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {buildList.map((b, idx) => {
+                    const isSelected =
+                      buildResultData?.buildRunId === b.buildRunId;
+                    return (
+                      <tr
+                        key={b.buildRunId || idx}
+                        onClick={async () => {
+                          try {
+                            const detail = await taskAPI.fetchBuildResult(
+                              id,
+                              b.buildRunId,
+                            );
+                            setBuildResultData(detail || b);
+                          } catch (err) {
+                            console.error(
+                              '[JenkinsTab] onClick fetchBuildResult detail error',
+                              err,
+                            );
+                            setBuildResultData(b);
+                          }
+                        }}
+                        style={buildListStyles.row(isSelected)}
+                      >
+                        <td style={buildListStyles.td}>{b.deploymentId}</td>
+                        <td style={buildListStyles.td}>{b.buildRunId}</td>
+                        <td style={buildListStyles.td}>
+                          {b.isDeployed ? '성공' : '실패'}
+                        </td>
+                        <td style={buildListStyles.td}>
+                          {formatDuration(b.duration)}
+                        </td>
+                        <td style={buildListStyles.td}>
+                          {formatKoreanDateTime(b.startedAt)}
+                        </td>
+                        <td style={buildListStyles.td}>
+                          {formatKoreanDateTime(b.endedAt)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div style={{ padding: 16, color: theme.colors.textsecondary }}>
+              빌드 이력이 없습니다.
+            </div>
+          )}
+        </div>
+      </div>
       {/* Pipeline */}
       <div style={baseStyles.planCard}>
         <div style={baseStyles.planHeader}>
           <span style={baseStyles.planIcon}></span>
-          <h2 style={baseStyles.planTitle}>Pipeline</h2>
+          <h2 style={baseStyles.planTitle}>빌드 파이프라인</h2>
         </div>
 
         <div style={baseStyles.planBody}>
@@ -366,40 +527,6 @@ export default function JenkinsTab({
                 </div>
               </div>
             </div>
-          ) : jenkinsLog?.pipeline ? (
-            <div
-              className="jt-pipeline-container"
-              style={s.pipelineContainer}
-              data-no-scrollbar="true"
-              role="list"
-              aria-label="Pipeline Stages"
-            >
-              {jenkinsLog.pipeline.map((stage, idx) => (
-                <React.Fragment key={idx}>
-                  <div
-                    className="jt-pipeline-stage"
-                    style={s.pipelineStage}
-                    role="listitem"
-                  >
-                    <div
-                      className="jt-pipeline-stage-icon"
-                      style={s.pipelineStageIcon}
-                    >
-                      {renderPipelineIcon(stage.status)}
-                    </div>
-                    <div
-                      className="jt-pipeline-stage-name"
-                      style={s.pipelineStageName}
-                    >
-                      {stage.name}
-                    </div>
-                  </div>
-                  {idx < jenkinsLog.pipeline.length - 1 && (
-                    <div className="jt-pipeline-line" style={s.pipelineLine} />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
           ) : (
             <div style={{ padding: 16, color: theme.colors.textsecondary }}>
               파이프라인 정보가 없습니다.
@@ -412,7 +539,7 @@ export default function JenkinsTab({
       <div style={baseStyles.planCard}>
         <div style={baseStyles.planHeader}>
           <span style={baseStyles.planIcon}></span>
-          <h2 style={baseStyles.planTitle}>Stats</h2>
+          <h2 style={baseStyles.planTitle}>빌드 결과</h2>
         </div>
         <div style={baseStyles.planBody}>
           {buildResultLoading ? (
@@ -511,46 +638,8 @@ export default function JenkinsTab({
               )}
             </div>
           ) : (
-            <div className="jt-stats-grid">
-              <div className="jt-stats-item" style={s.statsItem}>
-                <div className="jt-stats-icon" style={s.statsIcon}>
-                  ✓
-                </div>
-                <div style={s.statsContent}>
-                  <div style={s.statsLabel}>빌드 상태</div>
-                  <div style={s.statsValue(jenkinsLog.status)}>
-                    {jenkinsLog.status}
-                  </div>
-                </div>
-              </div>
-
-              <div className="jt-stats-item" style={s.statsItem}>
-                <div className="jt-stats-icon" style={s.statsIcon}></div>
-                <div style={s.statsContent}>
-                  <div style={s.statsLabel}>빌드 소요 시간</div>
-                  <div style={s.statsValue()}>{jenkinsLog.duration || '-'}</div>
-                </div>
-              </div>
-
-              {jenkinsLog.branch && (
-                <div className="jt-stats-item" style={s.statsItem}>
-                  <div className="jt-stats-icon" style={s.statsIcon}></div>
-                  <div style={s.statsContent}>
-                    <div style={s.statsLabel}>브랜치</div>
-                    <div style={s.statsValue()}>{jenkinsLog.branch}</div>
-                  </div>
-                </div>
-              )}
-
-              {jenkinsLog.pr && (
-                <div className="jt-stats-item" style={s.statsItem}>
-                  <div className="jt-stats-icon" style={s.statsIcon}></div>
-                  <div style={s.statsContent}>
-                    <div style={s.statsLabel}>배포된 PR</div>
-                    <div style={s.statsValue()}>{jenkinsLog.pr}</div>
-                  </div>
-                </div>
-              )}
+            <div style={{ padding: 16, color: theme.colors.textsecondary }}>
+              빌드 정보가 없습니다.
             </div>
           )}
         </div>
@@ -599,12 +688,9 @@ export default function JenkinsTab({
         <div style={baseStyles.planHeader}>
           <span style={baseStyles.planIcon}></span>
           <h2 style={baseStyles.planTitle}>
-            Build #
-            {buildResultData?.prNumber ||
-              jenkinsLogData?.buildRunId ||
-              jenkinsLog?.buildNumber ||
-              '...'}{' '}
-            Console Output
+            빌드 #
+            {buildResultData?.prNumber || jenkinsLogData?.buildRunId || '...'}{' '}
+            콘솔 로그
           </h2>
         </div>
 
@@ -725,14 +811,6 @@ export default function JenkinsTab({
               >
                 {jenkinsLogData.processedLog}
               </pre>
-            ) : jenkinsLog?.logs ? (
-              jenkinsLog.logs.map((log, idx) => (
-                <div key={idx} style={s.consoleLine}>
-                  <span style={s.consoleTime}>[{log.time}]</span>
-                  <span style={s.consoleLevel(log.level)}>[{log.level}]</span>
-                  <span style={s.consoleMessage}>{log.message}</span>
-                </div>
-              ))
             ) : (
               <div style={{ padding: 16, color: theme.colors.textsecondary }}>
                 로그가 없습니다.
