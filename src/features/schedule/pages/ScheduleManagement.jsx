@@ -49,6 +49,10 @@ export default function ScheduleManagement() {
   const [periodEndDate, setPeriodEndDate] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
 
+  const normalizedSelectedServices = Array.isArray(selectedServices)
+    ? selectedServices
+    : [];
+
   // 서비스 목록 추출 (모든 배포 작업에서 고유한 서비스 추출)
   const availableServices = useMemo(() => {
     const services = new Set(
@@ -235,50 +239,39 @@ export default function ScheduleManagement() {
             <S.SearchFilterSection>
               <S.FiltersPanel>
                 <S.FiltersRow>
-                  <S.FilterRowItem>
-                    <S.FilterLabel>유형</S.FilterLabel>
-                    <S.SelectWrapper>
-                      <ScheduleCustomSelect
-                        value={selectedBanType}
-                        onChange={(value) => setSelectedBanType(value)}
-                        options={banTypes}
-                      />
-                    </S.SelectWrapper>
-                  </S.FilterRowItem>
+                  <S.FiltersLabel>검색 옵션</S.FiltersLabel>
 
-                  <S.FilterRowItem>
-                    <S.FilterLabel>연관 서비스</S.FilterLabel>
-                    <S.SelectWrapper>
-                      <ScheduleCustomSelect
-                        value={
-                          Array.isArray(selectedServices)
-                            ? selectedServices
-                            : []
-                        }
-                        onChange={(value) => {
-                          setSelectedServices(
-                            Array.isArray(value) ? value : [],
-                          );
-                        }}
-                        options={availableServices}
-                        multiple
-                        showSelectAll
-                      />
-                    </S.SelectWrapper>
-                  </S.FilterRowItem>
-
-                  <S.FilterRowItem>
-                    <S.FilterLabel>기간</S.FilterLabel>
-                    <DateRangePicker
-                      startDate={periodStartDate}
-                      endDate={periodEndDate}
-                      onChange={handleDateRangeChange}
+                  <S.SelectWrapper>
+                    <ScheduleCustomSelect
+                      value={selectedBanType}
+                      onChange={(value) => setSelectedBanType(value)}
+                      options={banTypes}
+                      placeholder="유형 - 전체"
                     />
-                  </S.FilterRowItem>
+                  </S.SelectWrapper>
+
+                  <S.SelectWrapper>
+                    <ScheduleCustomSelect
+                      value={normalizedSelectedServices}
+                      onChange={(value) => {
+                        setSelectedServices(Array.isArray(value) ? value : []);
+                      }}
+                      options={availableServices}
+                      multiple
+                      showSelectAll
+                      placeholder="연관 서비스 - 전체"
+                    />
+                  </S.SelectWrapper>
+
+                  <DateRangePicker
+                    startDate={periodStartDate}
+                    endDate={periodEndDate}
+                    onChange={handleDateRangeChange}
+                  />
 
                   <S.ResetButton type="button" onClick={handleResetFilters}>
                     <RotateCcw size={16} />
-                    <span>필터 초기화</span>
+                    <span>초기화</span>
                   </S.ResetButton>
                 </S.FiltersRow>
               </S.FiltersPanel>
@@ -301,6 +294,7 @@ export default function ScheduleManagement() {
               )}
 
               <S.SearchBox>
+                <S.SearchLabel>검색명</S.SearchLabel>
                 <S.SearchBar>
                   <Search className="search-icon" />
                   <S.SearchInput
