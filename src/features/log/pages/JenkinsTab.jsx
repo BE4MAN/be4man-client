@@ -93,10 +93,69 @@ function renderPipelineIcon(status) {
 function PRIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" aria-label="PR">
+      <g fill="none" stroke="currentColor" strokeWidth="1.6">
+        <circle cx="6" cy="6" r="2" />
+        <circle cx="18" cy="6" r="2" />
+        <circle cx="12" cy="18" r="2" />
+        <path d="M6 8v8" strokeLinecap="round" />
+        <path d="M18 8v8" strokeLinecap="round" />
+        <path d="M6 8c2 2 6 2 12 0" strokeLinecap="round" />
+      </g>
+    </svg>
+  );
+}
+
+/* Small SVG icons to avoid OS emoji rendering issues */
+function ClockIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
       <path
-        d="M7 3a3 3 0 0 0-1 5.83V15a3 3 0 1 0 2 0V8.83A3.001 3.001 0 0 0 7 3zm0 2a1 1 0 1 1-.001 2.001A1 1 0 0 1 7 5zm0 12a1 1 0 1 1-.001 2.001A1 1 0 0 1 7 17zm10-2a3 3 0 0 0-2-2.816V7a3 3 0 1 0-2 0v5.184A3.001 3.001 0 0 0 17 15zm0-10a1 1 0 1 1-.001 2.001A1 1 0 0 1 17 5z"
+        d="M12 1a11 11 0 1 0 11 11A11.012 11.012 0 0 0 12 1zm0 20a9 9 0 1 1 9-9 9.01 9.01 0 0 1-9 9z"
+        fill="currentColor"
+        opacity="0.15"
+      />
+      <path
+        d="M12.75 7h-1.5v6l5.25 3.15.75-1.23-4.5-2.67z"
         fill="currentColor"
       />
+    </svg>
+  );
+}
+
+function TimerIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2zm1 11h-4v-1h3V7h1z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function DurationIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M12 1a11 11 0 1 0 11 11A11.012 11.012 0 0 0 12 1zm0 2a9 9 0 1 1-9 9 9.01 9.01 0 0 1 9-9zm.5 5h-1v5l4.2 2.52.6-1-3.8-2.28z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function StartIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+      <path d="M4 2v20l18-10L4 2z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function EndIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+      <rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor" />
     </svg>
   );
 }
@@ -552,63 +611,67 @@ export default function JenkinsTab({
             </div>
           ) : buildResultData ? (
             <div className="jt-stats-grid">
-              <div className="jt-stats-item" style={s.statsItem}>
-                <div className="jt-stats-icon" style={s.statsIcon}>
-                  ✓
-                </div>
-                <div style={s.statsContent}>
-                  <div style={s.statsLabel}>빌드 상태</div>
-                  <div
-                    style={s.statsValue(
-                      buildResultData.isDeployed ? '성공' : '실패',
-                    )}
-                  >
-                    {buildResultData.isDeployed ? '빌드 성공' : '빌드 실패'}
-                  </div>
-                </div>
-              </div>
-
-              <div className="jt-stats-item" style={s.statsItem}>
-                <div className="jt-stats-icon" style={s.statsIcon}>
-                  ⏱
-                </div>
-                <div style={s.statsContent}>
-                  <div style={s.statsLabel}>빌드 소요 시간</div>
-                  <div style={s.statsValue()}>
-                    {formatDuration(buildResultData.duration)}
-                  </div>
-                </div>
-              </div>
-
-              {buildResultData.startedAt && (
+              {/* Top row: 빌드 상태 | 빌드 시작 시간 | 빌드 종료 시간 */}
+              <div className="jt-stats-row">
                 <div className="jt-stats-item" style={s.statsItem}>
                   <div className="jt-stats-icon" style={s.statsIcon}>
-                    🕐
+                    ✓
+                  </div>
+                  <div style={s.statsContent}>
+                    <div style={s.statsLabel}>빌드 상태</div>
+                    <div
+                      style={s.statsValue(
+                        buildResultData.isDeployed ? '성공' : '실패',
+                      )}
+                    >
+                      {buildResultData.isDeployed ? '빌드 성공' : '빌드 실패'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="jt-stats-item" style={s.statsItem}>
+                  <div className="jt-stats-icon" style={s.statsIcon}>
+                    <StartIcon />
                   </div>
                   <div style={s.statsContent}>
                     <div style={s.statsLabel}>빌드 시작 시간</div>
                     <div style={s.statsValue()}>
-                      {formatKoreanDateTime(buildResultData.startedAt)}
+                      {buildResultData.startedAt
+                        ? formatKoreanDateTime(buildResultData.startedAt)
+                        : '-'}
                     </div>
                   </div>
                 </div>
-              )}
 
-              {buildResultData.endedAt && (
                 <div className="jt-stats-item" style={s.statsItem}>
                   <div className="jt-stats-icon" style={s.statsIcon}>
-                    🕑
+                    <EndIcon />
                   </div>
                   <div style={s.statsContent}>
                     <div style={s.statsLabel}>빌드 종료 시간</div>
                     <div style={s.statsValue()}>
-                      {formatKoreanDateTime(buildResultData.endedAt)}
+                      {buildResultData.endedAt
+                        ? formatKoreanDateTime(buildResultData.endedAt)
+                        : '-'}
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {buildResultData.prNumber && (
+              {/* Bottom row: 빌드 소요 시간 | 배포된 PR */}
+              <div className="jt-stats-row bottom">
+                <div className="jt-stats-item" style={s.statsItem}>
+                  <div className="jt-stats-icon" style={s.statsIcon}>
+                    <DurationIcon />
+                  </div>
+                  <div style={s.statsContent}>
+                    <div style={s.statsLabel}>빌드 소요 시간</div>
+                    <div style={s.statsValue()}>
+                      {formatDuration(buildResultData.duration)}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="jt-stats-item" style={s.statsItem}>
                   <div className="jt-stats-icon" style={s.statsIcon}>
                     <PRIcon />
@@ -616,26 +679,30 @@ export default function JenkinsTab({
                   <div style={s.statsContent}>
                     <div style={s.statsLabel}>배포된 PR</div>
                     <div style={s.statsValue()}>
-                      {buildResultData.prUrl ? (
-                        <a
-                          href={buildResultData.prUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            color: theme.colors.brand,
-                            textDecoration: 'underline',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          #{buildResultData.prNumber}
-                        </a>
+                      {buildResultData.prNumber ? (
+                        buildResultData.prUrl ? (
+                          <a
+                            href={buildResultData.prUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: theme.colors.brand,
+                              textDecoration: 'underline',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            #{buildResultData.prNumber}
+                          </a>
+                        ) : (
+                          `#${buildResultData.prNumber}`
+                        )
                       ) : (
-                        `#${buildResultData.prNumber}`
+                        '-'
                       )}
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           ) : (
             <div style={{ padding: 16, color: theme.colors.textsecondary }}>
