@@ -66,8 +66,8 @@
     "description": "string",
     "startDate": "YYYY-MM-DD",
     "startTime": "HH:mm",
-    "endDate": "YYYY-MM-DD",
-    "endTime": "HH:mm",
+    "endedAt": "YYYY-MM-DDTHH:mm" | null,
+    "duration": number,
     "type": "DB 마이그레이션" | "서버 점검" | "외부 일정" | "재난 재해",
     "services": ["string"],
     "registrant": "string",
@@ -97,10 +97,11 @@
 
 **요구사항**:
 
-- 필수 필드: 제목(title), 시작일(startDate), 시작시간(startTime), 종료일(endDate), 종료시간(endTime), 연관 서비스(services)
+- 필수 필드: 제목(title), 설명(description), 시작시간(startTime), 금지 시간(duration), 연관 서비스(services)
+- `startDate`는 단일 일정 기준 추천 필드지만, 반복 주기를 기준으로 생성하는 경우 생략 가능
 - 등록자 정보는 인증된 사용자 정보에서 자동으로 가져옴
 - 등록부서는 사용자의 부서 정보에서 가져옴
-- 선택 필드: 설명(description), 반복 관련 필드(recurrenceType, recurrenceWeekday, recurrenceWeekOfMonth, recurrenceEndDate)
+- 선택 필드: 시작일(startDate), 종료 일시(endedAt), 반복 관련 필드(recurrenceType, recurrenceWeekday, recurrenceWeekOfMonth, recurrenceEndDate)
 - 반복 금지 기간 설정 시
   - `recurrenceType`이 `DAILY`인 경우 추가 입력 없음
   - `recurrenceType`이 `WEEKLY`인 경우 `recurrenceWeekday` 필수
@@ -111,20 +112,20 @@
 
 ```json
 [
-    {
+  {
     "title": "string (required)",
-    "description": "string (optional)",
+    "description": "string (required)",
     "startDate": "YYYY-MM-DD (optional)",
-    "startTime": "HH:mm (optional)",
-    "endDate": "YYYY-MM-DD (optional)",
-    "endTime": "HH:mm (optional)",
+    "startTime": "HH:mm (required)",
+    "duration": 4,
+    "endedAt": "YYYY-MM-DDTHH:mm (optional)",
     "type": "DB 마이그레이션" | "서버 점검" | "외부 일정" | "재난 재해",
-    "services": ["string"] (required, 최소 1개 이상),
+    "services": ["string"],
     "recurrenceType": "NONE" | "DAILY" | "WEEKLY" | "MONTHLY",
     "recurrenceWeekday": "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN" | null,
     "recurrenceWeekOfMonth": "FIRST" | "SECOND" | "THIRD" | "FOURTH" | null,
     "recurrenceEndDate": "YYYY-MM-DD" | null
-    }
+  }
 ]
 ```
 

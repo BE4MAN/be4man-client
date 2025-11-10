@@ -265,6 +265,7 @@ export const ServicesTagContainer = styled.div`
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spacing.sm};
   margin-top: ${({ theme }) => theme.spacing.sm};
+  padding-left: 5px;
 
   & > * {
     padding-left: 13px;
@@ -315,6 +316,51 @@ export const RecurrenceTimeFields = styled.div`
   align-items: center;
   gap: ${({ theme }) => theme.spacing.md};
   flex-wrap: wrap;
+`;
+
+export const RecurrenceEndSection = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.lg};
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  padding-left: 15px;
+`;
+
+export const RecurrenceEndLabel = styled.span`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+`;
+
+export const RecurrenceEndControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  flex-wrap: wrap;
+`;
+
+export const RecurrenceEndPicker = styled.div`
+  min-width: 180px;
+
+  & > div {
+    width: 100%;
+  }
+`;
+
+export const RecurrenceEndNoneOption = styled.label`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  cursor: pointer;
+
+  input {
+    width: 16px;
+    height: 16px;
+    accent-color: ${({ theme }) => theme.colors.brand};
+  }
 `;
 
 export const TimeInput = styled.input`

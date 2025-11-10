@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { RotateCcw } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +9,7 @@ import TimePicker from '@/components/common/TimePicker';
 import { RequiredAsterisk } from '@/components/schedule/commonStyles';
 import ScheduleCustomSelect from '@/components/schedule/components/ScheduleCustomSelect';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
+import * as Detail from '@/components/schedule/RestrictedPeriodDetailModal.styles';
 import { DEPARTMENT_REVERSE_MAP } from '@/constants/accounts';
 import { useAuthStore } from '@/stores/authStore';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
@@ -25,6 +27,8 @@ export default function RestrictedPeriodCreationPage() {
   const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [duration, setDuration] = useState('');
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
+  const [isRecurrenceEndNone, setIsRecurrenceEndNone] = useState(true);
   const [recurrenceType, setRecurrenceType] = useState(''); // '매일', '매주', '매월', ''
   const [recurrenceWeekday, setRecurrenceWeekday] = useState(''); // 요일 (월~일)
   const [recurrenceWeekOfMonth, setRecurrenceWeekOfMonth] = useState(''); // N번째 주 (1~4)
@@ -55,6 +59,50 @@ export default function RestrictedPeriodCreationPage() {
   const parseDurationHours = (value) => {
     const parsed = Number.parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const getEndedAtLabel = () => {
+    const hours = parseDurationHours(duration);
+    if (!startDate || !startTime || hours <= 0) return '—';
+    const base = new Date(`${startDate}T${startTime}:00`);
+    if (Number.isNaN(base.getTime())) return '—';
+    const ended = new Date(base);
+    ended.setHours(ended.getHours() + hours);
+    return format(ended, 'yyyy-MM-dd HH:mm');
+  };
+
+  const weekOfMonthLabelMap = {
+    1: '첫째 주',
+    2: '둘째 주',
+    3: '셋째 주',
+    4: '넷째 주',
+    5: '다섯째 주',
+  };
+
+  const getRecurrenceSummary = () => {
+    if (!recurrenceType || recurrenceType === '') return '없음';
+
+    let summary = '';
+    if (recurrenceType === '매일') {
+      summary = '매일';
+    } else if (recurrenceType === '매주') {
+      summary = recurrenceWeekday ? `매주 ${recurrenceWeekday}` : '매주';
+    } else if (recurrenceType === '매월') {
+      const weekLabel =
+        weekOfMonthLabelMap[Number.parseInt(recurrenceWeekOfMonth, 10)] || '';
+      const dayLabel = recurrenceWeekday || '';
+      const parts = ['매월', weekLabel, dayLabel].filter(Boolean);
+      summary = parts.join(' ');
+      if (!summary) {
+        summary = '매월';
+      }
+    } else {
+      summary = recurrenceType;
+    }
+
+    const endLabel =
+      isRecurrenceEndNone || !recurrenceEndDate ? '없음' : recurrenceEndDate;
+    return `${summary} (종료: ${endLabel})`;
   };
 
   const handleSaveClick = () => {
@@ -129,6 +177,92 @@ export default function RestrictedPeriodCreationPage() {
 
   const handleResetServices = () => {
     setSelectedServices([]);
+  };
+
+  const renderConfirmationDetail = () => {
+    const durationHours = parseDurationHours(duration);
+    const durationLabel = durationHours > 0 ? `${durationHours} 시간` : '—';
+    const startDateTimeLabel =
+      startDate && startTime ? `${startDate} ${startTime}:00` : '—';
+    const endedAtLabel = getEndedAtLabel();
+    const recurrenceSummary = getRecurrenceSummary();
+    const registrantName = user?.name || '—';
+    const registrantDepartment = user?.department
+      ? DEPARTMENT_REVERSE_MAP[user.department] || user.department
+      : '없음';
+    const servicesToRender =
+      Array.isArray(selectedServices) && selectedServices.length > 0
+        ? selectedServices
+        : [];
+    const descriptionValue = description.trim() || '—';
+
+    return (
+      <Detail.ContentWrapper>
+        <Detail.Content>
+          <Detail.InfoTable role="table">
+            <Detail.InfoColGroup>
+              <col />
+              <col />
+              <col />
+              <col />
+            </Detail.InfoColGroup>
+            <Detail.InfoRow>
+              <Detail.InfoTh>제목</Detail.InfoTh>
+              <Detail.InfoTd>{title || '—'}</Detail.InfoTd>
+              <Detail.InfoTh>유형</Detail.InfoTh>
+              <Detail.InfoTd>{banType || '—'}</Detail.InfoTd>
+            </Detail.InfoRow>
+            <Detail.InfoRow>
+              <Detail.InfoTh>등록자</Detail.InfoTh>
+              <Detail.InfoTd>{registrantName}</Detail.InfoTd>
+              <Detail.InfoTh>등록부서</Detail.InfoTh>
+              <Detail.InfoTd>{registrantDepartment}</Detail.InfoTd>
+            </Detail.InfoRow>
+            <Detail.InfoRow>
+              <Detail.InfoTh>연관 서비스</Detail.InfoTh>
+              <Detail.InfoTd colSpan={3}>
+                {servicesToRender.length > 0 ? (
+                  <Detail.ServicesContainer>
+                    {servicesToRender.map((service) => (
+                      <ServiceTag key={service} service={service} />
+                    ))}
+                  </Detail.ServicesContainer>
+                ) : (
+                  '—'
+                )}
+              </Detail.InfoTd>
+            </Detail.InfoRow>
+            <Detail.InfoRow>
+              <Detail.InfoTh>시작일자</Detail.InfoTh>
+              <Detail.InfoTd colSpan={3}>{startDateTimeLabel}</Detail.InfoTd>
+            </Detail.InfoRow>
+            <Detail.InfoRow>
+              <Detail.InfoTh>금지 시간</Detail.InfoTh>
+              <Detail.InfoTd>{durationLabel}</Detail.InfoTd>
+              <Detail.InfoTh>종료 일시</Detail.InfoTh>
+              <Detail.InfoTd>{endedAtLabel}</Detail.InfoTd>
+            </Detail.InfoRow>
+            <Detail.InfoRow>
+              <Detail.InfoTh>금지 주기</Detail.InfoTh>
+              <Detail.InfoTd colSpan={3}>{recurrenceSummary}</Detail.InfoTd>
+            </Detail.InfoRow>
+          </Detail.InfoTable>
+
+          <Detail.InfoTable role="table">
+            <Detail.InfoColGroup>
+              <col />
+              <col />
+              <col />
+              <col />
+            </Detail.InfoColGroup>
+            <Detail.InfoRow>
+              <Detail.InfoTh>설명</Detail.InfoTh>
+              <Detail.InfoTd colSpan={3}>{descriptionValue}</Detail.InfoTd>
+            </Detail.InfoRow>
+          </Detail.InfoTable>
+        </Detail.Content>
+      </Detail.ContentWrapper>
+    );
   };
 
   return (
@@ -222,10 +356,16 @@ export default function RestrictedPeriodCreationPage() {
                     <ScheduleCustomSelect
                       value={recurrenceType}
                       onChange={(value) => {
-                        setRecurrenceType(value || '');
-                        // 금지 주기를 선택하면 금지 일자 초기화
-                        if (value && value !== '') {
+                        const nextType = value || '';
+                        setRecurrenceType(nextType);
+                        setRecurrenceEndDate('');
+                        setIsRecurrenceEndNone(true);
+                        if (nextType && nextType !== '') {
+                          // 금지 주기를 선택하면 금지 일자 초기화
                           setStartDate('');
+                        } else {
+                          setRecurrenceWeekday('');
+                          setRecurrenceWeekOfMonth('');
                         }
                       }}
                       options={[
@@ -296,6 +436,41 @@ export default function RestrictedPeriodCreationPage() {
                     </>
                   )}
                 </S.RecurrenceContainer>
+                {recurrenceType && recurrenceType !== '' && (
+                  <S.RecurrenceEndSection>
+                    <S.RecurrenceEndLabel>종료 일자</S.RecurrenceEndLabel>
+                    <S.RecurrenceEndControls>
+                      <S.RecurrenceEndNoneOption>
+                        <input
+                          type="checkbox"
+                          checked={isRecurrenceEndNone}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setIsRecurrenceEndNone(checked);
+                            if (checked) {
+                              setRecurrenceEndDate('');
+                            }
+                          }}
+                        />
+                        <span>없음</span>
+                      </S.RecurrenceEndNoneOption>
+                      <S.RecurrenceEndPicker>
+                        <DateTimePicker
+                          date={recurrenceEndDate}
+                          onDateChange={(date) => {
+                            setRecurrenceEndDate(date);
+                            if (date) {
+                              setIsRecurrenceEndNone(false);
+                            }
+                          }}
+                          showLabel={false}
+                          error={false}
+                          disabled={isRecurrenceEndNone}
+                        />
+                      </S.RecurrenceEndPicker>
+                    </S.RecurrenceEndControls>
+                  </S.RecurrenceEndSection>
+                )}
               </S.RecurrenceContainerWrapper>
             </S.MetaTdRecurrence>
           </S.MetaRow>
@@ -501,7 +676,10 @@ export default function RestrictedPeriodCreationPage() {
           </>
         }
       >
-        본 작업 금지를 등록하시겠습니까?
+        {renderConfirmationDetail()}
+        <Detail.ConfirmMessage>
+          본 작업 금지를 등록하시겠습니까?
+        </Detail.ConfirmMessage>
       </ScheduleModal>
     </S.PageContainer>
   );
