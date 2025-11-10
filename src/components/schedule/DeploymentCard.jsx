@@ -1,3 +1,4 @@
+import { useTheme } from '@emotion/react';
 import { Calendar, CircleCheck, CircleX } from 'lucide-react';
 
 import * as S from './DeploymentCard.styles';
@@ -9,16 +10,22 @@ export default function DeploymentCard({
   scheduledTime,
   onClick,
 }) {
+  const theme = useTheme();
+
   const renderStatusIcon = () => {
     switch (status) {
       case 'scheduled':
-        return <Calendar size={16} />;
+        return <Calendar size={16} color={theme.colors.textPrimary} />;
       case 'success':
-        return <CircleCheck size={16} />;
+        return (
+          <CircleCheck size={16} color={theme.colors.schedule.successGreen} />
+        );
       case 'failed':
-        return <CircleX size={16} />;
+        return (
+          <CircleX size={16} color={theme.colors.schedule.restrictedDanger} />
+        );
       default:
-        return <Calendar size={16} />;
+        return <Calendar size={16} color={theme.colors.textPrimary} />;
     }
   };
 

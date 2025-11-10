@@ -83,7 +83,6 @@ export const DayCell = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.border};
   min-height: 64px;
   padding: ${({ theme }) => theme.spacing.sm};
-  transition: background-color 0.2s ease;
   opacity: ${({ isCurrentMonth }) => (isCurrentMonth ? 1 : 0.5)};
 
   ${({ theme }) => theme.mq.md`

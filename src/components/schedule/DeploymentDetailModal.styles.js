@@ -66,7 +66,6 @@ export const TitleLink = styled.span`
   cursor: pointer;
   text-decoration: underline;
   text-decoration-color: ${({ theme }) => theme.colors.brand || '#2563EB'}40;
-  transition: all 0.2s ease;
 
   &:hover {
     color: ${({ theme }) => theme.colors.brand || '#2563EB'};

@@ -77,7 +77,6 @@ export const CancelButton = styled.button`
   border-radius: 0.3125rem;
   font-size: 0.7936rem;
   cursor: pointer;
-  transition: all 0.2s ease;
   outline: none;
   border: 1px solid ${({ theme }) => theme.colors.schedule.restrictedDanger};
   background: ${({ theme }) => theme.colors.bg};
@@ -102,7 +101,6 @@ export const ConfirmButton = styled.button`
   color: white;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
 
   &:hover {
     opacity: 0.9;
@@ -123,7 +121,7 @@ export const EditSection = styled.div`
 export const Footer = styled.div`
   display: flex;
   justify-content: flex-end;
-  gap: ${({ theme }) => theme.spacing.md};
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 export const ServicesContainer = styled.div`
@@ -150,7 +148,6 @@ export const BackButton = styled.button`
   color: ${({ theme }) => theme.colors.textPrimary};
   cursor: pointer;
   border-radius: 4px;
-  transition: all 0.2s ease;
 
   &:hover {
     background: ${({ theme }) => theme.colors.interactiveHover};

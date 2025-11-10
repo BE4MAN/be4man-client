@@ -90,7 +90,6 @@ export const DayCell = styled.div`
     isToday ? theme.colors.schedule.cellToday : theme.colors.bg};
   border: 1px solid ${({ theme }) => theme.colors.border};
   padding: ${({ theme }) => theme.spacing.sm};
-  transition: background-color 0.2s ease;
 `;
 
 export const DayNumber = styled.div`
@@ -139,7 +138,6 @@ export const ExpandButton = styled.button`
   font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
   padding: 0;
   cursor: pointer;
-  transition: color 0.2s ease;
 
   &:hover {
     color: ${({ theme }) => theme.colors.textPrimary};
@@ -154,7 +152,6 @@ export const ExpandChevron = styled(ChevronDown, {
   flex-shrink: 0;
   transform: ${({ $expanded }) =>
     $expanded ? 'rotate(180deg)' : 'rotate(0deg)'};
-  transition: transform 0.2s ease;
 `;
 
 export const ExpandButtonCount = styled.span`

@@ -49,8 +49,9 @@
 - 다음 필터 조건을 지원해야 함:
   - 유형(type): "전체" | "DB 마이그레이션" | "점검" | "외부 일정" | "재난 재해"
   - 연관 서비스(services): 서비스 이름 배열 (OR 조건, 하나라도 포함되면 포함)
+  - 등록자(registrantName): 등록자명 부분 일치 검색
   - 날짜 범위: 시작일 또는 종료일이 지정된 범위와 겹치는 기간
-  - 검색어: 제목(title) 또는 설명(description)에 포함
+  - 검색어: 제목(title), 설명(description), 등록자(registrantName)에 포함
 - 날짜 범위 기준으로 필터링 시, 기간이 겹치는 경우 모두 포함
 - 시작 날짜/시간 기준으로 정렬 (오름차순)
 
@@ -58,7 +59,7 @@
 
 ```json
 [
-    {
+  {
     "id": "string",
     "title": "string",
     "description": "string",
@@ -67,8 +68,11 @@
     "endDate": "YYYY-MM-DD",
     "endTime": "HH:mm",
     "type": "DB 마이그레이션" | "서버 점검" | "외부 일정" | "재난 재해",
-    "services": ["string"] (optional, 연관 서비스 목록)
-    }
+    "services": ["string"],
+    "registrant": "string",
+    "registrantDepartment": "string",
+    "recurrenceCycle": "string | null"
+  }
 ]
 ```
 
@@ -76,9 +80,10 @@
 
 - `type`: "all" | "DB 마이그레이션" | "서버 점검" | "외부 일정" | "재난 재해"
 - `services`: string[] (서비스 이름 배열)
+- `registrantName`: "string" (등록자명 부분 일치 검색)
 - `startDate`: "YYYY-MM-DD" (시작일 필터)
 - `endDate`: "YYYY-MM-DD" (종료일 필터)
-- `searchQuery`: "string" (제목/설명 검색)
+- `searchQuery`: "string" (제목/설명/등록자 검색)
 
 ---
 
@@ -165,6 +170,46 @@
 - 향후 다른 enum 값(예: DeploymentStatus 등)이 필요하면 이 API에 추가 가능
 - 각 enum 항목은 `value`(백엔드에서 사용할 실제 값)와 `label`(프론트엔드 표시용)을 포함
 - `value`와 `label`이 동일한 경우가 많지만, 필요시 다르게 설정 가능
+
+---
+
+### 5. 공휴일(국가 휴일) 조회 API
+
+**목적**: 월간/주간 캘린더에 한국 공휴일을 표시하기 위해 필요
+
+**요구사항**:
+
+- Google Calendar 등 외부 API 연동은 백엔드에서 처리하고, 프론트엔드에는 정제된 데이터를 전달
+- 기본 파라미터: `year`(연도) 또는 `startDate`/`endDate` 범위 — 최소 한 가지는 필수
+- 타임존은 `Asia/Seoul` 기준으로 변환하여 제공
+- 반복 호출을 줄이기 위해 서버 측 캐싱 권장 (예: 24시간)
+
+**응답 데이터 구조**:
+
+```json
+[
+  {
+    "date": "YYYY-MM-DD",
+    "name": "string"
+  }
+]
+```
+
+**예시**:
+
+```json
+[
+  { "date": "2025-03-01", "name": "삼일절" },
+  { "date": "2025-05-05", "name": "어린이날" },
+  { "date": "2025-09-08", "name": "추석" }
+]
+```
+
+**참고사항**:
+
+- 동일 날짜에 여러 명칭이 있는 경우 대표 명칭 하나만 선택
+- 양력/음력 공휴일 계산은 백엔드에서 처리
+- 프론트엔드는 반환된 데이터를 그대로 UI에 반영
 
 ---
 

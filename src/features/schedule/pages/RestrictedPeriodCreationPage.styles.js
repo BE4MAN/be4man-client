@@ -52,7 +52,6 @@ const baseInput = `
   background: var(--bg);
   color: var(--fg);
   outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
   &::placeholder { color: var(--muted); }
   &:disabled { background: var(--bg); color: var(--fg); opacity: 1; cursor: default; }
   &[readonly] { cursor: pointer; }
@@ -240,7 +239,6 @@ export const ServiceButton = styled.button`
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
   cursor: pointer;
-  transition: all 0.2s ease;
   white-space: nowrap;
   display: flex;
   align-items: center;

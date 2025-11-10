@@ -1,3 +1,4 @@
+import { useTheme } from '@emotion/react';
 import { CalendarOff } from 'lucide-react';
 
 import * as S from './RestrictedPeriodCard.styles';
@@ -11,11 +12,16 @@ export default function RestrictedPeriodCard({
   isLastCard,
   onClick,
 }) {
+  const theme = useTheme();
+
   return (
     <S.Card onClick={onClick}>
       <S.Content>
+        <S.BanIcon
+          as={CalendarOff}
+          color={theme.colors.schedule.restrictedDanger}
+        />
         <S.TitleBox>
-          <S.BanIcon as={CalendarOff} />
           <S.Title>{title}</S.Title>
         </S.TitleBox>
         <S.Details>
