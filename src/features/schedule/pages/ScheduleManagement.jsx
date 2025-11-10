@@ -76,11 +76,17 @@ export default function ScheduleManagement() {
         );
 
   if (searchQuery) {
-    filteredRestrictedPeriods = filteredRestrictedPeriods.filter(
-      (period) =>
-        period.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        period.description.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    const normalizedQuery = searchQuery.toLowerCase();
+    filteredRestrictedPeriods = filteredRestrictedPeriods.filter((period) => {
+      const titleMatch = period.title?.toLowerCase().includes(normalizedQuery);
+      const descriptionMatch = period.description
+        ?.toLowerCase()
+        .includes(normalizedQuery);
+      const registrantMatch = period.registrant
+        ?.toLowerCase()
+        .includes(normalizedQuery);
+      return titleMatch || descriptionMatch || registrantMatch;
+    });
   }
 
   // 서비스 필터링
@@ -228,7 +234,7 @@ export default function ScheduleManagement() {
                   <Search className="search-icon" />
                   <S.SearchInput
                     type="text"
-                    placeholder="제목, 내용 검색"
+                    placeholder="제목, 내용, 등록자명 검색"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setSearchFocused(true)}
