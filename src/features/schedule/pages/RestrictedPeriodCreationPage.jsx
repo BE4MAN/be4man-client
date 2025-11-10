@@ -24,7 +24,7 @@ export default function RestrictedPeriodCreationPage() {
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [duration, setDuration] = useState('');
   const [recurrenceType, setRecurrenceType] = useState(''); // '매일', '매주', '매월', ''
   const [recurrenceWeekday, setRecurrenceWeekday] = useState(''); // 요일 (월~일)
   const [recurrenceWeekOfMonth, setRecurrenceWeekOfMonth] = useState(''); // N번째 주 (1~4)
@@ -52,11 +52,17 @@ export default function RestrictedPeriodCreationPage() {
     ...new Set(mockDeployments.map((deployment) => deployment.service)),
   ].sort();
 
+  const parseDurationHours = (value) => {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
   const handleSaveClick = () => {
     // 필수 필드 검증
     const titleError = !title.trim();
     const banTypeError = !banType || banType === '';
-    const timeError = !(startTime && endTime);
+    const hasDuration = parseDurationHours(duration) > 0;
+    const timeError = !(startTime && hasDuration);
     const descriptionError = !description.trim();
     const servicesError =
       !Array.isArray(selectedServices) || selectedServices.length === 0;
@@ -106,7 +112,7 @@ export default function RestrictedPeriodCreationPage() {
 
   const isTitleValid = title.trim().length > 0;
   const isBanTypeValid = banType && banType !== '';
-  const isTimeValid = startTime && endTime;
+  const isTimeValid = !!(startTime && parseDurationHours(duration) > 0);
   const isDescriptionValid = description.trim().length > 0;
   const isServicesValid =
     Array.isArray(selectedServices) && selectedServices.length > 0;
@@ -119,11 +125,6 @@ export default function RestrictedPeriodCreationPage() {
 
   const handleDateChange = (date) => {
     setStartDate(date);
-  };
-
-  const handleTimeChange = (start, end) => {
-    setStartTime(start);
-    setEndTime(end);
   };
 
   const handleResetServices = () => {
@@ -269,6 +270,7 @@ export default function RestrictedPeriodCreationPage() {
                             { value: '2', label: '둘째 주' },
                             { value: '3', label: '셋째 주' },
                             { value: '4', label: '넷째 주' },
+                            { value: '5', label: '다섯번째 주' },
                           ]}
                           placeholder="주 선택"
                         />
@@ -303,8 +305,6 @@ export default function RestrictedPeriodCreationPage() {
             <S.MetaTdDate colSpan={3}>
               <DateTimePicker
                 date={startDate}
-                startTime={startTime}
-                endTime={endTime}
                 onDateChange={(date) => {
                   handleDateChange(date);
                   // 금지 일자를 선택하면 금지 주기 초기화
@@ -313,9 +313,6 @@ export default function RestrictedPeriodCreationPage() {
                     setRecurrenceWeekday('');
                     setRecurrenceWeekOfMonth('');
                   }
-                }}
-                onTimeChange={(start, end) => {
-                  handleTimeChange(start, end);
                 }}
                 showLabel={false}
                 error={false}
@@ -334,9 +331,10 @@ export default function RestrictedPeriodCreationPage() {
                 onChange={(newValue) => {
                   setStartTime(newValue);
                   if (touched.time) {
+                    const hasDuration = parseDurationHours(duration) > 0;
                     setErrors((prev) => ({
                       ...prev,
-                      time: !(newValue && endTime),
+                      time: !(newValue && hasDuration),
                     }));
                   }
                 }}
@@ -353,50 +351,18 @@ export default function RestrictedPeriodCreationPage() {
                   ref={restrictedHoursInputRef}
                   type="number"
                   min="1"
+                  step="1"
                   disabled={false}
-                  value={
-                    startTime && endTime
-                      ? (() => {
-                          const start = new Date(`2000-01-01T${startTime}:00`);
-                          const end = new Date(`2000-01-01T${endTime}:00`);
-                          if (end < start) {
-                            end.setDate(end.getDate() + 1);
-                          }
-                          const diffMs = end - start;
-                          return Math.floor(
-                            diffMs / (1000 * 60 * 60),
-                          ).toString();
-                        })()
-                      : ''
-                  }
+                  value={duration}
                   onChange={(e) => {
-                    const hours = parseInt(e.target.value, 10);
-                    if (!isNaN(hours) && hours > 0) {
-                      if (startTime) {
-                        const [startHour, startMinute] = startTime
-                          .split(':')
-                          .map(Number);
-                        const totalMinutes =
-                          startHour * 60 + startMinute + hours * 60;
-                        const endHour = Math.floor(totalMinutes / 60);
-                        const endMinute = totalMinutes % 60;
-                        const newEndTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
-                        setEndTime(newEndTime);
-                        if (touched.time) {
-                          setErrors((prev) => ({
-                            ...prev,
-                            time: !(startTime && newEndTime),
-                          }));
-                        }
-                      } else {
-                        // startTime이 없어도 값은 저장 가능
-                        if (touched.time) {
-                          setErrors((prev) => ({
-                            ...prev,
-                            time: !e.target.value,
-                          }));
-                        }
-                      }
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    setDuration(value);
+                    if (touched.time) {
+                      const hasDuration = parseDurationHours(value) > 0;
+                      setErrors((prev) => ({
+                        ...prev,
+                        time: !(startTime && hasDuration),
+                      }));
                     }
                   }}
                   onBlur={() => setTouched((prev) => ({ ...prev, time: true }))}

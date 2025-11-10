@@ -1,4 +1,5 @@
 import { useTheme } from '@emotion/react';
+import { format, parseISO } from 'date-fns';
 import { CalendarOff } from 'lucide-react';
 import { useState } from 'react';
 
@@ -16,22 +17,82 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
 
   // 금지 시간 계산 (시간 차이)
   const getRestrictedTime = () => {
-    if (!period.startTime || !period.endTime) return '—';
+    if (period.duration !== undefined && period.duration !== null) {
+      return `${period.duration} 시간`;
+    }
+    if (!period.startTime) return '—';
     const start = new Date(`2000-01-01T${period.startTime}:00`);
-    const end = new Date(`2000-01-01T${period.endTime}:00`);
-    // 하루를 넘어가는 경우 처리
+    const end = period.endTime
+      ? new Date(`2000-01-01T${period.endTime}:00`)
+      : null;
+    if (!end) return '—';
     if (end < start) {
       end.setDate(end.getDate() + 1);
     }
-    const diffMs = end - start;
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    return `${diffHours} 시간`;
+    const diffMinutes = Math.floor((end.getTime() - start.getTime()) / 60000);
+    const hours = Math.floor(diffMinutes / 60)
+      .toString()
+      .padStart(2, '0');
+    const minutes = (diffMinutes % 60).toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   };
 
   // 시작일자 형식 (YYYY-MM-DD HH:mm:ss)
   const getStartDateTime = () => {
     if (!period.startDate || !period.startTime) return '—';
     return `${period.startDate} ${period.startTime}:00`;
+  };
+
+  const getEndedAt = () => {
+    if (period.endedAt) {
+      const ended = parseISO(period.endedAt);
+      if (!Number.isNaN(ended.getTime())) {
+        return format(ended, 'yyyy-MM-dd HH:mm');
+      }
+    }
+    if (
+      period.startDate &&
+      period.startTime &&
+      period.duration !== undefined &&
+      period.duration !== null
+    ) {
+      const start = parseISO(`${period.startDate}T${period.startTime}:00`);
+      if (!Number.isNaN(start.getTime())) {
+        const computed = new Date(start);
+        computed.setHours(computed.getHours() + Number(period.duration));
+        return format(computed, 'yyyy-MM-dd HH:mm');
+      }
+    }
+    if (period.endDate || period.endTime) {
+      return `${period.endDate || period.startDate} ${period.endTime || ''}`.trim();
+    }
+    return '—';
+  };
+
+  const getRecurrenceLabel = () => {
+    if (!period.recurrenceType || period.recurrenceType === 'NONE') {
+      return '없음';
+    }
+    if (period.recurrenceType === 'DAILY') return '매일';
+    if (period.recurrenceType === 'WEEKLY') {
+      return period.recurrenceWeekday
+        ? `매주 ${period.recurrenceWeekday}`
+        : '매주';
+    }
+    if (period.recurrenceType === 'MONTHLY') {
+      const week =
+        period.recurrenceWeekOfMonth === 'FIRST'
+          ? '첫째 주'
+          : period.recurrenceWeekOfMonth === 'SECOND'
+            ? '둘째 주'
+            : period.recurrenceWeekOfMonth === 'THIRD'
+              ? '셋째 주'
+              : period.recurrenceWeekOfMonth === 'FOURTH'
+                ? '넷째 주'
+                : '';
+      return `${week} ${period.recurrenceWeekday || ''}`.trim() || '매월';
+    }
+    return period.recurrenceCycle || '—';
   };
 
   const handleCancelClick = () => {
@@ -117,8 +178,13 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
           <S.InfoRow>
             <S.InfoTh>금지 시간</S.InfoTh>
             <S.InfoTd>{getRestrictedTime()}</S.InfoTd>
+            <S.InfoTh>종료 일시</S.InfoTh>
+            <S.InfoTd>{getEndedAt()}</S.InfoTd>
+          </S.InfoRow>
+
+          <S.InfoRow>
             <S.InfoTh>금지 주기</S.InfoTh>
-            <S.InfoTd>{period.recurrenceCycle || '—'}</S.InfoTd>
+            <S.InfoTd colSpan={3}>{getRecurrenceLabel()}</S.InfoTd>
           </S.InfoRow>
         </S.InfoTable>
 

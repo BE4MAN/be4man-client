@@ -11,7 +11,7 @@
 
 ### 1. 배포 작업 목록 조회 API
 
-**목적**: 캘린더 뷰에서 특정 기간의 배포 작업을 표시하기 위해 필요
+**목적**: 월간/주간 캘린더와 상세 모달에 배포 작업을 표시하기 위해 필요
 
 **요구사항**:
 
@@ -23,18 +23,18 @@
 
 ```json
 [
-    {
+  {
     "id": "string",
     "title": "string",
     "service": "string",
-    "branch": "string",
-    "prTitle": "string",
-    "status": "scheduled" | "success" | "failed",
+    "status": "대기" | "진행중" | "완료" | "실패",
+    "deploymentStatus": "scheduled" | "success" | "failed",
+    "stage": "string",
     "date": "YYYY-MM-DD",
     "scheduledTime": "HH:mm",
-    "prNumber": "string",
-    "commitSha": "string (optional)"
-    }
+    "registrant": "string",
+    "registrantDepartment": "string"
+  }
 ]
 ```
 
@@ -54,6 +54,7 @@
   - 검색어: 제목(title), 설명(description), 등록자(registrantName)에 포함
 - 날짜 범위 기준으로 필터링 시, 기간이 겹치는 경우 모두 포함
 - 시작 날짜/시간 기준으로 정렬 (오름차순)
+- 기본 응답에서는 취소된 작업 금지 기간을 제외
 
 **응답 데이터 구조**:
 
@@ -71,7 +72,10 @@
     "services": ["string"],
     "registrant": "string",
     "registrantDepartment": "string",
-    "recurrenceCycle": "string | null"
+    "recurrenceType": "NONE" | "DAILY" | "WEEKLY" | "MONTHLY",
+    "recurrenceWeekday": "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN" | null,
+    "recurrenceWeekOfMonth": "FIRST" | "SECOND" | "THIRD" | "FOURTH" | null,
+    "recurrenceEndDate": "YYYY-MM-DD" | null
   }
 ]
 ```
@@ -96,7 +100,12 @@
 - 필수 필드: 제목(title), 시작일(startDate), 시작시간(startTime), 종료일(endDate), 종료시간(endTime), 연관 서비스(services)
 - 등록자 정보는 인증된 사용자 정보에서 자동으로 가져옴
 - 등록부서는 사용자의 부서 정보에서 가져옴
-- 선택 필드: 설명(description)
+- 선택 필드: 설명(description), 반복 관련 필드(recurrenceType, recurrenceWeekday, recurrenceWeekOfMonth, recurrenceEndDate)
+- 반복 금지 기간 설정 시
+  - `recurrenceType`이 `DAILY`인 경우 추가 입력 없음
+  - `recurrenceType`이 `WEEKLY`인 경우 `recurrenceWeekday` 필수
+  - `recurrenceType`이 `MONTHLY`인 경우 `recurrenceWeekOfMonth`와 `recurrenceWeekday` 필수
+  - 반복 종료가 없는 경우 `recurrenceEndDate`는 `null` 또는 미전송
 
 **요청 데이터 구조**:
 
@@ -105,12 +114,16 @@
     {
     "title": "string (required)",
     "description": "string (optional)",
-    "startDate": "YYYY-MM-DD (required)",
-    "startTime": "HH:mm (required)",
-    "endDate": "YYYY-MM-DD (required)",
-    "endTime": "HH:mm (required)",
+    "startDate": "YYYY-MM-DD (optional)",
+    "startTime": "HH:mm (optional)",
+    "endDate": "YYYY-MM-DD (optional)",
+    "endTime": "HH:mm (optional)",
     "type": "DB 마이그레이션" | "서버 점검" | "외부 일정" | "재난 재해",
-    "services": ["string"] (required, 최소 1개 이상)
+    "services": ["string"] (required, 최소 1개 이상),
+    "recurrenceType": "NONE" | "DAILY" | "WEEKLY" | "MONTHLY",
+    "recurrenceWeekday": "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN" | null,
+    "recurrenceWeekOfMonth": "FIRST" | "SECOND" | "THIRD" | "FOURTH" | null,
+    "recurrenceEndDate": "YYYY-MM-DD" | null
     }
 ]
 ```
@@ -160,6 +173,27 @@
       "value": "재난 재해",
       "label": "재난 재해"
     }
+  ],
+  "recurrenceTypes": [
+    { "value": "NONE", "label": "없음" },
+    { "value": "DAILY", "label": "매일" },
+    { "value": "WEEKLY", "label": "매주" },
+    { "value": "MONTHLY", "label": "매월" }
+  ],
+  "recurrenceWeekdays": [
+    { "value": "MON", "label": "월요일" },
+    { "value": "TUE", "label": "화요일" },
+    { "value": "WED", "label": "수요일" },
+    { "value": "THU", "label": "목요일" },
+    { "value": "FRI", "label": "금요일" },
+    { "value": "SAT", "label": "토요일" },
+    { "value": "SUN", "label": "일요일" }
+  ],
+  "recurrenceWeeksOfMonth": [
+    { "value": "FIRST", "label": "첫째 주" },
+    { "value": "SECOND", "label": "둘째 주" },
+    { "value": "THIRD", "label": "셋째 주" },
+    { "value": "FOURTH", "label": "넷째 주" }
   ]
 }
 ```
@@ -227,6 +261,21 @@
 - `"서버 점검"`
 - `"외부 일정"`
 - `"재난 재해"`
+
+### RecurrenceType
+
+- `"NONE"`: 반복 없음
+- `"DAILY"`: 매일 반복
+- `"WEEKLY"`: 매주 반복
+- `"MONTHLY"`: 매월 반복
+
+### RecurrenceWeekday
+
+- `"MON"` | `"TUE"` | `"WED"` | `"THU"` | `"FRI"` | `"SAT"` | `"SUN"`
+
+### RecurrenceWeekOfMonth
+
+- `"FIRST"` | `"SECOND"` | `"THIRD"` | `"FOURTH"`
 
 ### 날짜/시간 형식
 

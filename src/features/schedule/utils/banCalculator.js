@@ -1,31 +1,66 @@
-/**
- * 금지 기간이 여러 날에 걸치는 경우를 계산하여 해당 날짜들을 반환
- * @param {string} startDate - 시작 날짜 (YYYY-MM-DD)
- * @param {string} startTime - 시작 시간 (HH:mm)
- * @param {number} restrictedHours - 금지 시간 (시간 단위)
- * @returns {string[]} 금지 기간에 포함되는 날짜 배열 (YYYY-MM-DD 형식)
- */
-export function calculateBanDates(startDate, startTime, restrictedHours) {
-  if (!startDate || !startTime || !restrictedHours) {
-    return [];
+const MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
+
+const toDateOrNull = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const parseDurationHours = (duration) => {
+  if (duration === undefined || duration === null) return 0;
+  if (typeof duration === 'number') {
+    return Number.isFinite(duration) ? duration : 0;
+  }
+  const parsed = Number.parseFloat(duration);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const getBanDateRange = (ban) => {
+  if (!ban?.startDate || !ban?.startTime) {
+    return null;
   }
 
+  const startDateTime = toDateOrNull(`${ban.startDate}T${ban.startTime}:00`);
+  if (!startDateTime) {
+    return null;
+  }
+
+  let endDateTime = toDateOrNull(ban.endedAt);
+
+  if (!endDateTime) {
+    const durationHours = parseDurationHours(ban.duration);
+    if (durationHours > 0) {
+      endDateTime = new Date(startDateTime);
+      endDateTime.setHours(endDateTime.getHours() + durationHours);
+    } else if (ban.endDate || ban.endTime) {
+      // Legacy fallback
+      const legacyEnd = ban.endDate
+        ? `${ban.endDate}T${ban.endTime || ban.startTime || '00:00'}:00`
+        : `${ban.startDate}T${ban.endTime}:00`;
+      endDateTime = toDateOrNull(legacyEnd);
+    }
+  }
+
+  if (!endDateTime || endDateTime < startDateTime) {
+    return { startDateTime, endDateTime: new Date(startDateTime) };
+  }
+
+  return { startDateTime, endDateTime };
+};
+
+export function calculateBanDatesFromRange(startDateTime, endDateTime) {
+  if (!startDateTime || !endDateTime) return [];
+
   const dates = [];
-  const startDateTime = new Date(`${startDate}T${startTime}:00`);
-  const endDateTime = new Date(startDateTime);
-  endDateTime.setHours(endDateTime.getHours() + restrictedHours);
+  const cursor = new Date(startDateTime);
+  cursor.setHours(0, 0, 0, 0);
 
-  // 시작 날짜부터 종료 날짜까지 모든 날짜 추가
-  const currentDate = new Date(startDateTime);
-  currentDate.setHours(0, 0, 0, 0);
+  const endCursor = new Date(endDateTime);
+  endCursor.setHours(0, 0, 0, 0);
 
-  const endDate = new Date(endDateTime);
-  endDate.setHours(0, 0, 0, 0);
-
-  while (currentDate <= endDate) {
-    const dateStr = currentDate.toISOString().split('T')[0];
-    dates.push(dateStr);
-    currentDate.setDate(currentDate.getDate() + 1);
+  while (cursor <= endCursor) {
+    dates.push(cursor.toISOString().split('T')[0]);
+    cursor.setTime(cursor.getTime() + MILLISECONDS_IN_DAY);
   }
 
   return dates;
@@ -43,45 +78,22 @@ export function getBansForDate(restrictedPeriods, targetDate) {
   }
 
   return restrictedPeriods.filter((ban) => {
-    if (!ban.startDate || !ban.startTime) {
-      return false;
-    }
+    const range = getBanDateRange(ban);
+    if (!range) return false;
 
-    // endTime이 있으면 금지 시간 계산
-    if (ban.endTime) {
-      const start = new Date(`2000-01-01T${ban.startTime}:00`);
-      const end = new Date(`2000-01-01T${ban.endTime}:00`);
+    const { startDateTime, endDateTime } = range;
+    const target = toDateOrNull(`${targetDate}T00:00:00`);
+    if (!target) return false;
 
-      // 하루를 넘어가는 경우 처리
-      let endDate = new Date(end);
-      if (endDate < start) {
-        endDate.setDate(endDate.getDate() + 1);
-      }
-      const restrictedHours = Math.floor((endDate - start) / (1000 * 60 * 60));
+    const startDay = new Date(startDateTime);
+    startDay.setHours(0, 0, 0, 0);
+    const endDay = new Date(endDateTime);
+    endDay.setHours(0, 0, 0, 0);
 
-      if (restrictedHours === 0) {
-        // 금지 시간이 0이면 시작 날짜만 체크
-        return ban.startDate === targetDate;
-      }
-
-      // 금지 기간이 여러 날에 걸치는 경우 체크
-      const banDates = calculateBanDates(
-        ban.startDate,
-        ban.startTime,
-        restrictedHours,
-      );
-      return banDates.includes(targetDate);
-    }
-
-    // endTime이 없으면 기존 endDate 기반 로직 (레거시 호환)
-    if (ban.endDate) {
-      const periodStart = new Date(ban.startDate);
-      const periodEnd = new Date(ban.endDate);
-      const currentDay = new Date(targetDate);
-      return currentDay >= periodStart && currentDay <= periodEnd;
-    }
-
-    // startDate만 있으면 시작 날짜만 체크
-    return ban.startDate === targetDate;
+    return target >= startDay && target <= endDay;
   });
+}
+
+export function getBanDateRangeInfo(ban) {
+  return getBanDateRange(ban);
 }

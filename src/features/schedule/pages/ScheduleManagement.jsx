@@ -19,6 +19,7 @@ import RestrictedPeriodList from '@/components/schedule/RestrictedPeriodList';
 import RestrictedPeriodModal from '@/components/schedule/RestrictedPeriodModal';
 import WeeklyCalendar from '@/components/schedule/WeeklyCalendar';
 import DateRangePicker from '@/features/log/pages/DateRangePicker';
+import { getBanDateRangeInfo } from '@/features/schedule/utils/banCalculator';
 
 import {
   mockDeployments,
@@ -104,28 +105,40 @@ export default function ScheduleManagement() {
   }
 
   // 기간 필터링
+  const withinRange = (period, startBound, endBound) => {
+    const range = getBanDateRangeInfo(period);
+    if (!range) return false;
+    const { startDateTime, endDateTime } = range;
+    const startTime = startDateTime.getTime();
+    const endTime = endDateTime.getTime();
+    return (
+      (startTime >= startBound && startTime <= endBound) ||
+      (endTime >= startBound && endTime <= endBound) ||
+      (startTime <= startBound && endTime >= endBound)
+    );
+  };
+
   if (periodStartDate && periodEndDate) {
-    filteredRestrictedPeriods = filteredRestrictedPeriods.filter((period) => {
-      const periodStart = `${period.startDate}T${period.startTime}`;
-      const periodEnd = `${period.endDate}T${period.endTime}`;
-      return (
-        (periodStart >= `${periodStartDate}T00:00` &&
-          periodStart <= `${periodEndDate}T23:59`) ||
-        (periodEnd >= `${periodStartDate}T00:00` &&
-          periodEnd <= `${periodEndDate}T23:59`) ||
-        (periodStart <= `${periodStartDate}T00:00` &&
-          periodEnd >= `${periodEndDate}T23:59`)
-      );
-    });
+    const startBound = new Date(`${periodStartDate}T00:00`).getTime();
+    const endBound = new Date(`${periodEndDate}T23:59`).getTime();
+    filteredRestrictedPeriods = filteredRestrictedPeriods.filter((period) =>
+      withinRange(period, startBound, endBound),
+    );
   } else if (periodStartDate) {
+    const startBound = new Date(`${periodStartDate}T00:00`).getTime();
     filteredRestrictedPeriods = filteredRestrictedPeriods.filter((period) => {
-      const periodEnd = `${period.endDate}T${period.endTime}`;
-      return periodEnd >= `${periodStartDate}T00:00`;
+      const range = getBanDateRangeInfo(period);
+      if (!range) return false;
+      const { endDateTime } = range;
+      return endDateTime.getTime() >= startBound;
     });
   } else if (periodEndDate) {
+    const endBound = new Date(`${periodEndDate}T23:59`).getTime();
     filteredRestrictedPeriods = filteredRestrictedPeriods.filter((period) => {
-      const periodStart = `${period.startDate}T${period.startTime}`;
-      return periodStart <= `${periodEndDate}T23:59`;
+      const range = getBanDateRangeInfo(period);
+      if (!range) return false;
+      const { startDateTime } = range;
+      return startDateTime.getTime() <= endBound;
     });
   }
 

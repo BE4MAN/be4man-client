@@ -21,11 +21,11 @@ export const scheduleAPI = {
    * @param {string} [banData.description] - 설명 (선택)
    * @param {string} banData.startDate - 시작일 (YYYY-MM-DD, 필수)
    * @param {string} banData.startTime - 시작시간 (HH:mm, 필수)
-   * @param {string} banData.endDate - 종료일 (YYYY-MM-DD, 필수)
-   * @param {string} banData.endTime - 종료시간 (HH:mm, 필수)
+   * @param {string} [banData.endedAt] - 종료 일시 (YYYY-MM-DDTHH:mm, 선택)
+   * @param {number} banData.duration - 금지 시간 (시간 단위, 필수)
    * @param {string} banData.type - 작업 금지 유형 (DB_MIGRATION, ACCIDENT, MAINTENANCE, EXTERNAL_SCHEDULE, 필수)
    * @param {number[]} banData.relatedProjectIds - 연관 프로젝트 ID 목록 (필수, 최소 1개 이상)
-   * @returns {Promise<{id: string, title: string, description: string|null, startDate: string, startTime: string, endDate: string, endTime: string, type: string, relatedProjects: string[]}>}
+   * @returns {Promise<{id: string, title: string, description: string|null, startDate: string, startTime: string, endedAt: string, duration: number, type: string, relatedProjects: string[]}>}
    */
   createBan: async (banData) => {
     const { data } = await axiosInstance.post('/api/schedules/bans', banData);
@@ -56,7 +56,7 @@ export const scheduleAPI = {
    * @param {string} [filters.endDate] - 종료일 필터 (YYYY-MM-DD)
    * @param {string} [filters.type] - 작업 금지 유형 필터 (DB_MIGRATION, ACCIDENT, MAINTENANCE, EXTERNAL_SCHEDULE)
    * @param {number[]} [filters.projectIds] - 프로젝트 ID 목록
-   * @returns {Promise<Array<{id: string, title: string, description: string|null, startDate: string, startTime: string, endDate: string, endTime: string, type: string, relatedProjects: string[]}>>}
+   * @returns {Promise<Array<{id: string, title: string, description: string|null, startDate: string, startTime: string, endedAt: string, duration: number, type: string, relatedProjects: string[]}>>}
    */
   getBans: async (filters = {}) => {
     const params = {};
