@@ -112,11 +112,19 @@ export default function Sidebar() {
     pathname === PATHS.APPROVAL_NEW ||
     pathname.startsWith('/approval/');
 
+  const isScheduleFamily =
+    pathname === PATHS.SCHEDULE || pathname.startsWith(`${PATHS.SCHEDULE}/`);
+
   return (
     <S.Aside open={sidebarOpen}>
       <S.MenuWrap>
         {items.map((it) => {
-          const forceActive = it.key === 'approvals' ? isApprovalFamily : false;
+          let forceActive = false;
+          if (it.key === 'approvals') {
+            forceActive = isApprovalFamily;
+          } else if (it.key === 'schedule') {
+            forceActive = isScheduleFamily;
+          }
 
           return (
             <S.Item

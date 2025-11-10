@@ -101,18 +101,10 @@ export const SearchFilterSection = styled.div`
   border-radius: 0.3125rem;
 `;
 
-export const TopControls = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-`;
-
 export const SearchBar = styled.div`
   position: relative;
   flex: 1;
-  max-width: 500px;
+  max-width: 765px;
 
   .search-icon {
     position: absolute;
@@ -189,6 +181,9 @@ export const ResetButton = styled.button`
 
 export const FiltersPanel = styled.div`
   margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 
 export const FiltersRow = styled.div`
@@ -196,6 +191,28 @@ export const FiltersRow = styled.div`
   gap: ${({ theme }) => theme.spacing.md};
   align-items: center;
   flex-wrap: wrap;
+
+  ${({ theme }) => theme.mqMax.md`
+    flex-direction: column;
+    align-items: stretch;
+
+    ${ResetButton} {
+      width: 100%;
+    }
+  `}
+`;
+
+export const SearchBox = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  flex-wrap: wrap;
+
+  ${({ theme }) => theme.mqMax.md`
+    flex-direction: column;
+    align-items: stretch;
+    gap: ${theme.spacing.sm};
+  `}
 `;
 
 export const FilterRowItem = styled.div`
@@ -273,6 +290,33 @@ export const TagContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.md};
   background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.radius.md};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  margin-top: ${({ theme }) => theme.spacing.sm};
+`;
+
+export const SearchButton = styled.button`
+  height: 2.5rem;
+  min-width: 7.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.lg};
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: none;
+  background: ${({ theme }) => theme.colors.brand};
+  color: ${({ theme }) => theme.colors.onPrimary || '#ffffff'};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    filter: brightness(0.95);
+  }
+
+  &:active {
+    filter: brightness(0.9);
+  }
+
+  ${({ theme }) => theme.mqMax.md`
+    width: 100%;
+  `}
 `;

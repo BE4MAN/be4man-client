@@ -159,6 +159,10 @@ export default function ScheduleManagement() {
     setPeriodEndDate('');
   };
 
+  const handleSearchSubmit = () => {
+    // TODO: API 연동 시 필터 값 기반으로 호출
+  };
+
   // location state에서 viewMode 확인
   useEffect(() => {
     if (location.state?.viewMode === 'list') {
@@ -229,33 +233,6 @@ export default function ScheduleManagement() {
           <S.ListContainer>
             {/* 검색 및 필터 영역 */}
             <S.SearchFilterSection>
-              <S.TopControls>
-                <S.SearchBar>
-                  <Search className="search-icon" />
-                  <S.SearchInput
-                    type="text"
-                    placeholder="제목, 내용, 등록자명 검색"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setSearchFocused(true)}
-                    onBlur={() => setSearchFocused(false)}
-                    $focused={searchFocused}
-                  />
-                  {searchQuery && (
-                    <S.ClearButton
-                      type="button"
-                      onClick={() => setSearchQuery('')}
-                    >
-                      ✕
-                    </S.ClearButton>
-                  )}
-                </S.SearchBar>
-                <S.ResetButton type="button" onClick={handleResetFilters}>
-                  <RotateCcw size={16} />
-                  <span>필터 초기화</span>
-                </S.ResetButton>
-              </S.TopControls>
-
               <S.FiltersPanel>
                 <S.FiltersRow>
                   <S.FilterRowItem>
@@ -298,6 +275,11 @@ export default function ScheduleManagement() {
                       onChange={handleDateRangeChange}
                     />
                   </S.FilterRowItem>
+
+                  <S.ResetButton type="button" onClick={handleResetFilters}>
+                    <RotateCcw size={16} />
+                    <span>필터 초기화</span>
+                  </S.ResetButton>
                 </S.FiltersRow>
               </S.FiltersPanel>
 
@@ -317,6 +299,33 @@ export default function ScheduleManagement() {
                   ))}
                 </S.TagContainer>
               )}
+
+              <S.SearchBox>
+                <S.SearchBar>
+                  <Search className="search-icon" />
+                  <S.SearchInput
+                    type="text"
+                    placeholder="제목, 내용, 등록자명 검색"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setSearchFocused(false)}
+                    $focused={searchFocused}
+                  />
+                  {searchQuery && (
+                    <S.ClearButton
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      ✕
+                    </S.ClearButton>
+                  )}
+                </S.SearchBar>
+
+                <S.SearchButton type="button" onClick={handleSearchSubmit}>
+                  검색
+                </S.SearchButton>
+              </S.SearchBox>
             </S.SearchFilterSection>
 
             <RestrictedPeriodList
