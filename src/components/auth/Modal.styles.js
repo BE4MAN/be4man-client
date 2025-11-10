@@ -15,7 +15,7 @@ export const ModalOverlay = styled(motion.div)`
 export const ModalContent = styled(motion.div)`
   background: ${({ theme }) => theme.colors.surface};
   backdrop-filter: blur(20px);
-  border-radius: ${({ theme }) => theme.radius.lg};
+  border-radius: ${({ theme }) => theme.radius.sm};
   padding: ${({ theme }) => theme.spacing.lg};
   box-shadow: ${({ theme }) => theme.shadow.md};
   ${({ variant, maxWidth }) =>
