@@ -8,7 +8,7 @@ import {
   subMonths,
 } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, ChevronsDownUp } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
 import Button from '@/components/auth/Button';
@@ -21,6 +21,7 @@ import MonthlyRestrictedPeriodCard from './MonthlyRestrictedPeriodCard';
 export default function DeploymentCalendar({
   deployments,
   restrictedPeriods,
+  holidays = [],
   onDeploymentClick,
   onRestrictedPeriodClick,
   onDateChange,
@@ -93,6 +94,14 @@ export default function DeploymentCalendar({
     });
   };
 
+  const getHolidayForDay = (day) => {
+    const dateStr = format(
+      new Date(currentDate.getFullYear(), currentDate.getMonth(), day),
+      'yyyy-MM-dd',
+    );
+    return holidays.find((holiday) => holiday.date === dateStr);
+  };
+
   const renderCalendarDays = () => {
     const days = [];
     const totalCells = Math.ceil((firstDayOfMonth + daysInMonth) / 7) * 7;
@@ -116,21 +125,24 @@ export default function DeploymentCalendar({
         const isExpanded = expandedDays.has(dayNumber);
         const hasMultipleTasks = allTasks.length > 1;
         const shouldCollapse = hasMultipleTasks && !isExpanded;
+        const holiday = getHolidayForDay(dayNumber);
 
         days.push(
           <S.DayCell key={i} isToday={isTodayCell}>
-            <S.DayNumber isToday={isTodayCell}>
-              <span>{dayNumber}</span>
+            <S.DayNumber>
+              <S.DayNumberInfo>
+                <S.DayNumberText $isHoliday={!!holiday} isToday={isTodayCell}>
+                  {dayNumber}
+                </S.DayNumberText>
+                {holiday ? <S.HolidayName>{holiday.name}</S.HolidayName> : null}
+              </S.DayNumberInfo>
               {hasMultipleTasks && allTasks.length > 0 && (
                 <S.ExpandButton
                   type="button"
                   onClick={() => toggleDayExpansion(dayNumber)}
                 >
-                  {shouldCollapse ? (
-                    <span>+ {allTasks.length - 1}</span>
-                  ) : (
-                    <ChevronsDownUp size={14} />
-                  )}
+                  <S.ExpandChevron $expanded={isExpanded} strokeWidth={3} />
+                  <S.ExpandButtonCount>{allTasks.length}</S.ExpandButtonCount>
                 </S.ExpandButton>
               )}
             </S.DayNumber>

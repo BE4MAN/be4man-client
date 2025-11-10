@@ -20,7 +20,11 @@ import RestrictedPeriodModal from '@/components/schedule/RestrictedPeriodModal';
 import WeeklyCalendar from '@/components/schedule/WeeklyCalendar';
 import DateRangePicker from '@/features/log/pages/DateRangePicker';
 
-import { mockDeployments, mockRestrictedPeriods } from '../mockData';
+import {
+  mockDeployments,
+  mockHolidays,
+  mockRestrictedPeriods,
+} from '../mockData';
 
 import * as S from './ScheduleManagement.styles';
 
@@ -203,6 +207,7 @@ export default function ScheduleManagement() {
           <DeploymentCalendar
             deployments={mockDeployments}
             restrictedPeriods={mockRestrictedPeriods}
+            holidays={mockHolidays}
             onDeploymentClick={handleDeploymentClick}
             onRestrictedPeriodClick={handleRestrictedPeriodClick}
           />
@@ -210,6 +215,7 @@ export default function ScheduleManagement() {
           <WeeklyCalendar
             deployments={mockDeployments}
             restrictedPeriods={mockRestrictedPeriods}
+            holidays={mockHolidays}
             onDeploymentClick={handleDeploymentClick}
             onRestrictedPeriodClick={handleRestrictedPeriodClick}
           />

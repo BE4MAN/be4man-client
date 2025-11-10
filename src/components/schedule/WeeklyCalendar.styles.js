@@ -92,10 +92,29 @@ export const DayCell = styled.div`
 `;
 
 export const DayNumber = styled.div`
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ isToday, theme }) =>
-    isToday ? theme.colors.textPrimary : theme.colors.textSecondary};
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
   margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+export const DayNumberText = styled.span`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ $isHoliday, isToday, theme }) => {
+    if ($isHoliday) return theme.colors.error;
+    if (isToday) return theme.colors.textPrimary;
+    return theme.colors.textSecondary;
+  }};
+  font-weight: ${({ $isHoliday, theme }) =>
+    $isHoliday
+      ? theme.typography.fontWeight.semibold
+      : theme.typography.fontWeight.medium};
+`;
+
+export const HolidayName = styled.span`
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  color: ${({ theme }) => theme.colors.error};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
 `;
 
 export const CardList = styled.div`

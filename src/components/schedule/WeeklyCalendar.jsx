@@ -21,6 +21,7 @@ import * as S from './WeeklyCalendar.styles';
 export default function WeeklyCalendar({
   deployments,
   restrictedPeriods,
+  holidays = [],
   onDeploymentClick,
   onRestrictedPeriodClick,
   onDateChange,
@@ -107,6 +108,11 @@ export default function WeeklyCalendar({
     });
   };
 
+  const getHolidayForDate = (date) => {
+    const formatted = format(date, 'yyyy-MM-dd');
+    return holidays.find((holiday) => holiday.date === formatted);
+  };
+
   const startOfWeekDay = weekDays[0];
   const endOfWeekDay = weekDays[6];
 
@@ -142,6 +148,7 @@ export default function WeeklyCalendar({
             const dayRestrictedPeriods = getRestrictedPeriodsForDay(day);
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isTodayCell = isToday(day);
+            const holiday = getHolidayForDate(day);
 
             return (
               <S.DayCell
@@ -149,7 +156,14 @@ export default function WeeklyCalendar({
                 isToday={isTodayCell}
                 isCurrentMonth={isCurrentMonth}
               >
-                <S.DayNumber isToday={isTodayCell}>{day.getDate()}</S.DayNumber>
+                <S.DayNumber>
+                  <S.DayNumberText isToday={isTodayCell} $isHoliday={!!holiday}>
+                    {day.getDate()}
+                  </S.DayNumberText>
+                  {holiday ? (
+                    <S.HolidayName>{holiday.name}</S.HolidayName>
+                  ) : null}
+                </S.DayNumber>
                 <S.CardList>
                   {dayRestrictedPeriods.map((period) => (
                     <RestrictedPeriodCard

@@ -522,3 +522,30 @@ export const mockRestrictedPeriods = [
     registrantDepartment: '개발1팀',
   },
 ];
+
+/**
+ * @typedef {{ date: string; name: string }} Holiday
+ */
+
+/**
+ * 한국 공휴일 Mock 데이터 (추후 Google Calendar API 연동 시 대체 예정)
+ * 타임존: Asia/Seoul
+ * @type {Holiday[]}
+ */
+export const mockHolidays = [
+  { date: '2025-01-01', name: '신정' },
+  { date: '2025-02-01', name: '설날' },
+  { date: '2025-02-02', name: '설날' },
+  { date: '2025-02-03', name: '설날 연휴' },
+  { date: '2025-03-01', name: '삼일절' },
+  { date: '2025-05-05', name: '어린이날' },
+  { date: '2025-05-06', name: '어린이날 대체공휴일' },
+  { date: '2025-06-06', name: '현충일' },
+  { date: '2025-08-15', name: '광복절' },
+  { date: '2025-09-07', name: '추석 연휴' },
+  { date: '2025-09-08', name: '추석' },
+  { date: '2025-09-09', name: '추석 연휴' },
+  { date: '2025-10-03', name: '개천절' },
+  { date: '2025-10-09', name: '한글날' },
+  { date: '2025-12-25', name: '성탄절' },
+];
