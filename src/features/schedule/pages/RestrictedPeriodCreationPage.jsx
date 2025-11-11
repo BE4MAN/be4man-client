@@ -179,6 +179,30 @@ export default function RestrictedPeriodCreationPage() {
     setSelectedServices([]);
   };
 
+  const truncateDescription = (text) => {
+    if (!text || text.trim() === '') return '—';
+    // 문장 단위로 분리 (마침표, 느낌표, 물음표 기준)
+    const sentences = text
+      .split(/([.!?]+\s*)/)
+      .filter((s) => s.trim().length > 0)
+      .reduce((acc, curr, idx) => {
+        if (idx % 2 === 0) {
+          acc.push(curr);
+        } else {
+          acc[acc.length - 1] += curr;
+        }
+        return acc;
+      }, [])
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    if (sentences.length <= 2) {
+      return text;
+    }
+
+    return sentences.slice(0, 2).join(' ') + '...';
+  };
+
   const renderConfirmationDetail = () => {
     const durationHours = parseDurationHours(duration);
     const durationLabel = durationHours > 0 ? `${durationHours} 시간` : '—';
@@ -194,7 +218,7 @@ export default function RestrictedPeriodCreationPage() {
       Array.isArray(selectedServices) && selectedServices.length > 0
         ? selectedServices
         : [];
-    const descriptionValue = description.trim() || '—';
+    const descriptionValue = truncateDescription(description);
 
     return (
       <Detail.ContentWrapper>

@@ -29,6 +29,7 @@ export default function WeeklyCalendar({
   onRestrictedPeriodClick,
   onDateChange,
 }) {
+  console.log('holidays', holidays);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];

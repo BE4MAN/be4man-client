@@ -36,7 +36,7 @@ export const Details = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
-  margin-left: ${({ theme }) => theme.spacing.sm};
+  margin-left: 25px;
   align-items: flex-start;
 `;
 

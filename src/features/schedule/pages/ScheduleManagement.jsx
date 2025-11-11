@@ -21,11 +21,8 @@ import WeeklyCalendar from '@/components/schedule/WeeklyCalendar';
 import DateRangePicker from '@/features/log/pages/DateRangePicker';
 import { getBanDateRangeInfo } from '@/features/schedule/utils/banCalculator';
 
-import {
-  mockDeployments,
-  mockHolidays,
-  mockRestrictedPeriods,
-} from '../mockData';
+import { useHolidays } from '../hooks/useHolidays';
+import { mockDeployments, mockRestrictedPeriods } from '../mockData';
 
 import * as S from './ScheduleManagement.styles';
 
@@ -49,10 +46,14 @@ export default function ScheduleManagement() {
   const [periodStartDate, setPeriodStartDate] = useState('');
   const [periodEndDate, setPeriodEndDate] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   const normalizedSelectedServices = Array.isArray(selectedServices)
     ? selectedServices
     : [];
+
+  // 공휴일 데이터 조회 (현재 보는 연도 기준)
+  const { data: holidays = [] } = useHolidays(currentYear);
 
   // 서비스 목록 추출 (모든 배포 작업에서 고유한 서비스 추출)
   const availableServices = useMemo(() => {
@@ -180,6 +181,14 @@ export default function ScheduleManagement() {
     // TODO: API 연동 시 필터 값 기반으로 호출
   };
 
+  // 캘린더 날짜 변경 시 연도 업데이트
+  const handleCalendarDateChange = (date) => {
+    const year = date.getFullYear();
+    if (year !== currentYear) {
+      setCurrentYear(year);
+    }
+  };
+
   // location state에서 viewMode 확인
   useEffect(() => {
     if (location.state?.viewMode === 'list') {
@@ -234,17 +243,19 @@ export default function ScheduleManagement() {
           <DeploymentCalendar
             deployments={mockDeployments}
             restrictedPeriods={mockRestrictedPeriods}
-            holidays={mockHolidays}
+            holidays={holidays}
             onDeploymentClick={handleDeploymentClick}
             onRestrictedPeriodClick={handleRestrictedPeriodClick}
+            onDateChange={handleCalendarDateChange}
           />
         ) : viewMode === 'weekly' ? (
           <WeeklyCalendar
             deployments={mockDeployments}
             restrictedPeriods={mockRestrictedPeriods}
-            holidays={mockHolidays}
+            holidays={holidays}
             onDeploymentClick={handleDeploymentClick}
             onRestrictedPeriodClick={handleRestrictedPeriodClick}
+            onDateChange={handleCalendarDateChange}
           />
         ) : (
           <S.ListContainer>

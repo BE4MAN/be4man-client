@@ -17,11 +17,11 @@ export default function RestrictedPeriodCard({
   return (
     <S.Card onClick={onClick}>
       <S.Content>
-        <S.BanIcon
-          as={CalendarOff}
-          color={theme.colors.schedule.restrictedDanger}
-        />
         <S.TitleBox>
+          <S.BanIcon
+            as={CalendarOff}
+            color={theme.colors.schedule.restrictedDanger}
+          />
           <S.Title>{title}</S.Title>
         </S.TitleBox>
         <S.Details>

@@ -18,7 +18,7 @@ export const ModalContent = styled(motion.div)`
   border-radius: ${({ theme }) => theme.radius.sm};
   padding: ${({ theme }) => theme.spacing.lg};
   box-shadow: ${({ theme }) => theme.shadow.md};
-  ${({ variant, maxWidth }) =>
+  ${({ variant }) =>
     variant === 'detail'
       ? `
     display: flex;
@@ -27,8 +27,7 @@ export const ModalContent = styled(motion.div)`
     width: 75%;
   `
       : `
-    max-width: ${maxWidth || '400px'};
-    width: 90%;
+    max-width: 75%;
   `}
 
   overflow-y: auto;

@@ -110,6 +110,30 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
     setShowConfirmModal(false);
   };
 
+  const truncateDescription = (text) => {
+    if (!text || text.trim() === '') return '—';
+    // 문장 단위로 분리 (마침표, 느낌표, 물음표 기준)
+    const sentences = text
+      .split(/([.!?]+\s*)/)
+      .filter((s) => s.trim().length > 0)
+      .reduce((acc, curr, idx) => {
+        if (idx % 2 === 0) {
+          acc.push(curr);
+        } else {
+          acc[acc.length - 1] += curr;
+        }
+        return acc;
+      }, [])
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    if (sentences.length <= 2) {
+      return text;
+    }
+
+    return sentences.slice(0, 2).join(' ') + '...';
+  };
+
   return (
     <ScheduleModal
       isOpen={open}
@@ -198,7 +222,9 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
 
           <S.InfoRow>
             <S.InfoTh>설명</S.InfoTh>
-            <S.InfoTd colSpan={3}>{period.description || '—'}</S.InfoTd>
+            <S.InfoTd colSpan={3}>
+              {truncateDescription(period.description)}
+            </S.InfoTd>
           </S.InfoRow>
         </S.InfoTable>
       </S.Content>

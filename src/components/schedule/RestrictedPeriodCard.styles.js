@@ -20,7 +20,8 @@ export const Content = styled.div`
 
 export const TitleBox = styled.div`
   display: flex;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
   gap: ${({ theme }) => theme.spacing.sm};
 `;
 
@@ -29,15 +30,13 @@ export const BanIcon = styled.svg`
   height: 16px;
   color: ${({ theme }) => theme.colors.schedule.restrictedDanger};
   flex-shrink: 0;
-  margin-top: 2px;
-  margin-left: 2px;
 `;
 
 export const Details = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
-  margin-left: ${({ theme }) => theme.spacing.sm};
+  margin-left: 25px;
   align-items: flex-start;
 `;
 
