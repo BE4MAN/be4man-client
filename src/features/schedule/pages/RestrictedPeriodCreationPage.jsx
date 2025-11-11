@@ -3,12 +3,14 @@ import { RotateCcw } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { scheduleAPI } from '@/api/schedule';
 import DateTimePicker from '@/components/common/DateTimePicker';
 import ServiceTag from '@/components/common/ServiceTag';
 import TimePicker from '@/components/common/TimePicker';
 import { RequiredAsterisk } from '@/components/schedule/commonStyles';
 import ScheduleCustomSelect from '@/components/schedule/components/ScheduleCustomSelect';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
+import ConflictingDeploymentsList from '@/components/schedule/ConflictingDeploymentsList';
 import * as Detail from '@/components/schedule/RestrictedPeriodDetailModal.styles';
 import { DEPARTMENT_REVERSE_MAP } from '@/constants/accounts';
 import { useAuthStore } from '@/stores/authStore';
@@ -35,6 +37,8 @@ export default function RestrictedPeriodCreationPage() {
   const [selectedServices, setSelectedServices] = useState([]);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [conflictingDeployments, setConflictingDeployments] = useState([]);
+  const [isLoadingConflicts, setIsLoadingConflicts] = useState(false);
   const restrictedHoursInputRef = useRef(null);
   const [errors, setErrors] = useState({
     title: false,
@@ -131,7 +135,7 @@ export default function RestrictedPeriodCreationPage() {
       services: true,
     });
 
-    // 모든 필드가 유효한 경우에만 모달 열기
+    // 모든 필드가 유효한 경우에만 충돌 확인 후 모달 열기
     if (
       !titleError &&
       !banTypeError &&
@@ -139,7 +143,37 @@ export default function RestrictedPeriodCreationPage() {
       !descriptionError &&
       !servicesError
     ) {
-      setRegisterModalOpen(true);
+      // 충돌된 배포 작업 조회
+      setIsLoadingConflicts(true);
+      setConflictingDeployments([]);
+
+      const banData = {
+        title,
+        description,
+        startDate,
+        startTime,
+        duration: parseDurationHours(duration),
+        type: banType,
+        services: selectedServices,
+        recurrenceType: recurrenceType || null,
+        recurrenceWeekday: recurrenceWeekday || null,
+        recurrenceWeekOfMonth: recurrenceWeekOfMonth || null,
+        recurrenceEndDate: isRecurrenceEndNone
+          ? null
+          : recurrenceEndDate || null,
+      };
+
+      scheduleAPI
+        .getConflictingDeployments(banData)
+        .then((conflicts) => {
+          setConflictingDeployments(conflicts);
+          setIsLoadingConflicts(false);
+          setRegisterModalOpen(true);
+        })
+        .catch(() => {
+          setIsLoadingConflicts(false);
+          setRegisterModalOpen(true);
+        });
     }
   };
 
@@ -701,9 +735,16 @@ export default function RestrictedPeriodCreationPage() {
         }
       >
         {renderConfirmationDetail()}
-        <Detail.ConfirmMessage>
-          본 작업 금지를 등록하시겠습니까?
-        </Detail.ConfirmMessage>
+        {isLoadingConflicts ? (
+          <Detail.ConfirmMessage>충돌 확인 중...</Detail.ConfirmMessage>
+        ) : (
+          <>
+            <ConflictingDeploymentsList deployments={conflictingDeployments} />
+            <Detail.ConfirmMessage>
+              본 작업 금지를 등록하시겠습니까?
+            </Detail.ConfirmMessage>
+          </>
+        )}
       </ScheduleModal>
     </S.PageContainer>
   );

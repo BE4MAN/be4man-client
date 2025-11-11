@@ -18,6 +18,8 @@ export const ModalContent = styled(motion.div)`
   border-radius: ${({ theme }) => theme.radius.sm};
   padding: ${({ theme }) => theme.spacing.lg};
   box-shadow: ${({ theme }) => theme.shadow.md};
+  max-height: 90vh;
+  overflow-y: auto;
   ${({ variant }) =>
     variant === 'detail'
       ? `
@@ -29,8 +31,6 @@ export const ModalContent = styled(motion.div)`
       : `
     max-width: 75%;
   `}
-
-  overflow-y: auto;
 `;
 
 export const ModalHeader = styled.div`

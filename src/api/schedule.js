@@ -87,4 +87,38 @@ export const scheduleAPI = {
     });
     return data;
   },
+
+  /**
+   * 충돌된 배포 작업 목록 조회
+   * @param {Object} banData - 작업 금지 기간 데이터
+   * @returns {Promise<Array<{id: string, title: string, service: string, date: string, scheduledTime: string}>>}
+   */
+  getConflictingDeployments: async (banData) => {
+    // TODO: 백엔드 API 연동 시 실제 API 호출로 대체
+    // const { data } = await axiosInstance.post('/api/schedules/bans/conflicts', banData);
+    // return data;
+
+    // Mock 데이터 반환 (banData는 나중에 사용)
+    void banData;
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([
+          {
+            id: 'conflict-1',
+            title: 'v2.3.1 배포',
+            service: 'Auth Service',
+            date: '2025-10-20',
+            scheduledTime: '14:00',
+          },
+          {
+            id: 'conflict-2',
+            title: 'v3.0.0 배포',
+            service: 'API Gateway',
+            date: '2025-10-20',
+            scheduledTime: '15:30',
+          },
+        ]);
+      }, 300);
+    });
+  },
 };
