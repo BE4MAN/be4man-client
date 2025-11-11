@@ -160,7 +160,9 @@ export default function DeploymentCalendar({
                     <MonthlyDeploymentCard
                       key={allTasks[0].data.id}
                       title={allTasks[0].data.title}
+                      stage={allTasks[0].data.stage}
                       status={allTasks[0].data.status}
+                      deploymentStatus={allTasks[0].data.deploymentStatus}
                       onClick={() => onDeploymentClick(allTasks[0].data)}
                     />
                   )}
@@ -179,7 +181,9 @@ export default function DeploymentCalendar({
                       <MonthlyDeploymentCard
                         key={task.data.id}
                         title={task.data.title}
+                        stage={task.data.stage}
                         status={task.data.status}
+                        deploymentStatus={task.data.deploymentStatus}
                         onClick={() => onDeploymentClick(task.data)}
                       />
                     ),

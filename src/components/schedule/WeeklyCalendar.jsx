@@ -29,7 +29,6 @@ export default function WeeklyCalendar({
   onRestrictedPeriodClick,
   onDateChange,
 }) {
-  console.log('holidays', holidays);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
@@ -171,7 +170,9 @@ export default function WeeklyCalendar({
                       key={deployment.id}
                       title={deployment.title}
                       service={deployment.service}
+                      stage={deployment.stage}
                       status={deployment.status}
+                      deploymentStatus={deployment.deploymentStatus}
                       scheduledTime={deployment.scheduledTime}
                       onClick={() => onDeploymentClick(deployment)}
                     />
