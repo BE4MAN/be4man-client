@@ -7,6 +7,8 @@ export default function DateTimePicker({
   showLabel = false,
   error = false,
   disabled = false,
+  minDate,
+  allowedWeekdays,
 }) {
   return (
     <>
@@ -24,6 +26,8 @@ export default function DateTimePicker({
               value={date}
               onChange={onDateChange}
               disabled={disabled}
+              minDate={minDate}
+              allowedWeekdays={allowedWeekdays}
             />
           </S.DateRangeWrapper>
         </S.ErrorWrapper>

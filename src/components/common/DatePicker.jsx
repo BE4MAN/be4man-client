@@ -1,7 +1,13 @@
 import { useTheme } from '@emotion/react';
 import React, { useState, useRef, useEffect } from 'react';
 
-const DatePicker = ({ value, onChange, disabled = false }) => {
+const DatePicker = ({
+  value,
+  onChange,
+  disabled = false,
+  minDate,
+  allowedWeekdays,
+}) => {
   const theme = useTheme();
   const isDark = theme.mode === 'dark';
   const [isOpen, setIsOpen] = useState(false);
@@ -230,8 +236,29 @@ const DatePicker = ({ value, onChange, disabled = false }) => {
     );
   };
 
+  const isDateDisabled = (date) => {
+    if (!date) return false;
+
+    // minDate 체크
+    if (minDate) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      if (dateStr < minDate) return true;
+    }
+
+    // allowedWeekdays 체크 (숫자: 0=일요일, 1=월요일, ..., 6=토요일)
+    if (allowedWeekdays !== undefined && allowedWeekdays !== null) {
+      const dayOfWeek = date.getDay();
+      if (dayOfWeek !== allowedWeekdays) return true;
+    }
+
+    return false;
+  };
+
   const handleDateClick = (date) => {
-    if (!date) return;
+    if (!date || isDateDisabled(date)) return;
     // 로컬 날짜 기준으로 YYYY-MM-DD 형식 생성 (시간대 문제 방지)
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -284,20 +311,23 @@ const DatePicker = ({ value, onChange, disabled = false }) => {
         </div>
 
         <div style={styles.daysGrid}>
-          {days.map((day, idx) => (
-            <div
-              key={idx}
-              style={styles.dayCell(
-                isToday(day),
-                isDateSelected(day),
-                false,
-                false,
-              )}
-              onClick={() => handleDateClick(day)}
-            >
-              {day ? day.getDate() : ''}
-            </div>
-          ))}
+          {days.map((day, idx) => {
+            const isDisabled = isDateDisabled(day);
+            return (
+              <div
+                key={idx}
+                style={styles.dayCell(
+                  isToday(day),
+                  isDateSelected(day),
+                  isDisabled,
+                  false,
+                )}
+                onClick={() => handleDateClick(day)}
+              >
+                {day ? day.getDate() : ''}
+              </div>
+            );
+          })}
         </div>
       </div>
     );

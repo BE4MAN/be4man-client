@@ -17,6 +17,11 @@ import { useAuthStore } from '@/stores/authStore';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
 
 import { mockDeployments } from '../mockData';
+import {
+  getNextMonthlyWeekday,
+  getNextWeekday,
+  getTodayDate,
+} from '../utils/dateCalculator';
 
 import * as S from './RestrictedPeriodCreationPage.styles';
 
@@ -46,6 +51,7 @@ export default function RestrictedPeriodCreationPage() {
     time: false,
     description: false,
     services: false,
+    startDate: false,
   });
   const [touched, setTouched] = useState({
     title: false,
@@ -53,6 +59,7 @@ export default function RestrictedPeriodCreationPage() {
     time: false,
     description: false,
     services: false,
+    startDate: false,
   });
 
   // 서비스 목록 추출
@@ -83,6 +90,31 @@ export default function RestrictedPeriodCreationPage() {
     5: '다섯째 주',
   };
 
+  // 한글 요일 문자열을 숫자로 변환 (0=일요일, 1=월요일, ..., 6=토요일)
+  const weekdayToNumber = (weekday) => {
+    const weekdayMap = {
+      일요일: 0,
+      월요일: 1,
+      화요일: 2,
+      수요일: 3,
+      목요일: 4,
+      금요일: 5,
+      토요일: 6,
+    };
+    return weekdayMap[weekday] ?? null;
+  };
+
+  // allowedWeekdays 계산 (매주 또는 매월 반복일 때만)
+  const getAllowedWeekdays = () => {
+    if (
+      (recurrenceType === '매주' || recurrenceType === '매월') &&
+      recurrenceWeekday
+    ) {
+      return weekdayToNumber(recurrenceWeekday);
+    }
+    return null;
+  };
+
   const getRecurrenceSummary = () => {
     if (!recurrenceType || recurrenceType === '') return '없음';
 
@@ -110,6 +142,9 @@ export default function RestrictedPeriodCreationPage() {
   };
 
   const handleSaveClick = () => {
+    // 정기 이벤트 여부 확인
+    const isRegularEvent = recurrenceType && recurrenceType !== '';
+
     // 필수 필드 검증
     const titleError = !title.trim();
     const banTypeError = !banType || banType === '';
@@ -118,6 +153,8 @@ export default function RestrictedPeriodCreationPage() {
     const descriptionError = !description.trim();
     const servicesError =
       !Array.isArray(selectedServices) || selectedServices.length === 0;
+    // startDate는 비정기 이벤트일 때만 필수
+    const startDateError = !isRegularEvent && !startDate;
 
     setErrors({
       title: titleError,
@@ -125,6 +162,7 @@ export default function RestrictedPeriodCreationPage() {
       time: timeError,
       description: descriptionError,
       services: servicesError,
+      startDate: startDateError,
     });
 
     setTouched({
@@ -133,6 +171,7 @@ export default function RestrictedPeriodCreationPage() {
       time: true,
       description: true,
       services: true,
+      startDate: true,
     });
 
     // 모든 필드가 유효한 경우에만 충돌 확인 후 모달 열기
@@ -141,7 +180,8 @@ export default function RestrictedPeriodCreationPage() {
       !banTypeError &&
       !timeError &&
       !descriptionError &&
-      !servicesError
+      !servicesError &&
+      !startDateError
     ) {
       // 충돌된 배포 작업 조회
       setIsLoadingConflicts(true);
@@ -198,12 +238,15 @@ export default function RestrictedPeriodCreationPage() {
   const isDescriptionValid = description.trim().length > 0;
   const isServicesValid =
     Array.isArray(selectedServices) && selectedServices.length > 0;
+  const isRegularEvent = recurrenceType && recurrenceType !== '';
+  const isStartDateValid = isRegularEvent || !!startDate;
   const isFormValid =
     isTitleValid &&
     isBanTypeValid &&
     isTimeValid &&
     isDescriptionValid &&
-    isServicesValid;
+    isServicesValid &&
+    isStartDateValid;
 
   const handleDateChange = (date) => {
     setStartDate(date);
@@ -419,9 +462,16 @@ export default function RestrictedPeriodCreationPage() {
                         setRecurrenceEndDate('');
                         setIsRecurrenceEndNone(true);
                         if (nextType && nextType !== '') {
-                          // 금지 주기를 선택하면 금지 일자 초기화
-                          setStartDate('');
+                          // 정기 이벤트: 자동으로 날짜 계산
+                          if (nextType === '매일') {
+                            setStartDate(getTodayDate());
+                          } else {
+                            // 매주, 매월은 나중에 요일/주 선택 시 계산
+                            setStartDate('');
+                          }
                         } else {
+                          // 비정기 이벤트: 금지 일자 초기화
+                          setStartDate('');
                           setRecurrenceWeekday('');
                           setRecurrenceWeekOfMonth('');
                         }
@@ -440,7 +490,15 @@ export default function RestrictedPeriodCreationPage() {
                     <S.RecurrenceField>
                       <ScheduleCustomSelect
                         value={recurrenceWeekday}
-                        onChange={(value) => setRecurrenceWeekday(value || '')}
+                        onChange={(value) => {
+                          const weekday = value || '';
+                          setRecurrenceWeekday(weekday);
+                          if (weekday) {
+                            // 가장 가까운 요일 계산
+                            const nextDate = getNextWeekday(weekday);
+                            setStartDate(nextDate);
+                          }
+                        }}
                         options={[
                           { value: '월요일', label: '월요일' },
                           { value: '화요일', label: '화요일' },
@@ -460,9 +518,18 @@ export default function RestrictedPeriodCreationPage() {
                       <S.RecurrenceField>
                         <ScheduleCustomSelect
                           value={recurrenceWeekOfMonth}
-                          onChange={(value) =>
-                            setRecurrenceWeekOfMonth(value || '')
-                          }
+                          onChange={(value) => {
+                            const weekOfMonth = value || '';
+                            setRecurrenceWeekOfMonth(weekOfMonth);
+                            if (weekOfMonth && recurrenceWeekday) {
+                              // 가장 가까운 매월 N번째 주 N요일 계산
+                              const nextDate = getNextMonthlyWeekday(
+                                weekOfMonth,
+                                recurrenceWeekday,
+                              );
+                              setStartDate(nextDate);
+                            }
+                          }}
                           options={[
                             { value: '1', label: '첫째 주' },
                             { value: '2', label: '둘째 주' },
@@ -476,9 +543,18 @@ export default function RestrictedPeriodCreationPage() {
                       <S.RecurrenceField>
                         <ScheduleCustomSelect
                           value={recurrenceWeekday}
-                          onChange={(value) =>
-                            setRecurrenceWeekday(value || '')
-                          }
+                          onChange={(value) => {
+                            const weekday = value || '';
+                            setRecurrenceWeekday(weekday);
+                            if (weekday && recurrenceWeekOfMonth) {
+                              // 가장 가까운 매월 N번째 주 N요일 계산
+                              const nextDate = getNextMonthlyWeekday(
+                                recurrenceWeekOfMonth,
+                                weekday,
+                              );
+                              setStartDate(nextDate);
+                            }
+                          }}
                           options={[
                             { value: '월요일', label: '월요일' },
                             { value: '화요일', label: '화요일' },
@@ -524,6 +600,8 @@ export default function RestrictedPeriodCreationPage() {
                           showLabel={false}
                           error={false}
                           disabled={isRecurrenceEndNone}
+                          minDate={startDate || getTodayDate()}
+                          allowedWeekdays={getAllowedWeekdays()}
                         />
                       </S.RecurrenceEndPicker>
                     </S.RecurrenceEndControls>
@@ -534,12 +612,21 @@ export default function RestrictedPeriodCreationPage() {
           </S.MetaRow>
 
           <S.MetaRow>
-            <S.MetaTh>금지 일자</S.MetaTh>
+            <S.MetaTh>
+              금지 일자
+              {!isRegularEvent && <RequiredAsterisk>*</RequiredAsterisk>}
+            </S.MetaTh>
             <S.MetaTdDate colSpan={3}>
               <DateTimePicker
                 date={startDate}
                 onDateChange={(date) => {
                   handleDateChange(date);
+                  if (touched.startDate) {
+                    setErrors((prev) => ({
+                      ...prev,
+                      startDate: !isRegularEvent && !date,
+                    }));
+                  }
                   // 금지 일자를 선택하면 금지 주기 초기화
                   if (date) {
                     setRecurrenceType('');
@@ -547,10 +634,21 @@ export default function RestrictedPeriodCreationPage() {
                     setRecurrenceWeekOfMonth('');
                   }
                 }}
+                onBlur={() =>
+                  setTouched((prev) => ({ ...prev, startDate: true }))
+                }
                 showLabel={false}
-                error={false}
+                error={touched.startDate && errors.startDate}
                 disabled={!!recurrenceType && recurrenceType !== ''}
+                minDate={getTodayDate()}
               />
+              {touched.startDate && errors.startDate && (
+                <div
+                  style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}
+                >
+                  금지 일자를 선택해주세요
+                </div>
+              )}
             </S.MetaTdDate>
           </S.MetaRow>
 
