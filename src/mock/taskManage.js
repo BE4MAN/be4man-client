@@ -1,7 +1,7 @@
 const mockData = [
   // ========== 3. 레포트: 1명만 승인, 계획서는 5명 모두 승인 ==========
   {
-    id: 503,
+    id: 2,
     drafter: '정서진',
     department: '개발3팀',
     serviceName: 'Frontend Framework',
@@ -24,16 +24,33 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '프론트엔드 프레임워크 최신 버전 업그레이드',
-      goals: ['빌드 시간 40% 단축', '번들 크기 30% 감소'],
-      schedule: { start: '2025-08-13 14:00', end: '2025-08-13 16:00' },
-      assignees: [{ name: '정서진', role: '개발자', department: '개발3팀' }],
-      activities: ['프레임워크 업그레이드', '의존성 업데이트', '테스트'],
-      risks: [],
-      backupPlan: '이전 버전 유지',
-      recoveryPlan: ['즉시 롤백'],
-    },
+    detailInfo: `1. 개요
+프론트엔드 프레임워크를 최신 버전으로 업그레이드하여 빌드 성능과 번들 크기를 최적화합니다.
+
+2. 목표
+- 빌드 시간 40% 단축
+- 번들 크기 30% 감소
+- 최신 기능 활용 및 보안 패치 적용
+
+3. 일정
+시작: 2025-08-13 14:00
+종료: 2025-08-13 16:00
+
+4. 수행 내용
+- 프레임워크 업그레이드 (v16 → v18)
+- 의존성 패키지 최신화
+- 테스트 코드 실행 및 검증
+- 배포 스크립트 업데이트
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 버전 유지 및 Git 태그 생성
+
+7. 실패 시 복구 방안
+- 즉시 이전 버전으로 롤백
+- Git 태그를 이용한 신속한 복구`,
 
     approval: {
       canApprove: false,
@@ -159,16 +176,20 @@ const mockData = [
       },
     },
 
-    report: {
-      summary: '프론트엔드 업그레이드 배포 완료. 성능 목표 달성.',
-      performanceMetrics: {
-        before: '빌드 시간 60초, 번들 크기 500KB',
-        after: '빌드 시간 36초, 번들 크기 350KB',
-        improvement: '40% 빌드 시간 단축, 30% 번들 크기 감소',
-      },
-      issuesFound: [],
-      nextSteps: ['성능 모니터링'],
-    },
+    report: `요약
+프론트엔드 프레임워크 업그레이드 배포가 성공적으로 완료되었습니다. 목표했던 성능 개선이 모두 달성되었습니다.
+
+성능 지표
+- 이전: 빌드 시간 60초, 번들 크기 500KB
+- 현재: 빌드 시간 36초, 번들 크기 350KB
+- 개선율: 빌드 시간 40% 단축, 번들 크기 30% 감소
+
+발견된 이슈
+특이사항 없음
+
+다음 단계
+- 프로덕션 성능 모니터링 지속
+- 사용자 피드백 수집`,
 
     jenkinsLog: {
       buildNumber: '2872',
@@ -225,16 +246,28 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: 'ML 모델 실시간 배포',
-      goals: ['모델 정확도 95% 달성'],
-      schedule: { start: '2025-08-14 09:00', end: '2025-08-14 11:00' },
-      assignees: [{ name: '이준호', role: '개발자', department: '개발5팀' }],
-      activities: ['모델 로드', '검증'],
-      risks: [],
-      backupPlan: '이전 모델 유지',
-      recoveryPlan: ['즉시 롤백'],
-    },
+    detailInfo: `1. 개요
+ML 모델 실시간 배포
+
+2. 목표
+- 모델 정확도 95% 달성
+
+3. 일정
+시작: 2025-08-14 09:00
+종료: 2025-08-14 11:00
+
+4. 수행 내용
+- 모델 로드
+- 검증
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 모델 유지
+
+7. 실패 시 복구 방안
+- 즉시 롤백`,
 
     approval: {
       canApprove: false,
@@ -344,16 +377,27 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '실시간 분석 시스템 배포',
-      goals: ['응답시간 100ms 이하'],
-      schedule: { start: '2025-08-14 14:00', end: '2025-08-14 16:00' },
-      assignees: [{ name: '김석주', role: '개발자', department: '개발6팀' }],
-      activities: ['시스템 배포'],
-      risks: [],
-      backupPlan: '이전 시스템 유지',
-      recoveryPlan: ['즉시 롤백'],
-    },
+    detailInfo: `1. 개요
+실시간 분석 시스템 배포
+
+2. 목표
+- 응답시간 100ms 이하
+
+3. 일정
+시작: 2025-08-14 14:00
+종료: 2025-08-14 16:00
+
+4. 수행 내용
+- 시스템 배포
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 시스템 유지
+
+7. 실패 시 복구 방안
+- 즉시 롤백`,
 
     approval: {
       canApprove: false,
@@ -452,16 +496,27 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '메시지 큐 성능 최적화',
-      goals: ['처리량 50% 향상'],
-      schedule: { start: '2025-08-15 10:00', end: '2025-08-15 11:00' },
-      assignees: [{ name: '임영준', role: '개발자', department: '개발8팀' }],
-      activities: ['성능 튜닝'],
-      risks: [],
-      backupPlan: '이전 큐 유지',
-      recoveryPlan: ['롤백'],
-    },
+    detailInfo: `1. 개요
+메시지 큐 성능 최적화
+
+2. 목표
+- 처리량 50% 향상
+
+3. 일정
+시작: 2025-08-15 10:00
+종료: 2025-08-15 11:00
+
+4. 수행 내용
+- 성능 튜닝
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 큐 유지
+
+7. 실패 시 복구 방안
+- 롤백`,
 
     approval: {
       canApprove: false,
@@ -515,16 +570,19 @@ const mockData = [
       },
     },
 
-    report: {
-      summary: '메시지 큐 최적화 배포 완료.',
-      performanceMetrics: {
-        before: '처리량 1000/s',
-        after: '처리량 1500/s',
-        improvement: '50% 향상',
-      },
-      issuesFound: [],
-      nextSteps: ['모니터링'],
-    },
+    report: `요약
+메시지 큐 최적화 배포 완료.
+
+성능 지표
+- 이전: 처리량 1000/s
+- 현재: 처리량 1500/s
+- 개선율: 50% 향상
+
+발견된 이슈
+특이사항 없음
+
+다음 단계
+- 모니터링`,
 
     jenkinsLog: {
       buildNumber: '2875',
@@ -559,7 +617,7 @@ const mockData = [
 
   // ========== 9. 레포트 모든 단계 승인 완료 ==========
   {
-    id: 509,
+    id: 1,
     drafter: '강명수',
     department: '개발9팀',
     serviceName: 'Data Pipeline',
@@ -582,16 +640,27 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '데이터 파이프라인 확장',
-      goals: ['데이터 처리량 2배'],
-      schedule: { start: '2025-08-15 14:00', end: '2025-08-15 15:00' },
-      assignees: [{ name: '강명수', role: '개발자', department: '개발9팀' }],
-      activities: ['파이프라인 확장'],
-      risks: [],
-      backupPlan: '이전 파이프라인',
-      recoveryPlan: ['롤백'],
-    },
+    detailInfo: `1. 개요
+데이터 파이프라인 확장
+
+2. 목표
+- 데이터 처리량 2배
+
+3. 일정
+시작: 2025-08-15 14:00
+종료: 2025-08-15 15:00
+
+4. 수행 내용
+- 파이프라인 확장
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 파이프라인
+
+7. 실패 시 복구 방안
+- 롤백`,
 
     approval: {
       canApprove: false,
@@ -649,16 +718,19 @@ const mockData = [
       nextReportApprover: null,
     },
 
-    report: {
-      summary: '데이터 파이프라인 확장 완료.',
-      performanceMetrics: {
-        before: '처리량 100GB/day',
-        after: '처리량 200GB/day',
-        improvement: '2배 처리량 증가',
-      },
-      issuesFound: [],
-      nextSteps: ['추가 모니터링'],
-    },
+    report: `요약
+데이터 파이프라인 확장 완료.
+
+성능 지표
+- 이전: 처리량 100GB/day
+- 현재: 처리량 200GB/day
+- 개선율: 2배 처리량 증가
+
+발견된 이슈
+특이사항 없음
+
+다음 단계
+- 추가 모니터링`,
 
     jenkinsLog: {
       buildNumber: '2876',
@@ -716,16 +788,27 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '모니터링 시스템 업그레이드',
-      goals: ['모니터링 응답시간 50% 단축'],
-      schedule: { start: '2025-08-16 09:00', end: '2025-08-16 11:00' },
-      assignees: [{ name: '한동준', role: '개발자', department: '개발10팀' }],
-      activities: ['메트릭 수집 개선'],
-      risks: [],
-      backupPlan: '이전 모니터링',
-      recoveryPlan: ['롤백'],
-    },
+    detailInfo: `1. 개요
+모니터링 시스템 업그레이드
+
+2. 목표
+- 모니터링 응답시간 50% 단축
+
+3. 일정
+시작: 2025-08-16 09:00
+종료: 2025-08-16 11:00
+
+4. 수행 내용
+- 메트릭 수집 개선
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 모니터링
+
+7. 실패 시 복구 방안
+- 롤백`,
 
     approval: {
       canApprove: false,
@@ -832,16 +915,27 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '배치 작업 성능 개선',
-      goals: ['배치 실행 시간 30% 단축'],
-      schedule: { start: '2025-08-14 01:00', end: '2025-08-14 03:00' },
-      assignees: [{ name: '최준우', role: '개발자', department: '개발4팀' }],
-      activities: ['병렬 처리 개선'],
-      risks: [],
-      backupPlan: '이전 배치 유지',
-      recoveryPlan: ['즉시 롤백'],
-    },
+    detailInfo: `1. 개요
+배치 작업 성능 개선
+
+2. 목표
+- 배치 실행 시간 30% 단축
+
+3. 일정
+시작: 2025-08-14 01:00
+종료: 2025-08-14 03:00
+
+4. 수행 내용
+- 병렬 처리 개선
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 배치 유지
+
+7. 실패 시 복구 방안
+- 즉시 롤백`,
 
     approval: {
       canApprove: false,
@@ -951,21 +1045,34 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '결제 게이트웨이를 최신 버전으로 업그레이드',
-      goals: ['결제 성공률 개선', '보안 강화', '응답 속도 개선'],
-      schedule: { start: '2025-08-14 02:00', end: '2025-08-14 06:00' },
-      assignees: [{ name: '이준호', role: '개발자', department: '개발5팀' }],
-      activities: ['라이브러리 업데이트', '테스트', '배포', '모니터링'],
-      risks: [
-        {
-          description: '결제 서비스 중단 위험',
-          mitigation: '무중단 배포(Blue-Green) 전략 사용',
-        },
-      ],
-      backupPlan: '이전 버전 즉시 롤백',
-      recoveryPlan: ['즉시 롤백', '고객 통보'],
-    },
+    detailInfo: `1. 개요
+결제 게이트웨이를 최신 버전으로 업그레이드
+
+2. 목표
+- 결제 성공률 개선
+- 보안 강화
+- 응답 속도 개선
+
+3. 일정
+시작: 2025-08-14 02:00
+종료: 2025-08-14 06:00
+
+4. 수행 내용
+- 라이브러리 업데이트
+- 테스트
+- 배포
+- 모니터링
+
+5. 리스크
+- 결제 서비스 중단 위험
+  → 무중단 배포(Blue-Green) 전략 사용
+
+6. 백업 계획
+이전 버전 즉시 롤백
+
+7. 실패 시 복구 방안
+- 즉시 롤백
+- 고객 통보`,
 
     approval: {
       canApprove: true, // ✅ 나(로그인한 사용자)가 승인할 수 있음
@@ -1053,16 +1160,30 @@ const mockData = [
       },
     },
 
-    detailInfo: {
-      overview: '사용자 서비스 확장 및 신규 기능 추가',
-      goals: ['사용자 프로필 기능 추가', '알림 시스템 개선'],
-      schedule: { start: '2025-08-17 14:00', end: '2025-08-17 16:00' },
-      assignees: [{ name: '정서연', role: '개발자', department: '개발12팀' }],
-      activities: ['프로필 모듈 개발', '알림 API 개선', '테스트'],
-      risks: [],
-      backupPlan: '이전 버전 유지',
-      recoveryPlan: ['롤백'],
-    },
+    detailInfo: `1. 개요
+사용자 서비스 확장 및 신규 기능 추가
+
+2. 목표
+- 사용자 프로필 기능 추가
+- 알림 시스템 개선
+
+3. 일정
+시작: 2025-08-17 14:00
+종료: 2025-08-17 16:00
+
+4. 수행 내용
+- 프로필 모듈 개발
+- 알림 API 개선
+- 테스트
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 버전 유지
+
+7. 실패 시 복구 방안
+- 롤백`,
 
     approval: {
       canApprove: false,
@@ -1123,6 +1244,291 @@ const mockData = [
       { step: '배포 종료', status: '', time: null, disabled: true },
       { step: '결과 보고', status: '', time: null, disabled: true },
       { step: '결과 승인', status: '', time: null, disabled: true },
+    ],
+  },
+
+  // ========== 13. 계획서 단계 - 내가 2번째로 승인했는데 3번째가 반려해서 취소됨 ==========
+  {
+    id: 515,
+    drafter: '박민수',
+    department: '개발11팀',
+    serviceName: 'Payment API',
+    taskTitle: 'Payment Gateway 업그레이드',
+    stage: '계획서',
+    status: '취소',
+    completionTime: '2025-08-13 14:30',
+    result: null,
+
+    planInfo: {
+      type: 'Upgrade',
+      environment: 'PROD',
+      impact: '높음',
+      risk: { level: '중간' },
+      assignee: '박민수',
+      draftDate: '2025-08-12',
+      deploymentDateTime: {
+        start: '2025-08-14 02:00',
+        end: '2025-08-14 06:00',
+      },
+    },
+
+    detailInfo: `1. 개요
+결제 게이트웨이를 최신 버전으로 업그레이드
+
+2. 목표
+- 결제 성공률 개선
+- 보안 강화
+- 응답 속도 개선
+
+3. 일정
+시작: 2025-08-14 02:00
+종료: 2025-08-14 06:00
+
+4. 수행 내용
+- 라이브러리 업데이트
+- 테스트
+- 배포
+- 모니터링
+
+5. 리스크
+- 결제 서비스 중단 위험
+  → 무중단 배포(Blue-Green) 전략 사용
+
+6. 백업 계획
+이전 버전 즉시 롤백
+
+7. 실패 시 복구 방안
+- 즉시 롤백
+- 고객 통보`,
+
+    approval: {
+      canApprove: false,
+      canCancel: false,
+      planApprovalHistory: [
+        {
+          approver: '정팀장',
+          department: '개발11팀',
+          role: '팀장',
+          email: 'jung.payment@company.com',
+          phone: '02-1234-7041',
+          status: '승인',
+          approvedAt: '2025-08-12 15:00',
+          comment: '기술 검토 완료.',
+          order: 1,
+        },
+        {
+          approver: '허팀장',
+          department: '품질보증팀',
+          role: '팀장',
+          email: 'current.user@company.com',
+          phone: '02-1234-8030',
+          status: '승인',
+          approvedAt: '2025-08-13 10:00',
+          comment: '품질 검토 완료. 승인합니다.',
+          order: 2,
+        },
+        {
+          approver: '김이사',
+          department: '개발본부',
+          role: '이사',
+          email: 'kim.director@company.com',
+          phone: '02-1234-7042',
+          status: '반려',
+          approvedAt: '2025-08-13 14:30',
+          comment: '보안 검토 미흡. 추가 검증 필요.',
+          order: 3,
+        },
+      ],
+      pendingApprovers: [],
+      nextApprover: null,
+      reportApprovalHistory: [],
+
+      cancellationHistory: {
+        cancelledBy: '김이사',
+        department: '개발본부',
+        role: '이사',
+        email: 'kim.director@company.com',
+        phone: '02-1234-7042',
+        cancelledAt: '2025-08-13 14:30',
+        reason: '보안 검토 미흡. 추가 검증 필요.',
+        stage: '계획서 승인',
+        type: 'REJECTED',
+      },
+    },
+
+    report: null,
+    jenkinsLog: null,
+
+    timeline: [
+      { step: '작업 신청', status: '완료', time: '2025-08-12 14:00' },
+      {
+        step: '작업 승인',
+        status: '반려',
+        time: '2025-08-13 14:30',
+        rejected: true,
+        rejectedBy: '김이사',
+      },
+      { step: '배포 시작', status: '', time: null, disabled: true },
+      { step: '배포 종료', status: '', time: null, disabled: true },
+      { step: '결과 보고', status: '', time: null, disabled: true },
+      { step: '결과 승인', status: '', time: null, disabled: true },
+    ],
+  },
+
+  // ========== 14. 결과보고 단계 - 2명 승인했는데 3번째가 반려해서 모두에게 반려로 표시 ==========
+  {
+    id: 516,
+    drafter: '최수영',
+    department: '개발13팀',
+    serviceName: 'Notification Service',
+    taskTitle: '알림 서비스 확장',
+    stage: '결과보고',
+    status: '반려',
+    completionTime: '2025-08-17 16:00',
+    result: '성공',
+
+    planInfo: {
+      type: 'Feature',
+      environment: 'PROD',
+      impact: '중간',
+      risk: { level: '중간' },
+      assignee: '최수영',
+      draftDate: '2025-08-15',
+      deploymentDateTime: {
+        start: '2025-08-17 10:00',
+        end: '2025-08-17 12:00',
+      },
+    },
+
+    detailInfo: `1. 개요
+알림 서비스 확장
+
+2. 목표
+- 푸시 알림 기능 추가
+- 알림 발송률 개선
+
+3. 일정
+시작: 2025-08-17 10:00
+종료: 2025-08-17 12:00
+
+4. 수행 내용
+- 알림 API 개발
+- 푸시 연동
+- 테스트
+
+5. 리스크
+특이사항 없음
+
+6. 백업 계획
+이전 알림 시스템 유지
+
+7. 실패 시 복구 방안
+- 롤백`,
+
+    approval: {
+      canApprove: false,
+      planApprovalHistory: [
+        {
+          approver: '유팀장',
+          department: '개발13팀',
+          role: '팀장',
+          email: 'yoo.noti@company.com',
+          phone: '02-1234-7043',
+          status: '승인',
+          approvedAt: '2025-08-15 16:00',
+          comment: '기술 검토 완료.',
+          order: 1,
+        },
+      ],
+      pendingApprovers: [],
+      nextApprover: null,
+
+      reportApprovalHistory: [
+        {
+          approver: '송팀장',
+          department: '개발13팀',
+          role: '팀장',
+          email: 'song.noti@company.com',
+          phone: '02-1234-7044',
+          status: '승인',
+          approvedAt: '2025-08-17 13:00',
+          comment: '배포 결과 확인.',
+          order: 1,
+        },
+        {
+          approver: '허팀장',
+          department: '품질보증팀',
+          role: '팀장',
+          email: 'current.user@company.com',
+          phone: '02-1234-8030',
+          status: '승인',
+          approvedAt: '2025-08-17 14:00',
+          comment: '품질 검토 완료. 승인합니다.',
+          order: 2,
+        },
+        {
+          approver: '정이사',
+          department: '개발본부',
+          role: '이사',
+          email: 'jung.director@company.com',
+          phone: '02-1234-7045',
+          status: '반려',
+          approvedAt: '2025-08-17 16:00',
+          comment: '성능 모니터링 데이터 부족. 추가 분석 후 재보고 필요.',
+          order: 3,
+        },
+      ],
+      nextReportApprover: null,
+    },
+
+    report: `요약
+알림 서비스 확장 배포 완료.
+
+성능 지표
+- 이전: 푸시 발송률 70%
+- 현재: 푸시 발송률 85%
+- 개선율: 15% 향상
+
+발견된 이슈
+특이사항 없음
+
+다음 단계
+- 성능 모니터링 강화`,
+
+    jenkinsLog: {
+      buildNumber: '2878',
+      status: '성공',
+      duration: '50분',
+      branch: 'main',
+      pr: '#4548 - Notification Service',
+      pipeline: [
+        { name: 'Build', status: '성공' },
+        { name: 'Deploy to Prod', status: '성공' },
+      ],
+      logs: [
+        { time: '10:00:00', level: 'INFO', message: '[Build] 시작' },
+        { time: '10:50:00', level: 'INFO', message: '[Deploy] 완료' },
+      ],
+    },
+
+    timeline: [
+      { step: '작업 신청', status: '완료', time: '2025-08-15 15:00' },
+      { step: '작업 승인', status: '완료', time: '2025-08-15 16:00' },
+      { step: '배포 시작', status: '완료', time: '2025-08-17 10:00' },
+      {
+        step: '배포 종료',
+        status: '완료',
+        time: '2025-08-17 10:50',
+        result: '성공',
+      },
+      { step: '결과 보고', status: '완료', time: '2025-08-17 13:00' },
+      {
+        step: '결과 승인',
+        status: '반려',
+        time: '2025-08-17 16:00',
+        rejected: true,
+        rejectedBy: '정이사',
+      },
     ],
   },
 ];

@@ -115,16 +115,21 @@ export default function Sidebar() {
   const isScheduleFamily =
     pathname === PATHS.SCHEDULE || pathname.startsWith(`${PATHS.SCHEDULE}/`);
 
+  const isTasksFamily =
+    pathname === PATHS.TASKS || pathname.startsWith('/tasks/');
+
   return (
     <S.Aside open={sidebarOpen}>
       <S.MenuWrap>
         {items.map((it) => {
-          let forceActive = false;
-          if (it.key === 'approvals') {
-            forceActive = isApprovalFamily;
-          } else if (it.key === 'schedule') {
-            forceActive = isScheduleFamily;
-          }
+          const forceActive =
+            it.key === 'approvals'
+              ? isApprovalFamily
+              : it.key === 'schedule'
+                ? isScheduleFamily
+                : it.key === 'tasks'
+                  ? isTasksFamily
+                  : false;
 
           return (
             <S.Item

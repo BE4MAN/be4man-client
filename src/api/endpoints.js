@@ -12,4 +12,9 @@ export const API_ENDPOINTS = {
 
   // Account
   ME: '/api/accounts/me',
+
+  // Task
+  CONSOLE_LOG: '/api/console-log',
+  BUILD_RESULT: '/api/build-result',
+  ALL_STAGES: '/api/console-log',
 };

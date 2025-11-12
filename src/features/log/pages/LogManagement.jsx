@@ -3,7 +3,13 @@ import { useTheme } from '@emotion/react';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// ========== [IMPORT 전환] 백엔드 사용 시 아래 주석 해제 ==========
+// import { getTasks } from '../../../api/taskManagement';
+// ========== [IMPORT 전환 끝] ==========
+
+// ========== [IMPORT 전환] 목 데이터 사용 시 아래 주석 해제 ==========
 import mockData from '../../../mock/taskManage';
+// ========== [IMPORT 전환 끝] ==========
 
 import DateRangePicker from './DateRangePicker';
 import { getStyles } from './LogManagement.style';
@@ -32,7 +38,7 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
     button: {
       width: '100%',
       padding: '8px 12px',
-      backgroundColor: theme.mode === 'dark' ? '#ffffff' : '#ffffff',
+      backgroundColor: theme.mode === 'dark' ? '#2a2a2a' : '#ffffff',
       border: `1px solid ${theme.colors.border}`,
       borderRadius: '6px',
       cursor: 'pointer',
@@ -40,7 +46,7 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       fontSize: '14px',
-      color: theme.colors.text,
+      color: theme.mode === 'dark' ? '#e0e0e0' : '#333333',
     },
     menu: {
       position: 'absolute',
@@ -68,7 +74,11 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
           ? 'rgba(33, 150, 243, 0.3)'
           : theme.colors.brandLight || 'rgba(33, 150, 243, 0.1)'
         : 'transparent',
-      color: isSelected ? theme.colors.brand : theme.colors.text,
+      color: isSelected
+        ? theme.colors.brand
+        : theme.mode === 'dark'
+          ? '#e0e0e0'
+          : '#333333',
     }),
   };
 
@@ -122,10 +132,18 @@ export default function LogManagement() {
 
   const PAGE_SIZE = 8;
 
+  // ========== [상태 변수 전환] 백엔드 사용 시 아래 주석 해제 ==========
+  // const [tasks, setTasks] = useState([]);
+  // const [totalPages, setTotalPages] = useState(0);
+  // const [totalElements, setTotalElements] = useState(0);
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState(null);
+  // ========== [상태 변수 전환 끝] ==========
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
-    처리단계: '전체',
-    처리상태: '전체',
+    작업단계: '전체',
+    작업상태: '전체',
     결과: '전체',
     시작일: '',
     종료일: '',
@@ -133,7 +151,6 @@ export default function LogManagement() {
   });
   const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
-  //   const [hoveredRow, setHoveredRow] = useState(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const [clearBtnHovered, setClearBtnHovered] = useState(false);
   const [resetBtnHovered, setResetBtnHovered] = useState(false);
@@ -154,8 +171,8 @@ export default function LogManagement() {
 
   const resetFilters = () => {
     setFilters({
-      처리단계: '전체',
-      처리상태: '전체',
+      작업단계: '전체',
+      작업상태: '전체',
       결과: '전체',
       시작일: '',
       종료일: '',
@@ -163,8 +180,52 @@ export default function LogManagement() {
     });
     setSortOrder('desc');
     setSearchQuery('');
+    setCurrentPage(1);
   };
 
+  // ========== [데이터 로직 전환] 백엔드 사용 시 아래 주석 해제 ==========
+  // const fetchTasks = async () => {
+  //   try {
+  //     setLoading(true);
+  //     setError(null);
+  //
+  //     const params = {
+  //       page: currentPage - 1, // 백엔드는 0부터 시작
+  //       size: PAGE_SIZE,
+  //       searchQuery: searchQuery,
+  //       stage: filters.작업단계,
+  //       status: filters.작업상태,
+  //       result: filters.결과,
+  //       sortBy: filters.순서,
+  //     };
+  //
+  //     const response = await getTasks(params);
+  //
+  //     setTasks(response.content);
+  //     setTotalPages(response.totalPages);
+  //     setTotalElements(response.totalElements);
+  //   } catch (err) {
+  //     console.error('작업 목록 조회 실패:', err);
+  //     setError('작업 목록을 불러오는데 실패했습니다.');
+  //     setTasks([]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  //
+  // // 필터 또는 검색어 변경 시 페이지를 1로 리셋
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [searchQuery, filters]);
+  //
+  // // 필터, 검색어, 페이지 변경 시 API 호출
+  // useEffect(() => {
+  //   fetchTasks();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [currentPage, searchQuery, filters]);
+  // ========== [데이터 로직 전환 끝] ==========
+
+  // ========== [데이터 로직 전환] 목 데이터 사용 시 아래 주석 해제 ==========
   const filteredData = mockData
     .filter((item) => {
       const matchesSearch =
@@ -175,9 +236,9 @@ export default function LogManagement() {
         item.taskTitle.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStage =
-        filters.처리단계 === '전체' || item.stage === filters.처리단계;
+        filters.작업단계 === '전체' || item.stage === filters.작업단계;
       const matchesStatus =
-        filters.처리상태 === '전체' || item.status === filters.처리상태;
+        filters.작업상태 === '전체' || item.status === filters.작업상태;
       const matchesResult =
         filters.결과 === '전체' ||
         (item.result && item.result === filters.결과);
@@ -204,6 +265,13 @@ export default function LogManagement() {
 
   const start = (currentPage - 1) * PAGE_SIZE;
   const pageData = filteredData.slice(start, start + PAGE_SIZE);
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+
+  // 필터 또는 검색어 변경 시 페이지를 1로 리셋
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filters]);
+  // ========== [데이터 로직 전환 끝] ==========
 
   const renderBadge = (text, type) => {
     return <span style={styles.badge(type, text)}>{text}</span>;
@@ -213,14 +281,8 @@ export default function LogManagement() {
     if (result) {
       return renderBadge(result, 'result');
     }
-    return <span style={{ color: theme.colors.textSecondary }}>-</span>;
+    return <span style={{ color: theme.colors.textsecondary }}>-</span>;
   };
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, filters]);
-
-  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
 
   // 상세보기 페이지로 이동
   const handleDetailClick = (itemId) => {
@@ -258,7 +320,7 @@ export default function LogManagement() {
 
   return (
     <div style={styles.container}>
-      {/* 검색 및 필터 영역 (이전 코드 동일) */}
+      {/* 검색 및 필터 영역 */}
       <div style={styles.searchFilterSection}>
         <div style={styles.topControls}>
           <div style={styles.searchBar}>
@@ -316,21 +378,21 @@ export default function LogManagement() {
         <div style={styles.filtersPanel}>
           <div style={styles.filtersRow}>
             <div style={styles.filterRowItem}>
-              <label style={styles.filterLabel}>처리 단계</label>
+              <label style={styles.filterLabel}>작업 단계</label>
               <CustomDropdown
                 label=""
                 options={['전체', '계획서', '배포', '결과보고']}
-                value={filters.처리단계}
-                onChange={(val) => handleFilter('처리단계', val)}
+                value={filters.작업단계}
+                onChange={(val) => handleFilter('작업단계', val)}
               />
             </div>
             <div style={styles.filterRowItem}>
-              <label style={styles.filterLabel}>처리 상태</label>
+              <label style={styles.filterLabel}>작업 상태</label>
               <CustomDropdown
                 label=""
-                options={['전체', '승인대기', '진행중', '취소', '완료', '종료']}
-                value={filters.처리상태}
-                onChange={(val) => handleFilter('처리상태', val)}
+                options={['전체', '대기', '진행중', '취소', '반려', '완료']}
+                value={filters.작업상태}
+                onChange={(val) => handleFilter('작업상태', val)}
               />
             </div>
             <div style={styles.filterRowItem}>
@@ -376,13 +438,14 @@ export default function LogManagement() {
               <th style={styles.th}>부서</th>
               <th style={styles.th}>서비스명</th>
               <th style={styles.th}>작업 제목</th>
-              <th style={styles.th}>처리 단계</th>
-              <th style={styles.th}>처리 상태</th>
+              <th style={styles.th}>작업 단계</th>
+              <th style={styles.th}>작업 상태</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>완료 시각</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>배포 결과</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>상세</th>
             </tr>
           </thead>
+          {/* ========== [테이블 렌더링 전환] 목 데이터 사용 시 아래 영역 유지 ========== */}
           <tbody>
             {pageData.length > 0 ? (
               pageData.map((item) => (
@@ -406,7 +469,7 @@ export default function LogManagement() {
                   </td>
                   <td style={{ ...styles.td, textAlign: 'center' }}>
                     {item.completionTime || (
-                      <span style={{ color: theme.colors.textSecondary }}>
+                      <span style={{ color: theme.colors.textsecondary }}>
                         -
                       </span>
                     )}
@@ -443,16 +506,24 @@ export default function LogManagement() {
               ))
             ) : (
               <tr>
-                <td colSpan="10" style={{ ...styles.td, padding: '40px' }}>
+                <td
+                  colSpan="10"
+                  style={{
+                    ...styles.td,
+                    padding: '40px',
+                    textAlign: 'center',
+                  }}
+                >
                   검색 결과가 없습니다.
                 </td>
               </tr>
             )}
           </tbody>
+          {/* ========== [테이블 렌더링 전환 끝] ========== */}
         </table>
       </div>
 
-      {/* 페이지네이션 (이전 코드 동일) */}
+      {/* 페이지네이션 */}
       <div style={styles.pagination}>
         <button
           style={{
@@ -460,7 +531,8 @@ export default function LogManagement() {
               currentPage === 1,
               hoveredPaginationBtn === 'prev',
             ),
-            pointerEvents: currentPage === 1 ? 'none' : 'auto', // ← 추가
+            /* stylelint-disable-next-line value-keyword-case */
+            pointerEvents: currentPage === 1 ? 'none' : 'auto',
           }}
           onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
           disabled={currentPage === 1}
@@ -506,14 +578,14 @@ export default function LogManagement() {
           ));
         })()}
 
-        {/* 다음 페이지 버튼 */}
         <button
           style={{
             ...styles.paginationArrow(
               currentPage === totalPages,
               hoveredPaginationBtn === 'next',
             ),
-            pointerEvents: currentPage === totalPages ? 'none' : 'auto', // ← 추가
+            /* stylelint-disable-next-line value-keyword-case */
+            pointerEvents: currentPage === totalPages ? 'none' : 'auto',
           }}
           onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
           disabled={currentPage === totalPages}
