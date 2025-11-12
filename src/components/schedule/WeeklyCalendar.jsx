@@ -153,30 +153,36 @@ export default function WeeklyCalendar({
                   ) : null}
                 </S.DayNumber>
                 <S.CardList>
-                  {dayRestrictedPeriods.map((period) => (
-                    <RestrictedPeriodCard
-                      key={period.id}
-                      title={period.title}
-                      type={period.type}
-                      startTime={period.startTime}
-                      endTime={period.computedEndTime}
-                      isFirstCard={period.isFirstCard}
-                      isLastCard={period.isLastCard}
-                      onClick={() => onRestrictedPeriodClick(period)}
-                    />
-                  ))}
-                  {dayDeployments.map((deployment) => (
-                    <DeploymentCard
-                      key={deployment.id}
-                      title={deployment.title}
-                      service={deployment.service}
-                      stage={deployment.stage}
-                      status={deployment.status}
-                      deploymentStatus={deployment.deploymentStatus}
-                      scheduledTime={deployment.scheduledTime}
-                      onClick={() => onDeploymentClick(deployment)}
-                    />
-                  ))}
+                  {dayRestrictedPeriods.map((period, periodIndex) => {
+                    const dateStr = format(day, 'yyyy-MM-dd');
+                    return (
+                      <RestrictedPeriodCard
+                        key={`period-${period.id}-${dateStr}-${period.startTime}-${periodIndex}`}
+                        title={period.title}
+                        type={period.type}
+                        startTime={period.startTime}
+                        endTime={period.computedEndTime}
+                        isFirstCard={period.isFirstCard}
+                        isLastCard={period.isLastCard}
+                        onClick={() => onRestrictedPeriodClick(period)}
+                      />
+                    );
+                  })}
+                  {dayDeployments.map((deployment, deploymentIndex) => {
+                    const dateStr = format(day, 'yyyy-MM-dd');
+                    return (
+                      <DeploymentCard
+                        key={`deployment-${deployment.id}-${dateStr}-${deployment.scheduledTime}-${deploymentIndex}`}
+                        title={deployment.title}
+                        service={deployment.service}
+                        stage={deployment.stage}
+                        status={deployment.status}
+                        deploymentStatus={deployment.deploymentStatus}
+                        scheduledTime={deployment.scheduledTime}
+                        onClick={() => onDeploymentClick(deployment)}
+                      />
+                    );
+                  })}
                 </S.CardList>
               </S.DayCell>
             );

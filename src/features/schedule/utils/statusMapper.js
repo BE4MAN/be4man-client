@@ -62,28 +62,55 @@ export const getDeploymentStatusIcon = (status, theme) => {
 
 /**
  * 배포 상태에 따른 한국어 라벨 반환
- * @param {string} status - 배포 상태
- * @returns {string} 한국어 라벨
+ * @param {string} status - 배포 상태 (Enum 값 또는 영어 문자열)
+ * @returns {string} 한국어 라벨 또는 '—' (PENDING인 경우)
  */
 export const getDeploymentStatusLabel = (status) => {
+  if (!status) return '—';
+
+  // Enum 값 처리
   switch (status) {
     case 'PLAN_PENDING':
       return '작업계획서 승인 대기';
 
     case 'DEPLOYMENT_PENDING':
-      return '배포 대기';
+    case 'PENDING':
+    case 'pending':
+      return '—';
 
     case 'DEPLOYMENT_IN_PROGRESS':
       return '배포 진행중';
 
     case 'DEPLOYMENT_SUCCESS':
-      return '배포 성공';
+    case 'SUCCESS':
+    case 'success':
+      return '성공';
 
     case 'DEPLOYMENT_FAILURE':
-      return '배포 실패';
+    case 'FAILURE':
+    case 'FAILED':
+    case 'failed':
+      return '실패';
+
+    // 소문자 또는 다른 형식도 처리
+    case 'scheduled':
+    case 'SCHEDULED':
+      return '—';
 
     default:
-      return status || '알 수 없음';
+      // 이미 한국어인 경우 그대로 반환
+      if (
+        status === '대기' ||
+        status === '진행중' ||
+        status === '완료' ||
+        status === '실패' ||
+        status === '예정' ||
+        status === '성공'
+      ) {
+        return status;
+      }
+      // 알 수 없는 상태는 그대로 반환 (PENDING일 가능성)
+      return '—';
   }
 };
 

@@ -6,8 +6,14 @@ import axiosInstance from './axios';
 export const scheduleAPI = {
   /**
    * 일정 관리 메타데이터 조회
-   * 프로젝트 목록과 작업 금지 유형 목록을 조회합니다.
-   * @returns {Promise<{projects: Array<{id: number, name: string}>, banTypes: Array<{value: string, label: string}>}>}
+   * 프로젝트 목록, 작업 금지 유형, 반복 유형, 요일, 주차 목록을 조회합니다.
+   * @returns {Promise<{
+   *   projects: Array<{id: number, name: string}>,
+   *   restrictedPeriodTypes: Array<{value: string, label: string}>,
+   *   recurrenceTypes: Array<{value: string, label: string}>,
+   *   recurrenceWeekdays: Array<{value: string, label: string}>,
+   *   recurrenceWeeksOfMonth: Array<{value: string, label: string}>
+   * }>}
    */
   getScheduleMetadata: async () => {
     const { data } = await axiosInstance.get('/api/schedules/metadata');
@@ -18,14 +24,34 @@ export const scheduleAPI = {
    * 작업 금지 기간 생성
    * @param {Object} banData - 작업 금지 기간 데이터
    * @param {string} banData.title - 제목 (필수)
-   * @param {string} [banData.description] - 설명 (선택)
+   * @param {string} banData.description - 설명 (필수)
    * @param {string} banData.startDate - 시작일 (YYYY-MM-DD, 필수)
    * @param {string} banData.startTime - 시작시간 (HH:mm, 필수)
-   * @param {string} [banData.endedAt] - 종료 일시 (YYYY-MM-DDTHH:mm, 선택)
-   * @param {number} banData.duration - 금지 시간 (시간 단위, 필수)
+   * @param {number} banData.durationHours - 금지 시간 (시간 단위, 필수)
    * @param {string} banData.type - 작업 금지 유형 (DB_MIGRATION, ACCIDENT, MAINTENANCE, EXTERNAL_SCHEDULE, 필수)
    * @param {number[]} banData.relatedProjectIds - 연관 프로젝트 ID 목록 (필수, 최소 1개 이상)
-   * @returns {Promise<{id: string, title: string, description: string|null, startDate: string, startTime: string, endedAt: string, duration: number, type: string, relatedProjects: string[]}>}
+   * @param {string|null} [banData.recurrenceType] - 반복 유형 (DAILY, WEEKLY, MONTHLY, null)
+   * @param {string|null} [banData.recurrenceWeekday] - 반복 요일 (MON, TUE, WED, THU, FRI, SAT, SUN, null)
+   * @param {string|null} [banData.recurrenceWeekOfMonth] - 반복 주차 (FIRST, SECOND, THIRD, FOURTH, FIFTH, null)
+   * @param {string|null} [banData.recurrenceEndDate] - 반복 종료일 (YYYY-MM-DD, null)
+   * @param {string|null} [banData.endedAt] - 종료 일시 (YYYY-MM-DDTHH:mm:ss, 선택, null 권장)
+   * @returns {Promise<{
+   *   id: string,
+   *   title: string,
+   *   description: string,
+   *   startDate: string,
+   *   startTime: string,
+   *   endedAt: string,
+   *   durationHours: number,
+   *   type: string,
+   *   services: string[],
+   *   registrant: string,
+   *   registrantDepartment: string,
+   *   recurrenceType: string|null,
+   *   recurrenceWeekday: string|null,
+   *   recurrenceWeekOfMonth: string|null,
+   *   recurrenceEndDate: string|null
+   * }>}
    */
   createBan: async (banData) => {
     const { data } = await axiosInstance.post('/api/schedules/bans', banData);
@@ -36,7 +62,18 @@ export const scheduleAPI = {
    * 배포 작업 목록 조회
    * @param {string} startDate - 시작일 (YYYY-MM-DD, 필수)
    * @param {string} endDate - 종료일 (YYYY-MM-DD, 필수)
-   * @returns {Promise<Array<{id: number, title: string, status: string, projectName: string, prTitle: string, prBranch: string, scheduledDate: string, scheduledTime: string}>>}
+   * @returns {Promise<Array<{
+   *   id: number,
+   *   title: string,
+   *   status: string,
+   *   projectName: string,
+   *   scheduledDate: string,
+   *   scheduledTime: string,
+   *   registrant: string,
+   *   registrantDepartment: string,
+   *   stage: string,
+   *   deploymentStatus: string
+   * }>>}
    */
   getDeployments: async (startDate, endDate) => {
     const { data } = await axiosInstance.get('/api/schedules/deployments', {
@@ -45,6 +82,11 @@ export const scheduleAPI = {
         endDate,
       },
     });
+    console.log('[Deployment List API] Response:', data);
+    console.log('[Deployment List API] Response length:', data?.length || 0);
+    if (data && data.length > 0) {
+      console.log('[Deployment List API] First item:', data[0]);
+    }
     return data;
   },
 
@@ -56,7 +98,23 @@ export const scheduleAPI = {
    * @param {string} [filters.endDate] - 종료일 필터 (YYYY-MM-DD)
    * @param {string} [filters.type] - 작업 금지 유형 필터 (DB_MIGRATION, ACCIDENT, MAINTENANCE, EXTERNAL_SCHEDULE)
    * @param {number[]} [filters.projectIds] - 프로젝트 ID 목록
-   * @returns {Promise<Array<{id: string, title: string, description: string|null, startDate: string, startTime: string, endedAt: string, duration: number, type: string, relatedProjects: string[]}>>}
+   * @returns {Promise<Array<{
+   *   id: string,
+   *   title: string,
+   *   description: string,
+   *   startDate: string,
+   *   startTime: string,
+   *   endedAt: string,
+   *   durationHours: number,
+   *   type: string,
+   *   services: string[],
+   *   registrant: string,
+   *   registrantDepartment: string,
+   *   recurrenceType: string|null,
+   *   recurrenceWeekday: string|null,
+   *   recurrenceWeekOfMonth: string|null,
+   *   recurrenceEndDate: string|null
+   * }>>}
    */
   getBans: async (filters = {}) => {
     const params = {};
@@ -89,36 +147,64 @@ export const scheduleAPI = {
   },
 
   /**
-   * 충돌된 배포 작업 목록 조회
-   * @param {Object} banData - 작업 금지 기간 데이터
-   * @returns {Promise<Array<{id: string, title: string, service: string, date: string, scheduledTime: string}>>}
+   * Ban 등록 전 충돌 Deployment 조회
+   * @param {Object} params - 충돌 확인 파라미터
+   * @param {number[]} params.projectIds - 연관 프로젝트 ID 목록 (필수)
+   * @param {string} params.startDate - 시작일 (YYYY-MM-DD, 필수)
+   * @param {string} params.startTime - 시작시간 (HH:mm, 필수)
+   * @param {number} params.durationHours - 금지 시간 (필수)
+   * @param {string|null} [params.recurrenceType] - 반복 유형 (DAILY, WEEKLY, MONTHLY, null)
+   * @param {string|null} [params.recurrenceWeekday] - 반복 요일 (MON, TUE, WED, THU, FRI, SAT, SUN, null)
+   * @param {string|null} [params.recurrenceWeekOfMonth] - 반복 주차 (FIRST, SECOND, THIRD, FOURTH, FIFTH, null)
+   * @param {string|null} [params.recurrenceEndDate] - 반복 종료일 (YYYY-MM-DD, null)
+   * @param {string} params.queryStartDate - 조회 시작일 (YYYY-MM-DD, 필수)
+   * @param {string} params.queryEndDate - 조회 종료일 (YYYY-MM-DD, 필수)
+   * @returns {Promise<{
+   *   conflictingDeployments: Array<{
+   *     id: number,
+   *     title: string,
+   *     relatedProjects: string[],
+   *     scheduledAt: string,
+   *     scheduledToEndedAt: string|null
+   *   }>,
+   *   conflictCount: number
+   * }>}
    */
-  getConflictingDeployments: async (banData) => {
-    // TODO: 백엔드 API 연동 시 실제 API 호출로 대체
-    // const { data } = await axiosInstance.post('/api/schedules/bans/conflicts', banData);
-    // return data;
+  getConflictingDeployments: async (params) => {
+    const queryParams = {
+      projectIds: params.projectIds,
+      startDate: params.startDate,
+      startTime: params.startTime,
+      durationHours: params.durationHours,
+      queryStartDate: params.queryStartDate,
+      queryEndDate: params.queryEndDate,
+    };
 
-    // Mock 데이터 반환 (banData는 나중에 사용)
-    void banData;
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            id: 'conflict-1',
-            title: 'v2.3.1 배포',
-            service: 'Auth Service',
-            date: '2025-10-20',
-            scheduledTime: '14:00',
-          },
-          {
-            id: 'conflict-2',
-            title: 'v3.0.0 배포',
-            service: 'API Gateway',
-            date: '2025-10-20',
-            scheduledTime: '15:30',
-          },
-        ]);
-      }, 300);
+    if (params.recurrenceType) {
+      queryParams.recurrenceType = params.recurrenceType;
+    }
+    if (params.recurrenceWeekday) {
+      queryParams.recurrenceWeekday = params.recurrenceWeekday;
+    }
+    if (params.recurrenceWeekOfMonth) {
+      queryParams.recurrenceWeekOfMonth = params.recurrenceWeekOfMonth;
+    }
+    if (params.recurrenceEndDate) {
+      queryParams.recurrenceEndDate = params.recurrenceEndDate;
+    }
+
+    const { data } = await axiosInstance.get('/api/schedules/bans/conflicts', {
+      params: queryParams,
     });
+    return data;
+  },
+
+  /**
+   * 작업 금지 기간 취소
+   * @param {number|string} banId - 취소할 작업 금지 기간 ID
+   * @returns {Promise<void>}
+   */
+  cancelBan: async (banId) => {
+    await axiosInstance.delete(`/api/schedules/bans/${banId}`);
   },
 };

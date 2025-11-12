@@ -75,8 +75,11 @@ export default function RestrictedPeriodList({ periods, onPeriodClick }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentPeriods.map((period) => (
-              <TableRow key={period.id} onClick={() => onPeriodClick(period)}>
+            {currentPeriods.map((period, index) => (
+              <TableRow
+                key={`${period.id}-${period.startDate}-${period.startTime}-${index}`}
+                onClick={() => onPeriodClick(period)}
+              >
                 <TableCell>{period.title}</TableCell>
                 <TableCell>{period.type}</TableCell>
                 <S.TimeCell>

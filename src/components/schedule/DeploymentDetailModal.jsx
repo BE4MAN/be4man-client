@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
+import { enumToStage } from '@/features/schedule/utils/enumConverter';
+import { getDeploymentStatusLabel } from '@/features/schedule/utils/statusMapper';
 import { PrimaryBtn } from '@/styles/modalButtons';
 
 import * as S from './DeploymentDetailModal.styles';
@@ -56,21 +58,25 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
 
           <S.InfoRow>
             <S.InfoTh>작업 단계</S.InfoTh>
-            <S.InfoTd>{deployment.stage || '—'}</S.InfoTd>
+            <S.InfoTd>
+              {deployment.stage
+                ? enumToStage(deployment.stage) || deployment.stage
+                : '—'}
+            </S.InfoTd>
             <S.InfoTh>작업 상태</S.InfoTh>
-            <S.InfoTd>{deployment.status || '—'}</S.InfoTd>
+            <S.InfoTd>
+              {deployment.status
+                ? getDeploymentStatusLabel(deployment.status)
+                : '—'}
+            </S.InfoTd>
           </S.InfoRow>
 
           <S.InfoRow>
             <S.InfoTh>배포 상태</S.InfoTh>
             <S.InfoTd>
-              {deployment.deploymentStatus === 'scheduled'
-                ? '예정'
-                : deployment.deploymentStatus === 'success'
-                  ? '성공'
-                  : deployment.deploymentStatus === 'failed'
-                    ? '실패'
-                    : deployment.deploymentStatus || '—'}
+              {deployment.deploymentStatus
+                ? getDeploymentStatusLabel(deployment.deploymentStatus)
+                : '—'}
             </S.InfoTd>
             <S.InfoTh>작업 시각</S.InfoTh>
             <S.InfoTd>

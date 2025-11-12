@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+
 import ServiceTag from '@/components/common/ServiceTag';
 import {
   Table,
@@ -15,6 +17,16 @@ export default function ConflictingDeploymentsList({ deployments = [] }) {
     return null;
   }
 
+  const formatDateTime = (dateTimeStr) => {
+    if (!dateTimeStr) return '—';
+    try {
+      const date = new Date(dateTimeStr);
+      return format(date, 'yyyy-MM-dd HH:mm');
+    } catch {
+      return dateTimeStr;
+    }
+  };
+
   return (
     <S.Container>
       <S.WarningMessage>
@@ -30,16 +42,20 @@ export default function ConflictingDeploymentsList({ deployments = [] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {deployments.map((deployment) => (
-              <TableRow key={deployment.id}>
+            {deployments.map((deployment, index) => (
+              <TableRow
+                key={`conflict-${deployment.id}-${deployment.scheduledAt}-${index}`}
+              >
                 <TableCell>{deployment.title}</TableCell>
                 <TableCell>
                   <S.ServiceTagWrapper>
-                    <ServiceTag service={deployment.service} />
+                    {deployment.relatedProjects?.map((project) => (
+                      <ServiceTag key={project} service={project} />
+                    ))}
                   </S.ServiceTagWrapper>
                 </TableCell>
                 <S.TimeCell>
-                  {deployment.date} {deployment.scheduledTime}
+                  {formatDateTime(deployment.scheduledAt)}
                 </S.TimeCell>
               </TableRow>
             ))}

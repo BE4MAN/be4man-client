@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 import { RotateCcw } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -16,12 +16,18 @@ import { DEPARTMENT_REVERSE_MAP } from '@/constants/accounts';
 import { useAuthStore } from '@/stores/authStore';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
 
-import { mockDeployments } from '../mockData';
+import { useScheduleMetadata } from '../hooks/useScheduleMetadata';
 import {
   getNextMonthlyWeekday,
   getNextWeekday,
   getTodayDate,
 } from '../utils/dateCalculator';
+import {
+  banTypeToEnum,
+  recurrenceTypeToEnum,
+  weekdayToEnum,
+  weekOfMonthToEnum,
+} from '../utils/enumConverter';
 
 import * as S from './RestrictedPeriodCreationPage.styles';
 
@@ -62,10 +68,28 @@ export default function RestrictedPeriodCreationPage() {
     startDate: false,
   });
 
-  // 서비스 목록 추출
-  const availableServices = [
-    ...new Set(mockDeployments.map((deployment) => deployment.service)),
-  ].sort();
+  // 메타데이터 조회
+  const { data: metadata, isLoading: isLoadingMetadata } =
+    useScheduleMetadata();
+
+  // 서비스 목록 추출 (메타데이터의 projects 사용)
+  const availableServices = metadata?.projects
+    ? metadata.projects.map((project) => ({
+        value: project.name,
+        label: project.name,
+      }))
+    : [];
+
+  // 프로젝트 이름 → ID 변환 함수
+  const getProjectIdsFromNames = (serviceNames) => {
+    if (!metadata?.projects || !Array.isArray(serviceNames)) return [];
+    return serviceNames
+      .map((name) => {
+        const project = metadata.projects.find((p) => p.name === name);
+        return project?.id;
+      })
+      .filter((id) => id !== undefined);
+  };
 
   const parseDurationHours = (value) => {
     const parsed = Number.parseInt(value, 10);
@@ -82,12 +106,25 @@ export default function RestrictedPeriodCreationPage() {
     return format(ended, 'yyyy-MM-dd HH:mm');
   };
 
+  // 주차 숫자 → 한글 변환 (getNextMonthlyWeekday에서 사용)
   const weekOfMonthLabelMap = {
     1: '첫째 주',
     2: '둘째 주',
     3: '셋째 주',
     4: '넷째 주',
     5: '다섯째 주',
+  };
+
+  // 주차 한글 → 숫자 변환 (getNextMonthlyWeekday에서 사용)
+  const weekOfMonthToNumber = (weekLabel) => {
+    const map = {
+      '첫째 주': 1,
+      '둘째 주': 2,
+      '셋째 주': 3,
+      '넷째 주': 4,
+      '다섯째 주': 5,
+    };
+    return map[weekLabel] ?? 1;
   };
 
   // 한글 요일 문자열을 숫자로 변환 (0=일요일, 1=월요일, ..., 6=토요일)
@@ -187,26 +224,48 @@ export default function RestrictedPeriodCreationPage() {
       setIsLoadingConflicts(true);
       setConflictingDeployments([]);
 
-      const banData = {
-        title,
-        description,
+      // 프로젝트 이름 → ID 변환
+      const projectIds = getProjectIdsFromNames(selectedServices);
+      if (projectIds.length === 0) {
+        setIsLoadingConflicts(false);
+        setRegisterModalOpen(true);
+        return;
+      }
+
+      // queryEndDate 계산 (오늘 + 6개월)
+      const today = new Date();
+      const queryEndDate = format(addMonths(today, 6), 'yyyy-MM-dd');
+      const queryStartDate = getTodayDate();
+
+      const conflictParams = {
+        projectIds,
         startDate,
         startTime,
-        duration: parseDurationHours(duration),
-        type: banType,
-        services: selectedServices,
-        recurrenceType: recurrenceType || null,
-        recurrenceWeekday: recurrenceWeekday || null,
-        recurrenceWeekOfMonth: recurrenceWeekOfMonth || null,
-        recurrenceEndDate: isRecurrenceEndNone
-          ? null
-          : recurrenceEndDate || null,
+        durationHours: parseDurationHours(duration),
+        queryStartDate,
+        queryEndDate,
       };
 
+      // 반복 필드 추가
+      if (recurrenceType) {
+        conflictParams.recurrenceType = recurrenceTypeToEnum(recurrenceType);
+        if (recurrenceWeekday) {
+          conflictParams.recurrenceWeekday = weekdayToEnum(recurrenceWeekday);
+        }
+        if (recurrenceWeekOfMonth) {
+          conflictParams.recurrenceWeekOfMonth = weekOfMonthToEnum(
+            recurrenceWeekOfMonth,
+          );
+        }
+        if (!isRecurrenceEndNone && recurrenceEndDate) {
+          conflictParams.recurrenceEndDate = recurrenceEndDate;
+        }
+      }
+
       scheduleAPI
-        .getConflictingDeployments(banData)
-        .then((conflicts) => {
-          setConflictingDeployments(conflicts);
+        .getConflictingDeployments(conflictParams)
+        .then((response) => {
+          setConflictingDeployments(response.conflictingDeployments || []);
           setIsLoadingConflicts(false);
           setRegisterModalOpen(true);
         })
@@ -226,10 +285,72 @@ export default function RestrictedPeriodCreationPage() {
     navigate('/schedule', { state: { viewMode: 'list' } });
   };
 
-  const confirmRegister = () => {
+  const confirmRegister = async () => {
     setRegisterModalOpen(false);
-    // TODO: API 호출
-    navigate('/schedule', { state: { viewMode: 'list' } });
+
+    // 프로젝트 이름 → ID 변환
+    const projectIds = getProjectIdsFromNames(selectedServices);
+    if (projectIds.length === 0) {
+      // 에러 처리 (이미 validation에서 체크되지만 안전장치)
+      return;
+    }
+
+    // API 요청 데이터 구성
+    // banType이 이미 Enum 값이면 그대로 사용, 아니면 한글에서 Enum으로 변환
+    let typeEnum = banType;
+
+    // banType이 Enum 값이 아닌 경우 (한글 문자열인 경우) 변환 시도
+    if (
+      banType &&
+      !banType.startsWith('DB_') &&
+      banType !== 'MAINTENANCE' &&
+      banType !== 'EXTERNAL_SCHEDULE' &&
+      banType !== 'ACCIDENT'
+    ) {
+      typeEnum = banTypeToEnum(banType);
+    }
+
+    // typeEnum이 없거나 빈 문자열이면 에러
+    if (!typeEnum || typeEnum === '') {
+      console.error('Invalid banType:', banType, 'typeEnum:', typeEnum);
+      alert('유형을 선택해주세요.');
+      return;
+    }
+
+    const banData = {
+      title,
+      description,
+      startDate,
+      startTime,
+      durationHours: parseDurationHours(duration),
+      type: typeEnum,
+      relatedProjectIds: projectIds,
+      endedAt: null, // 백엔드에서 계산
+    };
+
+    // 반복 필드 추가
+    if (recurrenceType) {
+      banData.recurrenceType = recurrenceTypeToEnum(recurrenceType);
+      if (recurrenceWeekday) {
+        banData.recurrenceWeekday = weekdayToEnum(recurrenceWeekday);
+      }
+      if (recurrenceWeekOfMonth) {
+        banData.recurrenceWeekOfMonth = weekOfMonthToEnum(
+          recurrenceWeekOfMonth,
+        );
+      }
+      if (!isRecurrenceEndNone && recurrenceEndDate) {
+        banData.recurrenceEndDate = recurrenceEndDate;
+      }
+    }
+
+    try {
+      await scheduleAPI.createBan(banData);
+      navigate('/schedule', { state: { viewMode: 'list' } });
+    } catch (error) {
+      // 에러 처리 (나중에 토스트 메시지 등으로 개선 가능)
+      console.error('Ban 생성 실패:', error);
+    }
   };
 
   const isTitleValid = title.trim().length > 0;
@@ -293,7 +414,12 @@ export default function RestrictedPeriodCreationPage() {
       : '없음';
     const servicesToRender =
       Array.isArray(selectedServices) && selectedServices.length > 0
-        ? selectedServices
+        ? selectedServices.map((service) => {
+            // service가 문자열인지 확인, 객체인 경우 value 추출
+            return typeof service === 'string'
+              ? service
+              : service?.value || service?.label || service;
+          })
         : [];
     const descriptionValue = truncateDescription(description);
 
@@ -436,12 +562,13 @@ export default function RestrictedPeriodCreationPage() {
                 onBlur={() =>
                   setTouched((prev) => ({ ...prev, banType: true }))
                 }
-                options={[
-                  { value: 'DB 마이그레이션', label: 'DB 마이그레이션' },
-                  { value: '서버 점검', label: '서버 점검' },
-                  { value: '외부 일정', label: '외부 일정' },
-                  { value: '재난 재해', label: '재난 재해' },
-                ]}
+                options={
+                  metadata?.restrictedPeriodTypes?.map((type) => ({
+                    value: type.value, // Enum 값 사용 (DB_MIGRATION, MAINTENANCE 등)
+                    label: type.label, // 한글 라벨 사용
+                  })) || []
+                }
+                disabled={isLoadingMetadata}
                 placeholder="유형 선택"
                 error={touched.banType && errors.banType ? '' : ''}
               />
@@ -476,12 +603,19 @@ export default function RestrictedPeriodCreationPage() {
                           setRecurrenceWeekOfMonth('');
                         }
                       }}
-                      options={[
-                        { value: '', label: '없음' },
-                        { value: '매일', label: '매일' },
-                        { value: '매주', label: '매주' },
-                        { value: '매월', label: '매월' },
-                      ]}
+                      options={
+                        metadata?.recurrenceTypes
+                          ? metadata.recurrenceTypes.map((type) => ({
+                              value: type.label,
+                              label: type.label,
+                            }))
+                          : [
+                              { value: '매일', label: '매일' },
+                              { value: '매주', label: '매주' },
+                              { value: '매월', label: '매월' },
+                            ]
+                      }
+                      disabled={isLoadingMetadata}
                       placeholder="없음"
                     />
                   </S.RecurrenceTypeSelect>
@@ -499,15 +633,21 @@ export default function RestrictedPeriodCreationPage() {
                             setStartDate(nextDate);
                           }
                         }}
-                        options={[
-                          { value: '월요일', label: '월요일' },
-                          { value: '화요일', label: '화요일' },
-                          { value: '수요일', label: '수요일' },
-                          { value: '목요일', label: '목요일' },
-                          { value: '금요일', label: '금요일' },
-                          { value: '토요일', label: '토요일' },
-                          { value: '일요일', label: '일요일' },
-                        ]}
+                        options={
+                          metadata?.recurrenceWeekdays?.map((weekday) => ({
+                            value: weekday.label,
+                            label: weekday.label,
+                          })) || [
+                            { value: '월요일', label: '월요일' },
+                            { value: '화요일', label: '화요일' },
+                            { value: '수요일', label: '수요일' },
+                            { value: '목요일', label: '목요일' },
+                            { value: '금요일', label: '금요일' },
+                            { value: '토요일', label: '토요일' },
+                            { value: '일요일', label: '일요일' },
+                          ]
+                        }
+                        disabled={isLoadingMetadata}
                         placeholder="요일 선택"
                       />
                     </S.RecurrenceField>
@@ -523,20 +663,27 @@ export default function RestrictedPeriodCreationPage() {
                             setRecurrenceWeekOfMonth(weekOfMonth);
                             if (weekOfMonth && recurrenceWeekday) {
                               // 가장 가까운 매월 N번째 주 N요일 계산
+                              const weekNum = weekOfMonthToNumber(weekOfMonth);
                               const nextDate = getNextMonthlyWeekday(
-                                weekOfMonth,
+                                weekNum,
                                 recurrenceWeekday,
                               );
                               setStartDate(nextDate);
                             }
                           }}
-                          options={[
-                            { value: '1', label: '첫째 주' },
-                            { value: '2', label: '둘째 주' },
-                            { value: '3', label: '셋째 주' },
-                            { value: '4', label: '넷째 주' },
-                            { value: '5', label: '다섯번째 주' },
-                          ]}
+                          options={
+                            metadata?.recurrenceWeeksOfMonth?.map((week) => ({
+                              value: week.label,
+                              label: week.label,
+                            })) || [
+                              { value: '첫째 주', label: '첫째 주' },
+                              { value: '둘째 주', label: '둘째 주' },
+                              { value: '셋째 주', label: '셋째 주' },
+                              { value: '넷째 주', label: '넷째 주' },
+                              { value: '다섯째 주', label: '다섯째 주' },
+                            ]
+                          }
+                          disabled={isLoadingMetadata}
                           placeholder="주 선택"
                         />
                       </S.RecurrenceField>
@@ -548,22 +695,31 @@ export default function RestrictedPeriodCreationPage() {
                             setRecurrenceWeekday(weekday);
                             if (weekday && recurrenceWeekOfMonth) {
                               // 가장 가까운 매월 N번째 주 N요일 계산
-                              const nextDate = getNextMonthlyWeekday(
+                              const weekNum = weekOfMonthToNumber(
                                 recurrenceWeekOfMonth,
+                              );
+                              const nextDate = getNextMonthlyWeekday(
+                                weekNum,
                                 weekday,
                               );
                               setStartDate(nextDate);
                             }
                           }}
-                          options={[
-                            { value: '월요일', label: '월요일' },
-                            { value: '화요일', label: '화요일' },
-                            { value: '수요일', label: '수요일' },
-                            { value: '목요일', label: '목요일' },
-                            { value: '금요일', label: '금요일' },
-                            { value: '토요일', label: '토요일' },
-                            { value: '일요일', label: '일요일' },
-                          ]}
+                          options={
+                            metadata?.recurrenceWeekdays?.map((weekday) => ({
+                              value: weekday.label,
+                              label: weekday.label,
+                            })) || [
+                              { value: '월요일', label: '월요일' },
+                              { value: '화요일', label: '화요일' },
+                              { value: '수요일', label: '수요일' },
+                              { value: '목요일', label: '목요일' },
+                              { value: '금요일', label: '금요일' },
+                              { value: '토요일', label: '토요일' },
+                              { value: '일요일', label: '일요일' },
+                            ]
+                          }
+                          disabled={isLoadingMetadata}
                           placeholder="요일 선택"
                         />
                       </S.RecurrenceField>
@@ -716,21 +872,27 @@ export default function RestrictedPeriodCreationPage() {
                       Array.isArray(selectedServices) ? selectedServices : []
                     }
                     onChange={(value) => {
-                      setSelectedServices(Array.isArray(value) ? value : []);
+                      // value는 options의 value 배열 (문자열 배열)
+                      const normalizedValue = Array.isArray(value)
+                        ? value.map((v) => {
+                            // 이미 문자열이면 그대로, 객체면 value 추출
+                            return typeof v === 'string'
+                              ? v
+                              : v?.value || v?.label || String(v);
+                          })
+                        : [];
+                      setSelectedServices(normalizedValue);
                       if (touched.services) {
                         setErrors((prev) => ({
                           ...prev,
-                          services: !Array.isArray(value) || value.length === 0,
+                          services: normalizedValue.length === 0,
                         }));
                       }
                     }}
                     onBlur={() =>
                       setTouched((prev) => ({ ...prev, services: true }))
                     }
-                    options={availableServices.map((service) => ({
-                      value: service,
-                      label: service,
-                    }))}
+                    options={availableServices}
                     multiple
                     showSelectAll
                     error={touched.services && errors.services ? '' : ''}
@@ -746,18 +908,31 @@ export default function RestrictedPeriodCreationPage() {
               {Array.isArray(selectedServices) &&
                 selectedServices.length > 0 && (
                   <S.ServicesTagContainer>
-                    {selectedServices.map((service) => (
-                      <ServiceTag
-                        key={service}
-                        service={service}
-                        onRemove={() =>
-                          setSelectedServices((prev) => {
-                            const prevArray = Array.isArray(prev) ? prev : [];
-                            return prevArray.filter((s) => s !== service);
-                          })
-                        }
-                      />
-                    ))}
+                    {selectedServices.map((service) => {
+                      // service가 문자열인지 확인, 객체인 경우 value 추출
+                      const serviceName =
+                        typeof service === 'string'
+                          ? service
+                          : service?.value || service?.label || service;
+                      return (
+                        <ServiceTag
+                          key={serviceName}
+                          service={serviceName}
+                          onRemove={() =>
+                            setSelectedServices((prev) => {
+                              const prevArray = Array.isArray(prev) ? prev : [];
+                              return prevArray.filter((s) => {
+                                const sName =
+                                  typeof s === 'string'
+                                    ? s
+                                    : s?.value || s?.label || s;
+                                return sName !== serviceName;
+                              });
+                            })
+                          }
+                        />
+                      );
+                    })}
                   </S.ServicesTagContainer>
                 )}
             </S.MetaTdService>

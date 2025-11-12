@@ -28,7 +28,8 @@ const getBanDateRange = (ban) => {
   let endDateTime = toDateOrNull(ban.endedAt);
 
   if (!endDateTime) {
-    const durationHours = parseDurationHours(ban.duration);
+    // durationHours 또는 duration 필드 확인
+    const durationHours = parseDurationHours(ban.durationHours ?? ban.duration);
     if (durationHours > 0) {
       endDateTime = new Date(startDateTime);
       endDateTime.setHours(endDateTime.getHours() + durationHours);

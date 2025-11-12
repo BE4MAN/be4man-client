@@ -126,6 +126,14 @@ export default function DeploymentCalendar({
         const hasMultipleTasks = allTasks.length > 1;
         const shouldCollapse = hasMultipleTasks && !isExpanded;
         const holiday = getHolidayForDay(dayNumber);
+        const dateStr = format(
+          new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            dayNumber,
+          ),
+          'yyyy-MM-dd',
+        );
 
         days.push(
           <S.DayCell key={i} isToday={isTodayCell}>
@@ -152,13 +160,13 @@ export default function DeploymentCalendar({
                   {/* 첫 번째 항목만 표시 */}
                   {allTasks[0].type === 'restricted' ? (
                     <MonthlyRestrictedPeriodCard
-                      key={allTasks[0].data.id}
+                      key={`restricted-${allTasks[0].data.id}-${dateStr}-${allTasks[0].data.startDate}-${allTasks[0].data.startTime}`}
                       title={allTasks[0].data.title}
                       onClick={() => onRestrictedPeriodClick(allTasks[0].data)}
                     />
                   ) : (
                     <MonthlyDeploymentCard
-                      key={allTasks[0].data.id}
+                      key={`deployment-${allTasks[0].data.id}-${dateStr}-${allTasks[0].data.date}-${allTasks[0].data.scheduledTime}`}
                       title={allTasks[0].data.title}
                       stage={allTasks[0].data.stage}
                       status={allTasks[0].data.status}
@@ -170,24 +178,24 @@ export default function DeploymentCalendar({
               ) : (
                 <>
                   {/* 모든 항목 표시 */}
-                  {allTasks.map((task) =>
-                    task.type === 'restricted' ? (
+                  {allTasks.map((task, taskIndex) => {
+                    return task.type === 'restricted' ? (
                       <MonthlyRestrictedPeriodCard
-                        key={task.data.id}
+                        key={`restricted-${task.data.id}-${dateStr}-${task.data.startDate}-${task.data.startTime}-${taskIndex}`}
                         title={task.data.title}
                         onClick={() => onRestrictedPeriodClick(task.data)}
                       />
                     ) : (
                       <MonthlyDeploymentCard
-                        key={task.data.id}
+                        key={`deployment-${task.data.id}-${dateStr}-${task.data.date}-${task.data.scheduledTime}-${taskIndex}`}
                         title={task.data.title}
                         stage={task.data.stage}
                         status={task.data.status}
                         deploymentStatus={task.data.deploymentStatus}
                         onClick={() => onDeploymentClick(task.data)}
                       />
-                    ),
-                  )}
+                    );
+                  })}
                 </>
               )}
             </S.CardList>

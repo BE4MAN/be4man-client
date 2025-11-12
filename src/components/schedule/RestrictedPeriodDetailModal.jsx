@@ -5,6 +5,8 @@ import { useState } from 'react';
 
 import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
+import { useCancelBan } from '@/features/schedule/hooks/useCancelBan';
+import { enumToWeekday } from '@/features/schedule/utils/enumConverter';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
 
 import * as S from './RestrictedPeriodDetailModal.styles';
@@ -12,13 +14,16 @@ import * as S from './RestrictedPeriodDetailModal.styles';
 export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
   const theme = useTheme();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const cancelBanMutation = useCancelBan();
 
   if (!period) return null;
 
   // 금지 시간 계산 (시간 차이)
   const getRestrictedTime = () => {
-    if (period.duration !== undefined && period.duration !== null) {
-      return `${period.duration} 시간`;
+    // durationHours 또는 duration 필드 확인
+    const duration = period.durationHours ?? period.duration;
+    if (duration !== undefined && duration !== null) {
+      return `${duration} 시간`;
     }
     if (!period.startTime) return '—';
     const start = new Date(`2000-01-01T${period.startTime}:00`);
@@ -50,16 +55,17 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
         return format(ended, 'yyyy-MM-dd HH:mm');
       }
     }
+    const duration = period.durationHours ?? period.duration;
     if (
       period.startDate &&
       period.startTime &&
-      period.duration !== undefined &&
-      period.duration !== null
+      duration !== undefined &&
+      duration !== null
     ) {
       const start = parseISO(`${period.startDate}T${period.startTime}:00`);
       if (!Number.isNaN(start.getTime())) {
         const computed = new Date(start);
-        computed.setHours(computed.getHours() + Number(period.duration));
+        computed.setHours(computed.getHours() + Number(duration));
         return format(computed, 'yyyy-MM-dd HH:mm');
       }
     }
@@ -75,9 +81,10 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
     }
     if (period.recurrenceType === 'DAILY') return '매일';
     if (period.recurrenceType === 'WEEKLY') {
-      return period.recurrenceWeekday
-        ? `매주 ${period.recurrenceWeekday}`
-        : '매주';
+      const weekdayKorean = period.recurrenceWeekday
+        ? enumToWeekday(period.recurrenceWeekday) || period.recurrenceWeekday
+        : null;
+      return weekdayKorean ? `매주 ${weekdayKorean}` : '매주';
     }
     if (period.recurrenceType === 'MONTHLY') {
       const week =
@@ -89,8 +96,13 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
               ? '셋째 주'
               : period.recurrenceWeekOfMonth === 'FOURTH'
                 ? '넷째 주'
-                : '';
-      return `${week} ${period.recurrenceWeekday || ''}`.trim() || '매월';
+                : period.recurrenceWeekOfMonth === 'FIFTH'
+                  ? '다섯째 주'
+                  : '';
+      const weekdayKorean = period.recurrenceWeekday
+        ? enumToWeekday(period.recurrenceWeekday) || period.recurrenceWeekday
+        : '';
+      return `${week} ${weekdayKorean}`.trim() || '매월';
     }
     return period.recurrenceCycle || '—';
   };
@@ -99,11 +111,17 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
     setShowConfirmModal(true);
   };
 
-  const handleConfirmCancel = () => {
-    // TODO: API 호출하여 일정 취소 처리
-    // 취소 후 모달 상태 업데이트 필요
-    setShowConfirmModal(false);
-    onClose();
+  const handleConfirmCancel = async () => {
+    if (!period?.id) return;
+
+    try {
+      await cancelBanMutation.mutateAsync(period.id);
+      setShowConfirmModal(false);
+      onClose();
+    } catch (error) {
+      // 에러 처리 (나중에 토스트 메시지 등으로 개선 가능)
+      console.error('Ban 취소 실패:', error);
+    }
   };
 
   const handleCloseConfirm = () => {
