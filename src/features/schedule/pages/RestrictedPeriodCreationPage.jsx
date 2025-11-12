@@ -15,6 +15,7 @@ import * as Detail from '@/components/schedule/RestrictedPeriodDetailModal.style
 import { DEPARTMENT_REVERSE_MAP } from '@/constants/accounts';
 import { useAuthStore } from '@/stores/authStore';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
+import { getForbiddenMessage, isForbiddenError } from '@/utils/errorHandler';
 
 import { useScheduleMetadata } from '../hooks/useScheduleMetadata';
 import {
@@ -50,6 +51,8 @@ export default function RestrictedPeriodCreationPage() {
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [conflictingDeployments, setConflictingDeployments] = useState([]);
   const [isLoadingConflicts, setIsLoadingConflicts] = useState(false);
+  const [showForbiddenModal, setShowForbiddenModal] = useState(false);
+  const [forbiddenMessage, setForbiddenMessage] = useState('');
   const restrictedHoursInputRef = useRef(null);
   const [errors, setErrors] = useState({
     title: false,
@@ -348,8 +351,15 @@ export default function RestrictedPeriodCreationPage() {
       await scheduleAPI.createBan(banData);
       navigate('/schedule', { state: { viewMode: 'list' } });
     } catch (error) {
-      // 에러 처리 (나중에 토스트 메시지 등으로 개선 가능)
-      console.error('Ban 생성 실패:', error);
+      // 403 Forbidden 에러 처리
+      if (isForbiddenError(error)) {
+        const message = getForbiddenMessage(error);
+        setForbiddenMessage(message);
+        setShowForbiddenModal(true);
+      } else {
+        // 기타 에러 처리
+        console.error('Ban 생성 실패:', error);
+      }
     }
   };
 
@@ -1018,6 +1028,23 @@ export default function RestrictedPeriodCreationPage() {
             </Detail.ConfirmMessage>
           </>
         )}
+      </ScheduleModal>
+
+      {/* 403 권한 없음 모달 */}
+      <ScheduleModal
+        isOpen={showForbiddenModal}
+        onClose={() => setShowForbiddenModal(false)}
+        title="권한 없음"
+        maxWidth="400px"
+        footer={
+          <Detail.Footer>
+            <PrimaryBtn onClick={() => setShowForbiddenModal(false)}>
+              확인
+            </PrimaryBtn>
+          </Detail.Footer>
+        }
+      >
+        <Detail.ConfirmMessage>{forbiddenMessage}</Detail.ConfirmMessage>
       </ScheduleModal>
     </S.PageContainer>
   );

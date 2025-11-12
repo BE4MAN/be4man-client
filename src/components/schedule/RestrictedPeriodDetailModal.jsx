@@ -8,12 +8,15 @@ import ScheduleModal from '@/components/schedule/components/ScheduleModal';
 import { useCancelBan } from '@/features/schedule/hooks/useCancelBan';
 import { enumToWeekday } from '@/features/schedule/utils/enumConverter';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
+import { getForbiddenMessage, isForbiddenError } from '@/utils/errorHandler';
 
 import * as S from './RestrictedPeriodDetailModal.styles';
 
 export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
   const theme = useTheme();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showForbiddenModal, setShowForbiddenModal] = useState(false);
+  const [forbiddenMessage, setForbiddenMessage] = useState('');
   const cancelBanMutation = useCancelBan();
 
   if (!period) return null;
@@ -119,8 +122,16 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
       setShowConfirmModal(false);
       onClose();
     } catch (error) {
-      // 에러 처리 (나중에 토스트 메시지 등으로 개선 가능)
-      console.error('Ban 취소 실패:', error);
+      // 403 Forbidden 에러 처리
+      if (isForbiddenError(error)) {
+        const message = getForbiddenMessage(error);
+        setForbiddenMessage(message);
+        setShowConfirmModal(false);
+        setShowForbiddenModal(true);
+      } else {
+        // 기타 에러 처리
+        console.error('Ban 취소 실패:', error);
+      }
     }
   };
 
@@ -267,6 +278,23 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
           <br />
           취소된 일정은 복구할 수 없습니다.
         </S.ConfirmMessage>
+      </ScheduleModal>
+
+      {/* 403 권한 없음 모달 */}
+      <ScheduleModal
+        isOpen={showForbiddenModal}
+        onClose={() => setShowForbiddenModal(false)}
+        title="권한 없음"
+        maxWidth="400px"
+        footer={
+          <S.Footer>
+            <PrimaryBtn onClick={() => setShowForbiddenModal(false)}>
+              확인
+            </PrimaryBtn>
+          </S.Footer>
+        }
+      >
+        <S.ConfirmMessage>{forbiddenMessage}</S.ConfirmMessage>
       </ScheduleModal>
     </ScheduleModal>
   );

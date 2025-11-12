@@ -20,6 +20,7 @@ export const ModalContent = styled(motion.div)`
   box-shadow: ${({ theme }) => theme.shadow.md};
   max-height: 90vh;
   overflow-y: auto;
+  min-width: 25%;
   ${({ variant }) =>
     variant === 'detail'
       ? `
