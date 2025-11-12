@@ -9,20 +9,19 @@ export default function MonthlyDeploymentCard({
   title,
   stage,
   status,
-  deploymentStatus,
+  isDeployed,
   onClick,
   isCollapsed,
 }) {
   const theme = useTheme();
 
-  const iconConfig = getDeploymentIcon(stage, status, deploymentStatus, theme);
+  const iconConfig = getDeploymentIcon(stage, status, isDeployed, theme);
   const { Icon, color, size, animated } = iconConfig;
 
   return (
     <S.Card onClick={onClick}>
       <S.Content>
         <S.StatusIcon
-          status={deploymentStatus}
           css={
             animated
               ? css`

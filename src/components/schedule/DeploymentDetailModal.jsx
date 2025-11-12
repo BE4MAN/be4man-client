@@ -2,8 +2,10 @@ import { useNavigate } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
-import { enumToStage } from '@/features/schedule/utils/enumConverter';
-import { getDeploymentStatusLabel } from '@/features/schedule/utils/statusMapper';
+import {
+  enumToStage,
+  enumToStatus,
+} from '@/features/schedule/utils/enumConverter';
 import { PrimaryBtn } from '@/styles/modalButtons';
 
 import * as S from './DeploymentDetailModal.styles';
@@ -66,7 +68,7 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
             <S.InfoTh>작업 상태</S.InfoTh>
             <S.InfoTd>
               {deployment.status
-                ? getDeploymentStatusLabel(deployment.status)
+                ? enumToStatus(deployment.status) || deployment.status
                 : '—'}
             </S.InfoTd>
           </S.InfoRow>
@@ -74,9 +76,11 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
           <S.InfoRow>
             <S.InfoTh>배포 상태</S.InfoTh>
             <S.InfoTd>
-              {deployment.deploymentStatus
-                ? getDeploymentStatusLabel(deployment.deploymentStatus)
-                : '—'}
+              {deployment.isDeployed === true
+                ? '성공'
+                : deployment.isDeployed === false
+                  ? '실패'
+                  : '—'}
             </S.InfoTd>
             <S.InfoTh>작업 시각</S.InfoTh>
             <S.InfoTd>

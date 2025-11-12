@@ -113,9 +113,9 @@ export default function ScheduleManagement() {
       service: d.projectName, // API의 projectName을 service로 매핑
       date: d.scheduledDate, // API의 scheduledDate를 date로 매핑
       scheduledTime: d.scheduledTime?.substring(0, 5) || '', // "HH:mm:ss" -> "HH:mm"
-      status: d.status, // API의 status 사용
+      status: d.status, // API의 status enum (PENDING, REJECTED, IN_PROGRESS, CANCELED, COMPLETED, APPROVED)
       stage: enumToStage(d.stage) || d.stage, // 작업 단계 (Enum → 한국어 변환)
-      deploymentStatus: d.deploymentStatus, // 배포 상태 (변환은 표시 시점에 수행)
+      isDeployed: d.isDeployed, // 배포 완료 여부 (null, true, false)
       registrant: d.registrant, // 등록자
       registrantDepartment: d.registrantDepartment, // 등록부서
     }));

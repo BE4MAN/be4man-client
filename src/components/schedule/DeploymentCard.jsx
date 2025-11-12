@@ -10,7 +10,7 @@ export default function DeploymentCard({
   service,
   stage,
   status,
-  deploymentStatus,
+  isDeployed,
   scheduledTime,
   onClick,
 }) {
@@ -19,7 +19,7 @@ export default function DeploymentCard({
   const iconConfig = getDeploymentIcon(
     stage,
     status,
-    deploymentStatus,
+    isDeployed,
     theme,
     16, // 주간 캘린더는 16px
   );
@@ -30,7 +30,6 @@ export default function DeploymentCard({
       <S.Content>
         <S.TitleBox>
           <S.StatusIcon
-            status={deploymentStatus}
             css={
               animated
                 ? css`

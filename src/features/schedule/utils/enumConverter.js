@@ -149,3 +149,20 @@ export const enumToStage = (enumValue) => {
   };
   return map[enumValue] ?? null;
 };
+
+/**
+ * 배포 상태 Enum → 한글 변환
+ * @param {string} enumValue - 'PENDING', 'REJECTED', 'IN_PROGRESS', 'CANCELED', 'COMPLETED', 'APPROVED'
+ * @returns {string|null} - '대기', '반려', '진행중', '취소', '완료', '승인', null
+ */
+export const enumToStatus = (enumValue) => {
+  const map = {
+    PENDING: '대기',
+    REJECTED: '반려',
+    IN_PROGRESS: '진행중',
+    CANCELED: '취소',
+    COMPLETED: '완료',
+    APPROVED: '승인',
+  };
+  return map[enumValue] ?? null;
+};

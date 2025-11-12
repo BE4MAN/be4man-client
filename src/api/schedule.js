@@ -65,14 +65,14 @@ export const scheduleAPI = {
    * @returns {Promise<Array<{
    *   id: number,
    *   title: string,
-   *   status: string,
+   *   status: string, // DeploymentStatus enum: PENDING, REJECTED, IN_PROGRESS, CANCELED, COMPLETED, APPROVED
+   *   stage: string, // DeploymentStage enum: PLAN, DEPLOYMENT, REPORT, RETRY, ROLLBACK, DRAFT
+   *   isDeployed: boolean|null, // Jenkins 배포 성공 여부 (null: 배포 전, true: 성공, false: 실패)
    *   projectName: string,
    *   scheduledDate: string,
    *   scheduledTime: string,
    *   registrant: string,
-   *   registrantDepartment: string,
-   *   stage: string,
-   *   deploymentStatus: string
+   *   registrantDepartment: string
    * }>>}
    */
   getDeployments: async (startDate, endDate) => {
