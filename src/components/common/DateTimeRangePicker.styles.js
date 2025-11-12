@@ -36,11 +36,9 @@ export const DateRangeWrapper = styled.div`
 `;
 
 export const ErrorWrapper = styled.div`
-  border: 1px solid
-    ${({ $hasError, theme }) =>
-      $hasError ? theme.colors.error : 'transparent'};
-  border-radius: ${({ theme }) => theme.radius.md};
-  padding: 2px;
+  border: none;
+  border-radius: 0.3125rem;
+  padding: 0;
   transition: border-color 0.2s ease;
 `;
 
@@ -52,7 +50,7 @@ export const TimeInputWrapper = styled.div`
   padding: ${({ theme }) => theme.spacing.sm};
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => `calc(${theme.radius.md} * 0.5)`};
+  border-radius: 0.3125rem;
   transition: all 0.2s ease;
 `;
 
@@ -63,6 +61,7 @@ export const TimeInputField = styled.div`
   align-items: center;
   gap: ${({ theme }) => theme.spacing.sm};
   min-width: 180px;
+  position: relative;
 `;
 
 export const TimeLabelText = styled.span`
@@ -87,7 +86,7 @@ export const TimeInput = styled.input`
   border: 1px solid
     ${({ $hasError, theme }) =>
       $hasError ? theme.colors.error : theme.colors.border};
-  border-radius: calc(6px * 0.5);
+  border-radius: 0.3125rem;
   background: ${({ theme }) => theme.colors.bg};
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: 14px;
@@ -99,12 +98,44 @@ export const TimeInput = styled.input`
     border-color: ${({ $hasError, theme }) =>
       $hasError ? theme.colors.error : theme.colors.brand};
   }
+`;
 
-  &:focus {
+export const RestrictedHoursInput = styled.input`
+  width: 100%;
+  height: 40px;
+  padding: 8px 40px 8px 12px;
+  border: 1px solid
+    ${({ $hasError, theme }) =>
+      $hasError ? theme.colors.error : theme.colors.border};
+  border-radius: 0.3125rem;
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+
+  &:hover {
     border-color: ${({ $hasError, theme }) =>
       $hasError ? theme.colors.error : theme.colors.brand};
-    box-shadow: 0 0 0 2px
-      ${({ $hasError, theme }) =>
-        $hasError ? `${theme.colors.error}20` : `${theme.colors.brand}20`};
   }
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  &[type='number'] {
+    appearance: textfield;
+  }
+`;
+
+export const HoursUnit = styled.span`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  pointer-events: none;
 `;

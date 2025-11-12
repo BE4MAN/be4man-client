@@ -8,10 +8,11 @@ import {
   subMonths,
 } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, ChevronsDownUp } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
 import Button from '@/components/auth/Button';
+import { getBansForDate } from '@/features/schedule/utils/banCalculator';
 
 import * as S from './DeploymentCalendar.styles';
 import MonthlyDeploymentCard from './MonthlyDeploymentCard';
@@ -20,6 +21,7 @@ import MonthlyRestrictedPeriodCard from './MonthlyRestrictedPeriodCard';
 export default function DeploymentCalendar({
   deployments,
   restrictedPeriods,
+  holidays = [],
   onDeploymentClick,
   onRestrictedPeriodClick,
   onDateChange,
@@ -59,12 +61,7 @@ export default function DeploymentCalendar({
       new Date(currentDate.getFullYear(), currentDate.getMonth(), day),
       'yyyy-MM-dd',
     );
-    return restrictedPeriods.filter((p) => {
-      const periodStart = new Date(p.startDate);
-      const periodEnd = new Date(p.endDate);
-      const currentDay = new Date(dateStr);
-      return currentDay >= periodStart && currentDay <= periodEnd;
-    });
+    return getBansForDate(restrictedPeriods, dateStr);
   };
 
   const getAllTasksForDay = (day) => {
@@ -97,6 +94,14 @@ export default function DeploymentCalendar({
     });
   };
 
+  const getHolidayForDay = (day) => {
+    const dateStr = format(
+      new Date(currentDate.getFullYear(), currentDate.getMonth(), day),
+      'yyyy-MM-dd',
+    );
+    return holidays.find((holiday) => holiday.date === dateStr);
+  };
+
   const renderCalendarDays = () => {
     const days = [];
     const totalCells = Math.ceil((firstDayOfMonth + daysInMonth) / 7) * 7;
@@ -120,21 +125,32 @@ export default function DeploymentCalendar({
         const isExpanded = expandedDays.has(dayNumber);
         const hasMultipleTasks = allTasks.length > 1;
         const shouldCollapse = hasMultipleTasks && !isExpanded;
+        const holiday = getHolidayForDay(dayNumber);
+        const dateStr = format(
+          new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            dayNumber,
+          ),
+          'yyyy-MM-dd',
+        );
 
         days.push(
           <S.DayCell key={i} isToday={isTodayCell}>
-            <S.DayNumber isToday={isTodayCell}>
-              <span>{dayNumber}</span>
+            <S.DayNumber>
+              <S.DayNumberInfo>
+                <S.DayNumberText $isHoliday={!!holiday} isToday={isTodayCell}>
+                  {dayNumber}
+                </S.DayNumberText>
+                {holiday ? <S.HolidayName>{holiday.name}</S.HolidayName> : null}
+              </S.DayNumberInfo>
               {hasMultipleTasks && allTasks.length > 0 && (
                 <S.ExpandButton
                   type="button"
                   onClick={() => toggleDayExpansion(dayNumber)}
                 >
-                  {shouldCollapse ? (
-                    <span>+ {allTasks.length - 1}</span>
-                  ) : (
-                    <ChevronsDownUp size={14} />
-                  )}
+                  <S.ExpandChevron $expanded={isExpanded} strokeWidth={3} />
+                  <S.ExpandButtonCount>{allTasks.length}</S.ExpandButtonCount>
                 </S.ExpandButton>
               )}
             </S.DayNumber>
@@ -144,15 +160,17 @@ export default function DeploymentCalendar({
                   {/* 첫 번째 항목만 표시 */}
                   {allTasks[0].type === 'restricted' ? (
                     <MonthlyRestrictedPeriodCard
-                      key={allTasks[0].data.id}
+                      key={`restricted-${allTasks[0].data.id}-${dateStr}-${allTasks[0].data.startDate}-${allTasks[0].data.startTime}`}
                       title={allTasks[0].data.title}
                       onClick={() => onRestrictedPeriodClick(allTasks[0].data)}
                     />
                   ) : (
                     <MonthlyDeploymentCard
-                      key={allTasks[0].data.id}
+                      key={`deployment-${allTasks[0].data.id}-${dateStr}-${allTasks[0].data.date}-${allTasks[0].data.scheduledTime}`}
                       title={allTasks[0].data.title}
+                      stage={allTasks[0].data.stage}
                       status={allTasks[0].data.status}
+                      deploymentStatus={allTasks[0].data.deploymentStatus}
                       onClick={() => onDeploymentClick(allTasks[0].data)}
                     />
                   )}
@@ -160,22 +178,24 @@ export default function DeploymentCalendar({
               ) : (
                 <>
                   {/* 모든 항목 표시 */}
-                  {allTasks.map((task) =>
-                    task.type === 'restricted' ? (
+                  {allTasks.map((task, taskIndex) => {
+                    return task.type === 'restricted' ? (
                       <MonthlyRestrictedPeriodCard
-                        key={task.data.id}
+                        key={`restricted-${task.data.id}-${dateStr}-${task.data.startDate}-${task.data.startTime}-${taskIndex}`}
                         title={task.data.title}
                         onClick={() => onRestrictedPeriodClick(task.data)}
                       />
                     ) : (
                       <MonthlyDeploymentCard
-                        key={task.data.id}
+                        key={`deployment-${task.data.id}-${dateStr}-${task.data.date}-${task.data.scheduledTime}-${taskIndex}`}
                         title={task.data.title}
+                        stage={task.data.stage}
                         status={task.data.status}
+                        deploymentStatus={task.data.deploymentStatus}
                         onClick={() => onDeploymentClick(task.data)}
                       />
-                    ),
-                  )}
+                    );
+                  })}
                 </>
               )}
             </S.CardList>

@@ -127,6 +127,9 @@ const palette = {
       successGreen: '#1a7f37',
       warning: '#FF9F0A',
     },
+    scrollbarTrack: '#f1f5f9',
+    scrollbarThumb: '#cbd5e1',
+    scrollbarThumbHover: '#94a3b8',
   },
   dark: {
     bg: '#0e1116',
@@ -194,6 +197,9 @@ const palette = {
       successGreen: '#30d158',
       warning: '#FF9F0A',
     },
+    scrollbarTrack: '#1f2735',
+    scrollbarThumb: '#3b4558',
+    scrollbarThumbHover: '#54607a',
   },
 };
 

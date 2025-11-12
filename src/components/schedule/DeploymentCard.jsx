@@ -1,32 +1,55 @@
-import { Calendar, CircleCheck, CircleX } from 'lucide-react';
+import { useTheme } from '@emotion/react';
+import { css } from '@emotion/react';
+
+import { getDeploymentIcon } from '@/features/schedule/utils/deploymentIconMapper';
 
 import * as S from './DeploymentCard.styles';
 
 export default function DeploymentCard({
   title,
   service,
+  stage,
   status,
+  deploymentStatus,
   scheduledTime,
   onClick,
 }) {
-  const renderStatusIcon = () => {
-    switch (status) {
-      case 'scheduled':
-        return <Calendar size={16} />;
-      case 'success':
-        return <CircleCheck size={16} />;
-      case 'failed':
-        return <CircleX size={16} />;
-      default:
-        return <Calendar size={16} />;
-    }
-  };
+  const theme = useTheme();
+
+  const iconConfig = getDeploymentIcon(
+    stage,
+    status,
+    deploymentStatus,
+    theme,
+    16, // 주간 캘린더는 16px
+  );
+  const { Icon, color, size, animated } = iconConfig;
 
   return (
     <S.Card onClick={onClick}>
       <S.Content>
         <S.TitleBox>
-          <S.StatusIcon status={status}>{renderStatusIcon()}</S.StatusIcon>
+          <S.StatusIcon
+            status={deploymentStatus}
+            css={
+              animated
+                ? css`
+                    animation: spin 2s linear infinite;
+
+                    @keyframes spin {
+                      from {
+                        transform: rotate(0deg);
+                      }
+                      to {
+                        transform: rotate(360deg);
+                      }
+                    }
+                  `
+                : undefined
+            }
+          >
+            <Icon size={size} color={color} />
+          </S.StatusIcon>
           <S.Title>{title}</S.Title>
         </S.TitleBox>
         <S.Details>

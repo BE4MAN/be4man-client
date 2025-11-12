@@ -36,7 +36,6 @@ const BaseButton = styled.button`
   border-radius: 0.3125rem;
   font-size: 0.7936rem;
   cursor: pointer;
-  transition: all 0.2s ease;
   outline: none;
 
   svg {
@@ -101,18 +100,10 @@ export const SearchFilterSection = styled.div`
   border-radius: 0.3125rem;
 `;
 
-export const TopControls = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-`;
-
 export const SearchBar = styled.div`
   position: relative;
   flex: 1;
-  max-width: 500px;
+  max-width: 765px;
 
   .search-icon {
     position: absolute;
@@ -130,12 +121,12 @@ export const SearchInput = styled.input`
   width: 100%;
   padding: 10px 40px;
   font-size: 14px;
+  font-family: Arial, sans-serif;
   border: 1px solid
     ${({ $focused, theme }) =>
       $focused ? theme.colors.brand : theme.colors.border};
   border-radius: 0.25rem;
   outline: none;
-  transition: all 0.2s;
   background-color: ${({ theme }) => theme.colors.bg};
   color: ${({ theme }) => theme.colors.textPrimary};
 
@@ -155,7 +146,6 @@ export const ClearButton = styled.button`
   font-size: 18px;
   color: ${({ theme }) => theme.colors.textSecondary};
   padding: 4px;
-  transition: all 0.2s;
 
   &:hover {
     color: ${({ theme }) => theme.colors.error};
@@ -168,13 +158,13 @@ export const ResetButton = styled.button`
   gap: 6px;
   padding: 10px 16px;
   font-size: 14px;
+  font-family: Arial, sans-serif;
   font-weight: 500;
   color: ${({ theme }) => theme.colors.textSecondary};
   background-color: transparent;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 0.25rem;
   cursor: pointer;
-  transition: all 0.2s;
   white-space: nowrap;
 
   svg {
@@ -188,7 +178,9 @@ export const ResetButton = styled.button`
 `;
 
 export const FiltersPanel = styled.div`
-  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 
 export const FiltersRow = styled.div`
@@ -196,6 +188,46 @@ export const FiltersRow = styled.div`
   gap: ${({ theme }) => theme.spacing.md};
   align-items: center;
   flex-wrap: wrap;
+  margin-bottom: 16px;
+
+  ${({ theme }) => theme.mqMax.md`
+    flex-direction: column;
+    align-items: stretch;
+
+    ${ResetButton} {
+      width: 100%;
+    }
+  `}
+`;
+
+export const FiltersLabel = styled.span`
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  margin-right: 10px;
+`;
+
+export const SearchLabel = styled.span`
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  margin-right: 26px;
+`;
+
+export const SearchBox = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  flex-wrap: wrap;
+
+  ${({ theme }) => theme.mqMax.md`
+    flex-direction: column;
+    align-items: stretch;
+    gap: ${theme.spacing.sm};
+  `}
 `;
 
 export const FilterRowItem = styled.div`
@@ -210,11 +242,11 @@ export const FilterButton = styled.button`
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 0.3125rem;
   background-color: ${({ theme }) => theme.colors.bg};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 14px;
+  font-family: Arial, sans-serif;
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
   cursor: pointer;
-  transition: all 0.2s ease;
   white-space: nowrap;
   display: flex;
   align-items: center;
@@ -270,9 +302,35 @@ export const TagContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spacing.sm};
-  padding: ${({ theme }) => theme.spacing.md};
+  padding: 0;
   background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.radius.md};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  margin-top: ${({ theme }) => theme.spacing.sm};
+`;
+
+export const SearchButton = styled.button`
+  height: 2.5rem;
+  min-width: 5.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.lg};
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: none;
+  background: ${({ theme }) => theme.colors.brand};
+  color: ${({ theme }) => theme.colors.onPrimary || '#ffffff'};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(0.95);
+  }
+
+  &:active {
+    filter: brightness(0.9);
+  }
+
+  ${({ theme }) => theme.mqMax.md`
+    width: 100%;
+  `}
 `;

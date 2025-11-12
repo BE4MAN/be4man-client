@@ -12,6 +12,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
 import Button from '@/components/auth/Button';
+import {
+  getBansForDate,
+  getBanDateRangeInfo,
+} from '@/features/schedule/utils/banCalculator';
 
 import DeploymentCard from './DeploymentCard';
 import RestrictedPeriodCard from './RestrictedPeriodCard';
@@ -20,6 +24,7 @@ import * as S from './WeeklyCalendar.styles';
 export default function WeeklyCalendar({
   deployments,
   restrictedPeriods,
+  holidays = [],
   onDeploymentClick,
   onRestrictedPeriodClick,
   onDateChange,
@@ -61,30 +66,39 @@ export default function WeeklyCalendar({
 
   const getRestrictedPeriodsForDay = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return restrictedPeriods
-      .filter((p) => {
-        const periodStart = new Date(p.startDate);
-        const periodEnd = new Date(p.endDate);
-        const currentDay = new Date(dateStr);
-        return currentDay >= periodStart && currentDay <= periodEnd;
-      })
-      .map((p) => {
-        const periodStart = new Date(p.startDate);
-        const periodEnd = new Date(p.endDate);
-        const currentDay = new Date(dateStr);
+    const bansForDay = getBansForDate(restrictedPeriods, dateStr);
 
-        const isFirstCard =
-          format(currentDay, 'yyyy-MM-dd') ===
-          format(periodStart, 'yyyy-MM-dd');
-        const isLastCard =
-          format(currentDay, 'yyyy-MM-dd') === format(periodEnd, 'yyyy-MM-dd');
+    return bansForDay.map((p) => {
+      const range = getBanDateRangeInfo(p);
+      const currentDay = new Date(dateStr);
 
-        return {
-          ...p,
-          isFirstCard,
-          isLastCard,
-        };
-      });
+      let isFirstCard = false;
+      let isLastCard = false;
+      let endTimeLabel = p.endTime;
+
+      if (range) {
+        const { startDateTime, endDateTime } = range;
+        const startDay = format(startDateTime, 'yyyy-MM-dd');
+        const endDay = format(endDateTime, 'yyyy-MM-dd');
+        const currentDayLabel = format(currentDay, 'yyyy-MM-dd');
+
+        isFirstCard = currentDayLabel === startDay;
+        isLastCard = currentDayLabel === endDay;
+        endTimeLabel = format(endDateTime, 'HH:mm');
+      }
+
+      return {
+        ...p,
+        isFirstCard,
+        isLastCard,
+        computedEndTime: endTimeLabel,
+      };
+    });
+  };
+
+  const getHolidayForDate = (date) => {
+    const formatted = format(date, 'yyyy-MM-dd');
+    return holidays.find((holiday) => holiday.date === formatted);
   };
 
   const startOfWeekDay = weekDays[0];
@@ -122,6 +136,7 @@ export default function WeeklyCalendar({
             const dayRestrictedPeriods = getRestrictedPeriodsForDay(day);
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isTodayCell = isToday(day);
+            const holiday = getHolidayForDate(day);
 
             return (
               <S.DayCell
@@ -129,30 +144,45 @@ export default function WeeklyCalendar({
                 isToday={isTodayCell}
                 isCurrentMonth={isCurrentMonth}
               >
-                <S.DayNumber isToday={isTodayCell}>{day.getDate()}</S.DayNumber>
+                <S.DayNumber>
+                  <S.DayNumberText isToday={isTodayCell} $isHoliday={!!holiday}>
+                    {day.getDate()}
+                  </S.DayNumberText>
+                  {holiday ? (
+                    <S.HolidayName>{holiday.name}</S.HolidayName>
+                  ) : null}
+                </S.DayNumber>
                 <S.CardList>
-                  {dayRestrictedPeriods.map((period) => (
-                    <RestrictedPeriodCard
-                      key={period.id}
-                      title={period.title}
-                      type={period.type}
-                      startTime={period.startTime}
-                      endTime={period.endTime}
-                      isFirstCard={period.isFirstCard}
-                      isLastCard={period.isLastCard}
-                      onClick={() => onRestrictedPeriodClick(period)}
-                    />
-                  ))}
-                  {dayDeployments.map((deployment) => (
-                    <DeploymentCard
-                      key={deployment.id}
-                      title={deployment.title}
-                      service={deployment.service}
-                      status={deployment.status}
-                      scheduledTime={deployment.scheduledTime}
-                      onClick={() => onDeploymentClick(deployment)}
-                    />
-                  ))}
+                  {dayRestrictedPeriods.map((period, periodIndex) => {
+                    const dateStr = format(day, 'yyyy-MM-dd');
+                    return (
+                      <RestrictedPeriodCard
+                        key={`period-${period.id}-${dateStr}-${period.startTime}-${periodIndex}`}
+                        title={period.title}
+                        type={period.type}
+                        startTime={period.startTime}
+                        endTime={period.computedEndTime}
+                        isFirstCard={period.isFirstCard}
+                        isLastCard={period.isLastCard}
+                        onClick={() => onRestrictedPeriodClick(period)}
+                      />
+                    );
+                  })}
+                  {dayDeployments.map((deployment, deploymentIndex) => {
+                    const dateStr = format(day, 'yyyy-MM-dd');
+                    return (
+                      <DeploymentCard
+                        key={`deployment-${deployment.id}-${dateStr}-${deployment.scheduledTime}-${deploymentIndex}`}
+                        title={deployment.title}
+                        service={deployment.service}
+                        stage={deployment.stage}
+                        status={deployment.status}
+                        deploymentStatus={deployment.deploymentStatus}
+                        scheduledTime={deployment.scheduledTime}
+                        onClick={() => onDeploymentClick(deployment)}
+                      />
+                    );
+                  })}
                 </S.CardList>
               </S.DayCell>
             );

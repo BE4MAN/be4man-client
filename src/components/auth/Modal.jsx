@@ -56,6 +56,7 @@ export const Modal = ({
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ duration: 0.12, ease: 'easeInOut' }}
           maxWidth={maxWidth}
+          variant={props.variant}
           onClick={(e) => e.stopPropagation()}
         >
           {(title || showCloseButton) && (
@@ -74,7 +75,7 @@ export const Modal = ({
             </S.ModalHeader>
           )}
 
-          <S.ModalBody>{children}</S.ModalBody>
+          <S.ModalBody variant={props.variant}>{children}</S.ModalBody>
 
           {footer && <S.ModalFooter>{footer}</S.ModalFooter>}
         </S.ModalContent>

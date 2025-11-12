@@ -1,22 +1,26 @@
 import { useTheme } from '@emotion/react';
 import React, { useState, useRef, useEffect } from 'react';
 
-const DateRangePicker = ({ startDate, endDate, onChange }) => {
+const DatePicker = ({
+  value,
+  onChange,
+  disabled = false,
+  minDate,
+  allowedWeekdays,
+}) => {
   const theme = useTheme();
   const isDark = theme.mode === 'dark';
   const [isOpen, setIsOpen] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selecting, setSelecting] = useState(null);
-  const [hoveredDate, setHoveredDate] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(
+    value ? new Date(value) : new Date(),
+  );
   const [hoveredNavBtn, setHoveredNavBtn] = useState(null);
-  const [hoveredActionBtn, setHoveredActionBtn] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
-        setSelecting(null);
       }
     };
 
@@ -34,7 +38,7 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
     border: 'none',
     cursor: 'pointer',
     padding: '4px',
-    color: isDark ? '#e0e0e0' : theme.colors.text, // ← 수정: 다크모드에서 명확한 색상
+    color: isDark ? '#e0e0e0' : theme.colors.text,
     fontSize: '18px',
     display: 'flex',
     alignItems: 'center',
@@ -51,7 +55,7 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
   const getStyles = () => ({
     container: {
       position: 'relative',
-      minWidth: '280px',
+      width: '280px',
     },
     inputButton: {
       width: '100%',
@@ -85,12 +89,8 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
         : '0 8px 24px rgba(0,0,0,0.15)',
       zIndex: 1001,
       padding: '10px',
-      maxWidth: '460px',
+      minWidth: '280px',
       width: 'max-content',
-    },
-    monthsContainer: {
-      display: 'flex',
-      gap: '12px',
     },
     monthSection: {
       flex: 1,
@@ -125,7 +125,7 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
       gridTemplateColumns: 'repeat(7, 1fr)',
       gap: '2px',
     },
-    dayCell: (isToday, isSelected, isInRange, isDisabled, isHovered) => ({
+    dayCell: (isToday, isSelected, isDisabled, isHovered) => ({
       padding: '6px',
       textAlign: 'center',
       fontSize: '12px',
@@ -133,15 +133,11 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
       borderRadius: '4px',
       backgroundColor: isSelected
         ? theme.colors.brand
-        : isInRange
+        : isHovered
           ? isDark
-            ? `${theme.colors.brand}30`
-            : `${theme.colors.brand}20`
-          : isHovered
-            ? isDark
-              ? '#2a2a2a'
-              : theme.colors.backgroundHover
-            : 'transparent',
+            ? '#2a2a2a'
+            : theme.colors.backgroundHover
+          : 'transparent',
       color: isSelected
         ? '#ffffff'
         : isDisabled
@@ -162,7 +158,7 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
       gap: '8px',
       flexWrap: 'wrap',
     },
-    selectedRange: {
+    selectedDate: {
       fontSize: '12px',
       color: isDark ? '#e0e0e0' : theme.colors.textSecondary,
     },
@@ -199,15 +195,6 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
   };
 
-  const getDisplayText = () => {
-    if (startDate && endDate) {
-      return `${formatDate(startDate)} - ${formatDate(endDate)}`;
-    } else if (startDate) {
-      return `${formatDate(startDate)} -`;
-    }
-    return '기간 선택';
-  };
-
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -229,69 +216,14 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
     return days;
   };
 
-  const formatDateToString = (date) => {
-    if (!date) return '';
+  const isDateSelected = (date) => {
+    if (!date || !value) return false;
     // 로컬 날짜 기준으로 YYYY-MM-DD 형식 생성 (시간대 문제 방지)
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const isDateInRange = (date) => {
-    if (!date || !startDate || !endDate) return false;
-    const dateStr = formatDateToString(date);
-    return dateStr >= startDate && dateStr <= endDate;
-  };
-
-  const isDateSelected = (date) => {
-    if (!date) return false;
-    const dateStr = formatDateToString(date);
-    return dateStr === startDate || dateStr === endDate;
-  };
-
-  const isDateHovered = (date) => {
-    if (!date || !selecting || !hoveredDate) return false;
-    const dateStr = formatDateToString(date);
-    const selectingStr = formatDateToString(selecting);
-    const hoveredStr = formatDateToString(hoveredDate);
-
-    const min = selectingStr < hoveredStr ? selectingStr : hoveredStr;
-    const max = selectingStr > hoveredStr ? selectingStr : hoveredStr;
-
-    return dateStr >= min && dateStr <= max;
-  };
-
-  const handleDateClick = (date) => {
-    if (!date) return;
-
-    const dateStr = formatDateToString(date);
-
-    if (!selecting) {
-      setSelecting(date);
-      onChange(dateStr, '');
-    } else {
-      const selectingStr = formatDateToString(selecting);
-      if (dateStr < selectingStr) {
-        onChange(dateStr, selectingStr);
-      } else {
-        onChange(selectingStr, dateStr);
-      }
-      setSelecting(null);
-      setHoveredDate(null);
-    }
-  };
-
-  const handleClear = () => {
-    onChange('', '');
-    setSelecting(null);
-    setHoveredDate(null);
-  };
-
-  const handleApply = () => {
-    setIsOpen(false);
-    setSelecting(null);
-    setHoveredDate(null);
+    const dateStr = `${year}-${month}-${day}`;
+    return dateStr === value;
   };
 
   const isToday = (date) => {
@@ -304,53 +236,70 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
     );
   };
 
-  const renderMonth = (monthOffset) => {
-    const date = new Date(currentMonth);
-    date.setMonth(date.getMonth() + monthOffset);
-    const days = getDaysInMonth(date);
-    const monthName = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}`;
+  const isDateDisabled = (date) => {
+    if (!date) return false;
+
+    // minDate 체크
+    if (minDate) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      if (dateStr < minDate) return true;
+    }
+
+    // allowedWeekdays 체크 (숫자: 0=일요일, 1=월요일, ..., 6=토요일)
+    if (allowedWeekdays !== undefined && allowedWeekdays !== null) {
+      const dayOfWeek = date.getDay();
+      if (dayOfWeek !== allowedWeekdays) return true;
+    }
+
+    return false;
+  };
+
+  const handleDateClick = (date) => {
+    if (!date || isDateDisabled(date)) return;
+    // 로컬 날짜 기준으로 YYYY-MM-DD 형식 생성 (시간대 문제 방지)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    onChange(dateStr);
+    setIsOpen(false); // 날짜 선택 시 자동으로 닫기
+  };
+
+  const renderMonth = () => {
+    const days = getDaysInMonth(currentMonth);
+    const monthName = `${currentMonth.getFullYear()}.${String(currentMonth.getMonth() + 1).padStart(2, '0')}`;
 
     return (
       <div style={styles.monthSection}>
         <div style={styles.monthHeader}>
-          {monthOffset === 0 && (
-            <button
-              style={navButton(hoveredNavBtn === 'prev')}
-              onClick={() => {
-                const newDate = new Date(currentMonth);
-                newDate.setMonth(newDate.getMonth() - 1);
-                setCurrentMonth(newDate);
-              }}
-              onMouseEnter={() => setHoveredNavBtn('prev')}
-              onMouseLeave={() => setHoveredNavBtn(null)}
-            >
-              ‹
-            </button>
-          )}
-          {monthOffset === 0 && (
-            <span style={styles.monthTitle}>{monthName}</span>
-          )}
-          {monthOffset === 1 && (
-            <>
-              <div />
-              <span style={styles.monthTitle}>{monthName}</span>
-            </>
-          )}
-          {monthOffset === 1 && (
-            <button
-              style={navButton(hoveredNavBtn === 'next')}
-              onClick={() => {
-                const newDate = new Date(currentMonth);
-                newDate.setMonth(newDate.getMonth() + 1);
-                setCurrentMonth(newDate);
-              }}
-              onMouseEnter={() => setHoveredNavBtn('next')}
-              onMouseLeave={() => setHoveredNavBtn(null)}
-            >
-              ›
-            </button>
-          )}
-          {monthOffset === 0 && <div />}
+          <button
+            style={navButton(hoveredNavBtn === 'prev')}
+            onClick={() => {
+              const newDate = new Date(currentMonth);
+              newDate.setMonth(newDate.getMonth() - 1);
+              setCurrentMonth(newDate);
+            }}
+            onMouseEnter={() => setHoveredNavBtn('prev')}
+            onMouseLeave={() => setHoveredNavBtn(null)}
+          >
+            ‹
+          </button>
+          <span style={styles.monthTitle}>{monthName}</span>
+          <button
+            style={navButton(hoveredNavBtn === 'next')}
+            onClick={() => {
+              const newDate = new Date(currentMonth);
+              newDate.setMonth(newDate.getMonth() + 1);
+              setCurrentMonth(newDate);
+            }}
+            onMouseEnter={() => setHoveredNavBtn('next')}
+            onMouseLeave={() => setHoveredNavBtn(null)}
+          >
+            ›
+          </button>
         </div>
 
         <div style={styles.weekdays}>
@@ -362,25 +311,23 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
         </div>
 
         <div style={styles.daysGrid}>
-          {days.map((day, idx) => (
-            <div
-              key={idx}
-              style={styles.dayCell(
-                isToday(day),
-                isDateSelected(day),
-                isDateInRange(day) || isDateHovered(day),
-                false,
-                hoveredDate &&
-                  day &&
-                  day.toDateString() === hoveredDate.toDateString(),
-              )}
-              onClick={() => handleDateClick(day)}
-              onMouseEnter={() => day && setHoveredDate(day)}
-              onMouseLeave={() => setHoveredDate(null)}
-            >
-              {day ? day.getDate() : ''}
-            </div>
-          ))}
+          {days.map((day, idx) => {
+            const isDisabled = isDateDisabled(day);
+            return (
+              <div
+                key={idx}
+                style={styles.dayCell(
+                  isToday(day),
+                  isDateSelected(day),
+                  isDisabled,
+                  false,
+                )}
+                onClick={() => handleDateClick(day)}
+              >
+                {day ? day.getDate() : ''}
+              </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -390,10 +337,15 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
     <div ref={dropdownRef} style={styles.container}>
       <button
         type="button"
-        style={styles.inputButton}
-        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          ...styles.inputButton,
+          opacity: disabled ? 0.5 : 1,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+        }}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
       >
-        {getDisplayText()}
+        {value ? formatDate(value) : '날짜 선택'}
         <svg
           style={styles.calendarIcon}
           width="16"
@@ -411,44 +363,9 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
         </svg>
       </button>
 
-      {isOpen && (
-        <div style={styles.dropdown}>
-          <div style={styles.monthsContainer}>
-            {renderMonth(0)}
-            {renderMonth(1)}
-          </div>
-
-          <div style={styles.footer}>
-            <div style={styles.selectedRange}>
-              {startDate && endDate
-                ? `선택된 기간: ${formatDate(startDate)} ~ ${formatDate(endDate)}`
-                : selecting
-                  ? '종료일을 선택하세요'
-                  : '시작일을 선택하세요'}
-            </div>
-            <div style={styles.buttons}>
-              <button
-                style={styles.button(false, hoveredActionBtn === 'clear')}
-                onClick={handleClear}
-                onMouseEnter={() => setHoveredActionBtn('clear')}
-                onMouseLeave={() => setHoveredActionBtn(null)}
-              >
-                초기화
-              </button>
-              <button
-                style={styles.button(true, hoveredActionBtn === 'apply')}
-                onClick={handleApply}
-                onMouseEnter={() => setHoveredActionBtn('apply')}
-                onMouseLeave={() => setHoveredActionBtn(null)}
-              >
-                적용
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {isOpen && <div style={styles.dropdown}>{renderMonth()}</div>}
     </div>
   );
 };
 
-export default DateRangePicker;
+export default DatePicker;

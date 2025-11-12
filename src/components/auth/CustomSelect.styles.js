@@ -34,22 +34,16 @@ export const SelectButton = styled.button`
   border: 1px solid
     ${({ $hasError, theme }) =>
       $hasError ? theme.colors.error : theme.colors.border};
-  color: ${({ $hasValue, theme }) =>
-    !$hasValue ? 'rgb(107 114 128 / 40%)' : theme.colors.textPrimary};
+  color: ${({ theme }) => theme.colors.textSecondary};
   padding: 0 2.5rem 0 ${({ theme }) => theme.spacing.md};
-  font-size: ${({ theme }) => theme.typography.fontSize.md};
-  transition: border-color 0.2s ease;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
   outline: none;
   cursor: pointer;
   text-align: left;
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  &:focus {
-    border-color: ${({ $hasError, theme }) =>
-      $hasError ? theme.colors.error : theme.colors.brand};
-  }
 
   &:disabled {
     opacity: 0.5;
@@ -83,7 +77,6 @@ export const ChevronIcon = styled(ChevronDown, {
   top: 50%;
   transform: translateY(-50%)
     ${({ $open }) => ($open ? 'rotate(180deg)' : 'rotate(0deg)')};
-  transition: transform 0.2s ease;
   pointer-events: none;
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
@@ -99,16 +92,10 @@ export const OptionsPanel = styled.ul`
   border-radius: ${({ theme }) => theme.radius.md};
   background-color: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  box-shadow: ${({ theme }) => theme.shadow.md};
   padding: 0;
   margin: 0;
   list-style: none;
   outline: none;
-
-  &:focus {
-    outline: none;
-    box-shadow: ${({ theme }) => theme.shadow.md};
-  }
 
   /* Custom scrollbar */
   &::-webkit-scrollbar {
@@ -135,9 +122,10 @@ export const Option = styled.li`
   justify-content: space-between;
   padding: 9px 16px;
   cursor: pointer;
-  font-size: ${({ theme }) => theme.typography.fontSize.md};
+  font-size: 14px;
+  font-family: Arial, sans-serif;
   color: ${({ theme, $selected }) =>
-    $selected ? theme.colors.brand : theme.colors.textPrimary};
+    $selected ? theme.colors.brand : theme.colors.textSecondary};
   font-weight: ${({ theme, $selected }) =>
     $selected
       ? theme.typography.fontWeight.medium
@@ -148,9 +136,6 @@ export const Option = styled.li`
     if ($active) return theme.colors.interactiveHover;
     return 'transparent';
   }};
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
 
   svg {
     color: ${({ theme }) => theme.colors.brand};

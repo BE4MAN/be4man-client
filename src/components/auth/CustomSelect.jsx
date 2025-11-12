@@ -1,4 +1,4 @@
-import { Listbox, Transition } from '@headlessui/react';
+import { Listbox } from '@headlessui/react';
 import { Check } from 'lucide-react';
 import React, { Fragment } from 'react';
 
@@ -15,6 +15,7 @@ export const CustomSelect = React.forwardRef(
       value,
       onChange,
       onBlur,
+      placeholder = '선택',
       ...props
     },
     ref,
@@ -39,36 +40,26 @@ export const CustomSelect = React.forwardRef(
                   onBlur={onBlur}
                   {...props}
                 >
-                  <span>{selected?.label || ''}</span>
+                  <span>{selected?.label || placeholder}</span>
                   <S.ChevronIcon $open={open} size={20} />
                 </Listbox.Button>
 
-                <Transition
-                  as={Fragment}
-                  enter="transition ease-out duration-100"
-                  enterFrom="opacity-0 scale-95"
-                  enterTo="opacity-100 scale-100"
-                  leave="transition ease-in duration-75"
-                  leaveFrom="opacity-100 scale-100"
-                  leaveTo="opacity-0 scale-95"
-                >
-                  <Listbox.Options as={S.OptionsPanel}>
-                    {options.map((option) => (
-                      <Listbox.Option
-                        key={option.value}
-                        value={option.value}
-                        as={Fragment}
-                      >
-                        {({ active, selected }) => (
-                          <S.Option $active={active} $selected={selected}>
-                            <span>{option.label}</span>
-                            {selected && <Check size={16} />}
-                          </S.Option>
-                        )}
-                      </Listbox.Option>
-                    ))}
-                  </Listbox.Options>
-                </Transition>
+                <Listbox.Options as={S.OptionsPanel}>
+                  {options.map((option) => (
+                    <Listbox.Option
+                      key={option.value}
+                      value={option.value}
+                      as={Fragment}
+                    >
+                      {({ active, selected: isSelected }) => (
+                        <S.Option $active={active} $selected={isSelected}>
+                          <span>{option.label}</span>
+                          {isSelected && <Check size={16} />}
+                        </S.Option>
+                      )}
+                    </Listbox.Option>
+                  ))}
+                </Listbox.Options>
               </S.SelectWrapper>
             )}
           </Listbox>
