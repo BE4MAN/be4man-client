@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
+import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
 import {
   enumToStage,
@@ -90,6 +91,22 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
                     `${deployment.date} ${deployment.scheduledTime}`,
                   )
                 : '—'}
+            </S.InfoTd>
+          </S.InfoRow>
+
+          <S.InfoRow>
+            <S.InfoTh>연관 서비스</S.InfoTh>
+            <S.InfoTd colSpan={3}>
+              {deployment.relatedServices &&
+              deployment.relatedServices.length > 0 ? (
+                <S.ServicesContainer>
+                  {deployment.relatedServices.map((service) => (
+                    <ServiceTag key={service} service={service} />
+                  ))}
+                </S.ServicesContainer>
+              ) : (
+                '—'
+              )}
             </S.InfoTd>
           </S.InfoRow>
         </S.InfoTable>

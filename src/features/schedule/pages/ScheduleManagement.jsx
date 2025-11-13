@@ -118,6 +118,7 @@ export default function ScheduleManagement() {
       isDeployed: d.isDeployed, // 배포 완료 여부 (null, true, false)
       registrant: d.registrant, // 등록자
       registrantDepartment: d.registrantDepartment, // 등록부서
+      relatedServices: d.relatedServices || [], // 연관 서비스 목록
     }));
     console.log('[ScheduleManagement] Transformed deployments:', transformed);
     if (transformed.length > 0) {

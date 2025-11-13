@@ -215,21 +215,6 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
           </S.InfoRow>
 
           <S.InfoRow>
-            <S.InfoTh>연관 서비스</S.InfoTh>
-            <S.InfoTd colSpan={3}>
-              {period.services && period.services.length > 0 ? (
-                <S.ServicesContainer>
-                  {period.services.map((service) => (
-                    <ServiceTag key={service} service={service} />
-                  ))}
-                </S.ServicesContainer>
-              ) : (
-                '—'
-              )}
-            </S.InfoTd>
-          </S.InfoRow>
-
-          <S.InfoRow>
             <S.InfoTh>시작일자</S.InfoTh>
             <S.InfoTd>{getStartDateTime()}</S.InfoTd>
             <S.InfoTh>종료일자</S.InfoTh>
@@ -251,6 +236,21 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
             <col />
             <col />
           </S.InfoColGroup>
+
+          <S.InfoRow>
+            <S.InfoTh>연관 서비스</S.InfoTh>
+            <S.InfoTd colSpan={3}>
+              {period.services && period.services.length > 0 ? (
+                <S.ServicesContainer>
+                  {period.services.map((service) => (
+                    <ServiceTag key={service} service={service} />
+                  ))}
+                </S.ServicesContainer>
+              ) : (
+                '—'
+              )}
+            </S.InfoTd>
+          </S.InfoRow>
 
           <S.InfoRow>
             <S.InfoTh>설명</S.InfoTh>
