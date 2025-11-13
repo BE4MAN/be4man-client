@@ -6,6 +6,7 @@ import {
   enumToStage,
   enumToStatus,
 } from '@/features/schedule/utils/enumConverter';
+import { formatTimeToKorean } from '@/features/schedule/utils/timeFormatter';
 import { PrimaryBtn } from '@/styles/modalButtons';
 
 import * as S from './DeploymentDetailModal.styles';
@@ -84,7 +85,11 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
             </S.InfoTd>
             <S.InfoTh>작업 시각</S.InfoTh>
             <S.InfoTd>
-              {deployment.date} {deployment.scheduledTime}
+              {deployment.date && deployment.scheduledTime
+                ? formatTimeToKorean(
+                    `${deployment.date} ${deployment.scheduledTime}`,
+                  )
+                : '—'}
             </S.InfoTd>
           </S.InfoRow>
         </S.InfoTable>

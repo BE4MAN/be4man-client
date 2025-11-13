@@ -1,12 +1,13 @@
 import { useTheme } from '@emotion/react';
 import { format, parseISO } from 'date-fns';
-import { CalendarOff } from 'lucide-react';
+import { CalendarOff, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 
 import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
 import { useCancelBan } from '@/features/schedule/hooks/useCancelBan';
 import { enumToWeekday } from '@/features/schedule/utils/enumConverter';
+import { formatTimeToKorean } from '@/features/schedule/utils/timeFormatter';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
 import { getForbiddenMessage, isForbiddenError } from '@/utils/errorHandler';
 
@@ -21,7 +22,7 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
 
   if (!period) return null;
 
-  // 금지 시간 계산 (시간 차이)
+  // 지속시간 계산 (시간 차이)
   const getRestrictedTime = () => {
     // durationHours 또는 duration 필드 확인
     const duration = period.durationHours ?? period.duration;
@@ -48,14 +49,16 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
   // 시작일자 형식 (YYYY-MM-DD HH:mm:ss)
   const getStartDateTime = () => {
     if (!period.startDate || !period.startTime) return '—';
-    return `${period.startDate} ${period.startTime}:00`;
+    const dateTime = `${period.startDate} ${period.startTime}:00`;
+    return formatTimeToKorean(dateTime);
   };
 
   const getEndedAt = () => {
     if (period.endedAt) {
       const ended = parseISO(period.endedAt);
       if (!Number.isNaN(ended.getTime())) {
-        return format(ended, 'yyyy-MM-dd HH:mm');
+        const formatted = format(ended, 'yyyy-MM-dd HH:mm');
+        return formatTimeToKorean(formatted);
       }
     }
     const duration = period.durationHours ?? period.duration;
@@ -69,18 +72,21 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
       if (!Number.isNaN(start.getTime())) {
         const computed = new Date(start);
         computed.setHours(computed.getHours() + Number(duration));
-        return format(computed, 'yyyy-MM-dd HH:mm');
+        const formatted = format(computed, 'yyyy-MM-dd HH:mm');
+        return formatTimeToKorean(formatted);
       }
     }
     if (period.endDate || period.endTime) {
-      return `${period.endDate || period.startDate} ${period.endTime || ''}`.trim();
+      const dateTime =
+        `${period.endDate || period.startDate} ${period.endTime || ''}`.trim();
+      return dateTime ? formatTimeToKorean(dateTime) : '—';
     }
     return '—';
   };
 
   const getRecurrenceLabel = () => {
     if (!period.recurrenceType || period.recurrenceType === 'NONE') {
-      return '없음';
+      return '—';
     }
     if (period.recurrenceType === 'DAILY') return '매일';
     if (period.recurrenceType === 'WEEKLY') {
@@ -225,19 +231,16 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
 
           <S.InfoRow>
             <S.InfoTh>시작일자</S.InfoTh>
-            <S.InfoTd colSpan={3}>{getStartDateTime()}</S.InfoTd>
-          </S.InfoRow>
-
-          <S.InfoRow>
-            <S.InfoTh>금지 시간</S.InfoTh>
-            <S.InfoTd>{getRestrictedTime()}</S.InfoTd>
-            <S.InfoTh>종료 일시</S.InfoTh>
+            <S.InfoTd>{getStartDateTime()}</S.InfoTd>
+            <S.InfoTh>종료일자</S.InfoTh>
             <S.InfoTd>{getEndedAt()}</S.InfoTd>
           </S.InfoRow>
 
           <S.InfoRow>
-            <S.InfoTh>금지 주기</S.InfoTh>
-            <S.InfoTd colSpan={3}>{getRecurrenceLabel()}</S.InfoTd>
+            <S.InfoTh>지속시간</S.InfoTh>
+            <S.InfoTd>{getRestrictedTime()}</S.InfoTd>
+            <S.InfoTh>반복 주기</S.InfoTh>
+            <S.InfoTd>{getRecurrenceLabel()}</S.InfoTd>
           </S.InfoRow>
         </S.InfoTable>
 
@@ -284,7 +287,8 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
       <ScheduleModal
         isOpen={showForbiddenModal}
         onClose={() => setShowForbiddenModal(false)}
-        title="권한 없음"
+        title="관리자 권한이 필요합니다."
+        titleIcon={<TriangleAlert size={20} color="#EF4444" />}
         maxWidth="400px"
         footer={
           <S.Footer>

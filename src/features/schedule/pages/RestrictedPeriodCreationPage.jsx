@@ -1,5 +1,5 @@
 import { format, addMonths } from 'date-fns';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, TriangleAlert } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,10 +25,12 @@ import {
 } from '../utils/dateCalculator';
 import {
   banTypeToEnum,
+  enumToBanType,
   recurrenceTypeToEnum,
   weekdayToEnum,
   weekOfMonthToEnum,
 } from '../utils/enumConverter';
+import { formatTimeToKorean } from '../utils/timeFormatter';
 
 import * as S from './RestrictedPeriodCreationPage.styles';
 
@@ -39,7 +41,7 @@ export default function RestrictedPeriodCreationPage() {
   const [banType, setBanType] = useState(''); // 유형
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
-  const [startTime, setStartTime] = useState('');
+  const [startTime, setStartTime] = useState('00:00'); // 기본값: 00:00
   const [duration, setDuration] = useState('');
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
   const [isRecurrenceEndNone, setIsRecurrenceEndNone] = useState(true);
@@ -106,7 +108,8 @@ export default function RestrictedPeriodCreationPage() {
     if (Number.isNaN(base.getTime())) return '—';
     const ended = new Date(base);
     ended.setHours(ended.getHours() + hours);
-    return format(ended, 'yyyy-MM-dd HH:mm');
+    const formatted = format(ended, 'yyyy-MM-dd HH:mm');
+    return formatTimeToKorean(formatted);
   };
 
   // 주차 숫자 → 한글 변환 (getNextMonthlyWeekday에서 사용)
@@ -156,7 +159,7 @@ export default function RestrictedPeriodCreationPage() {
   };
 
   const getRecurrenceSummary = () => {
-    if (!recurrenceType || recurrenceType === '') return '없음';
+    if (!recurrenceType || recurrenceType === '') return '—';
 
     let summary = '';
     if (recurrenceType === '매일') {
@@ -415,7 +418,9 @@ export default function RestrictedPeriodCreationPage() {
     const durationHours = parseDurationHours(duration);
     const durationLabel = durationHours > 0 ? `${durationHours} 시간` : '—';
     const startDateTimeLabel =
-      startDate && startTime ? `${startDate} ${startTime}:00` : '—';
+      startDate && startTime
+        ? formatTimeToKorean(`${startDate} ${startTime}:00`)
+        : '—';
     const endedAtLabel = getEndedAtLabel();
     const recurrenceSummary = getRecurrenceSummary();
     const registrantName = user?.name || '—';
@@ -447,7 +452,9 @@ export default function RestrictedPeriodCreationPage() {
               <Detail.InfoTh>제목</Detail.InfoTh>
               <Detail.InfoTd>{title || '—'}</Detail.InfoTd>
               <Detail.InfoTh>유형</Detail.InfoTh>
-              <Detail.InfoTd>{banType || '—'}</Detail.InfoTd>
+              <Detail.InfoTd>
+                {banType ? enumToBanType(banType) || banType : '—'}
+              </Detail.InfoTd>
             </Detail.InfoRow>
             <Detail.InfoRow>
               <Detail.InfoTh>등록자</Detail.InfoTh>
@@ -474,14 +481,14 @@ export default function RestrictedPeriodCreationPage() {
               <Detail.InfoTd colSpan={3}>{startDateTimeLabel}</Detail.InfoTd>
             </Detail.InfoRow>
             <Detail.InfoRow>
-              <Detail.InfoTh>금지 시간</Detail.InfoTh>
+              <Detail.InfoTh>지속시간</Detail.InfoTh>
               <Detail.InfoTd>{durationLabel}</Detail.InfoTd>
-              <Detail.InfoTh>종료 일시</Detail.InfoTh>
-              <Detail.InfoTd>{endedAtLabel}</Detail.InfoTd>
+              <Detail.InfoTh>반복 주기</Detail.InfoTh>
+              <Detail.InfoTd>{recurrenceSummary}</Detail.InfoTd>
             </Detail.InfoRow>
             <Detail.InfoRow>
-              <Detail.InfoTh>금지 주기</Detail.InfoTh>
-              <Detail.InfoTd colSpan={3}>{recurrenceSummary}</Detail.InfoTd>
+              <Detail.InfoTh>종료일자</Detail.InfoTh>
+              <Detail.InfoTd colSpan={3}>{endedAtLabel}</Detail.InfoTd>
             </Detail.InfoRow>
           </Detail.InfoTable>
 
@@ -586,7 +593,7 @@ export default function RestrictedPeriodCreationPage() {
           </S.MetaRow>
 
           <S.MetaRow>
-            <S.MetaTh>금지 주기</S.MetaTh>
+            <S.MetaTh>반복 주기</S.MetaTh>
             <S.MetaTdRecurrence colSpan={3}>
               <S.RecurrenceContainerWrapper>
                 <S.RecurrenceContainer>
@@ -793,7 +800,7 @@ export default function RestrictedPeriodCreationPage() {
                       startDate: !isRegularEvent && !date,
                     }));
                   }
-                  // 금지 일자를 선택하면 금지 주기 초기화
+                  // 금지 일자를 선택하면 반복 주기 초기화
                   if (date) {
                     setRecurrenceType('');
                     setRecurrenceWeekday('');
@@ -840,7 +847,7 @@ export default function RestrictedPeriodCreationPage() {
               />
             </S.MetaTdTime>
             <S.MetaTh>
-              금지 시간 <RequiredAsterisk>*</RequiredAsterisk>
+              지속시간 <RequiredAsterisk>*</RequiredAsterisk>
             </S.MetaTh>
             <S.MetaTdRestrictedHours>
               <S.RestrictedHoursInputWrapper>
@@ -1034,7 +1041,8 @@ export default function RestrictedPeriodCreationPage() {
       <ScheduleModal
         isOpen={showForbiddenModal}
         onClose={() => setShowForbiddenModal(false)}
-        title="권한 없음"
+        title="관리자 권한이 필요합니다."
+        titleIcon={<TriangleAlert size={20} color="#EF4444" />}
         maxWidth="400px"
         footer={
           <Detail.Footer>
