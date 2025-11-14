@@ -1,6 +1,6 @@
 import { format, addMonths } from 'date-fns';
 import { RotateCcw, TriangleAlert } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { scheduleAPI } from '@/api/schedule';
@@ -42,7 +42,8 @@ export default function RestrictedPeriodCreationPage() {
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('00:00'); // 기본값: 00:00
-  const [duration, setDuration] = useState('');
+  const [durationHours, setDurationHours] = useState('');
+  const [durationMinutes, setDurationMinutes] = useState('');
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
   const [isRecurrenceEndNone, setIsRecurrenceEndNone] = useState(true);
   const [recurrenceType, setRecurrenceType] = useState(''); // '매일', '매주', '매월', ''
@@ -55,7 +56,6 @@ export default function RestrictedPeriodCreationPage() {
   const [isLoadingConflicts, setIsLoadingConflicts] = useState(false);
   const [showForbiddenModal, setShowForbiddenModal] = useState(false);
   const [forbiddenMessage, setForbiddenMessage] = useState('');
-  const restrictedHoursInputRef = useRef(null);
   const [errors, setErrors] = useState({
     title: false,
     banType: false,
@@ -96,18 +96,24 @@ export default function RestrictedPeriodCreationPage() {
       .filter((id) => id !== undefined);
   };
 
-  const parseDurationHours = (value) => {
+  const parseDurationValue = (value) => {
     const parsed = Number.parseInt(value, 10);
-    return Number.isFinite(parsed) ? parsed : 0;
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+  };
+
+  const getDurationInMinutes = () => {
+    const hours = parseDurationValue(durationHours);
+    const minutes = parseDurationValue(durationMinutes);
+    return hours * 60 + minutes;
   };
 
   const getEndedAtLabel = () => {
-    const hours = parseDurationHours(duration);
-    if (!startDate || !startTime || hours <= 0) return '—';
+    const totalMinutes = getDurationInMinutes();
+    if (!startDate || !startTime || totalMinutes <= 0) return '—';
     const base = new Date(`${startDate}T${startTime}:00`);
     if (Number.isNaN(base.getTime())) return '—';
     const ended = new Date(base);
-    ended.setHours(ended.getHours() + hours);
+    ended.setMinutes(ended.getMinutes() + totalMinutes);
     const formatted = format(ended, 'yyyy-MM-dd HH:mm');
     return formatTimeToKorean(formatted);
   };
@@ -191,7 +197,7 @@ export default function RestrictedPeriodCreationPage() {
     // 필수 필드 검증
     const titleError = !title.trim();
     const banTypeError = !banType || banType === '';
-    const hasDuration = parseDurationHours(duration) > 0;
+    const hasDuration = getDurationInMinutes() > 0;
     const timeError = !(startTime && hasDuration);
     const descriptionError = !description.trim();
     const servicesError =
@@ -247,7 +253,7 @@ export default function RestrictedPeriodCreationPage() {
         projectIds,
         startDate,
         startTime,
-        durationHours: parseDurationHours(duration),
+        durationMinutes: getDurationInMinutes(),
         queryStartDate,
         queryEndDate,
       };
@@ -328,7 +334,7 @@ export default function RestrictedPeriodCreationPage() {
       description,
       startDate,
       startTime,
-      durationHours: parseDurationHours(duration),
+      durationMinutes: getDurationInMinutes(),
       type: typeEnum,
       relatedProjectIds: projectIds,
       endedAt: null, // 백엔드에서 계산
@@ -368,7 +374,7 @@ export default function RestrictedPeriodCreationPage() {
 
   const isTitleValid = title.trim().length > 0;
   const isBanTypeValid = banType && banType !== '';
-  const isTimeValid = !!(startTime && parseDurationHours(duration) > 0);
+  const isTimeValid = !!(startTime && getDurationInMinutes() > 0);
   const isDescriptionValid = description.trim().length > 0;
   const isServicesValid =
     Array.isArray(selectedServices) && selectedServices.length > 0;
@@ -415,8 +421,16 @@ export default function RestrictedPeriodCreationPage() {
   };
 
   const renderConfirmationDetail = () => {
-    const durationHours = parseDurationHours(duration);
-    const durationLabel = durationHours > 0 ? `${durationHours} 시간` : '—';
+    const hours = parseDurationValue(durationHours);
+    const minutes = parseDurationValue(durationMinutes);
+    const durationLabel =
+      hours > 0 && minutes > 0
+        ? `${hours}시간 ${minutes}분`
+        : hours > 0
+          ? `${hours}시간`
+          : minutes > 0
+            ? `${minutes}분`
+            : '—';
     const startDateTimeLabel =
       startDate && startTime
         ? formatTimeToKorean(`${startDate} ${startTime}:00`)
@@ -835,7 +849,7 @@ export default function RestrictedPeriodCreationPage() {
                 onChange={(newValue) => {
                   setStartTime(newValue);
                   if (touched.time) {
-                    const hasDuration = parseDurationHours(duration) > 0;
+                    const hasDuration = getDurationInMinutes() > 0;
                     setErrors((prev) => ({
                       ...prev,
                       time: !(newValue && hasDuration),
@@ -850,30 +864,64 @@ export default function RestrictedPeriodCreationPage() {
               지속시간 <RequiredAsterisk>*</RequiredAsterisk>
             </S.MetaTh>
             <S.MetaTdRestrictedHours>
-              <S.RestrictedHoursInputWrapper>
-                <S.RestrictedHoursInput
-                  ref={restrictedHoursInputRef}
-                  type="number"
-                  min="1"
-                  step="1"
-                  disabled={false}
-                  value={duration}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    setDuration(value);
-                    if (touched.time) {
-                      const hasDuration = parseDurationHours(value) > 0;
-                      setErrors((prev) => ({
-                        ...prev,
-                        time: !(startTime && hasDuration),
-                      }));
+              <S.DurationInputContainer>
+                <S.RestrictedHoursInputWrapper>
+                  <S.RestrictedHoursInput
+                    type="number"
+                    min="0"
+                    step="1"
+                    disabled={false}
+                    value={durationHours}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      setDurationHours(value);
+                      if (touched.time) {
+                        const hasDuration = getDurationInMinutes() > 0;
+                        setErrors((prev) => ({
+                          ...prev,
+                          time: !(startTime && hasDuration),
+                        }));
+                      }
+                    }}
+                    onBlur={() =>
+                      setTouched((prev) => ({ ...prev, time: true }))
                     }
-                  }}
-                  onBlur={() => setTouched((prev) => ({ ...prev, time: true }))}
-                  $hasError={touched.time && errors.time}
-                />
-                <S.HoursUnit>시간</S.HoursUnit>
-              </S.RestrictedHoursInputWrapper>
+                    $hasError={touched.time && errors.time}
+                  />
+                  <S.HoursUnit>시간</S.HoursUnit>
+                </S.RestrictedHoursInputWrapper>
+                <S.RestrictedHoursInputWrapper>
+                  <S.RestrictedHoursInput
+                    type="number"
+                    min="0"
+                    max="59"
+                    step="1"
+                    disabled={false}
+                    value={durationMinutes}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      const numValue = Number.parseInt(value, 10);
+                      const clampedValue =
+                        Number.isFinite(numValue) && numValue > 59
+                          ? '59'
+                          : value;
+                      setDurationMinutes(clampedValue);
+                      if (touched.time) {
+                        const hasDuration = getDurationInMinutes() > 0;
+                        setErrors((prev) => ({
+                          ...prev,
+                          time: !(startTime && hasDuration),
+                        }));
+                      }
+                    }}
+                    onBlur={() =>
+                      setTouched((prev) => ({ ...prev, time: true }))
+                    }
+                    $hasError={touched.time && errors.time}
+                  />
+                  <S.MinutesUnit>분</S.MinutesUnit>
+                </S.RestrictedHoursInputWrapper>
+              </S.DurationInputContainer>
             </S.MetaTdRestrictedHours>
           </S.MetaRow>
 

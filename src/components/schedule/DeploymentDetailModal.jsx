@@ -61,21 +61,23 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
           </S.InfoRow>
 
           <S.InfoRow>
-            <S.InfoTh>작업 단계</S.InfoTh>
-            <S.InfoTd>
-              {deployment.stage
-                ? enumToStage(deployment.stage) || deployment.stage
-                : '—'}
-            </S.InfoTd>
             <S.InfoTh>작업 상태</S.InfoTh>
             <S.InfoTd>
-              {deployment.status
-                ? enumToStatus(deployment.status) || deployment.status
-                : '—'}
+              {(() => {
+                const stageLabel = deployment.stage
+                  ? enumToStage(deployment.stage) || deployment.stage
+                  : null;
+                const statusLabel = deployment.status
+                  ? enumToStatus(deployment.status) || deployment.status
+                  : null;
+                if (stageLabel && statusLabel) {
+                  return `${stageLabel} ${statusLabel}`;
+                }
+                if (stageLabel) return stageLabel;
+                if (statusLabel) return statusLabel;
+                return '—';
+              })()}
             </S.InfoTd>
-          </S.InfoRow>
-
-          <S.InfoRow>
             <S.InfoTh>배포 상태</S.InfoTh>
             <S.InfoTd>
               {deployment.isDeployed === true
@@ -84,8 +86,11 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
                   ? '실패'
                   : '—'}
             </S.InfoTd>
-            <S.InfoTh>작업 시각</S.InfoTh>
-            <S.InfoTd>
+          </S.InfoRow>
+
+          <S.InfoRow>
+            <S.InfoTh>작업일자</S.InfoTh>
+            <S.InfoTd colSpan={3}>
               {deployment.date && deployment.scheduledTime
                 ? formatTimeToKorean(
                     `${deployment.date} ${deployment.scheduledTime}`,
