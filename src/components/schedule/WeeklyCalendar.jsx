@@ -177,7 +177,7 @@ export default function WeeklyCalendar({
                         service={deployment.service}
                         stage={deployment.stage}
                         status={deployment.status}
-                        deploymentStatus={deployment.deploymentStatus}
+                        isDeployed={deployment.isDeployed}
                         scheduledTime={deployment.scheduledTime}
                         onClick={() => onDeploymentClick(deployment)}
                       />

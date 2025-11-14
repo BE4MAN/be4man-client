@@ -104,32 +104,22 @@ export default function ScheduleManagement() {
     },
   );
 
-  // API 응답을 컴포넌트가 기대하는 형식으로 변환
   const deployments = useMemo(() => {
-    console.log('[ScheduleManagement] Raw deploymentsData:', deploymentsData);
-    const transformed = deploymentsData.map((d) => ({
+    return deploymentsData.map((d) => ({
       id: d.id,
       title: d.title,
-      service: d.projectName, // API의 projectName을 service로 매핑
-      date: d.scheduledDate, // API의 scheduledDate를 date로 매핑
-      scheduledTime: d.scheduledTime?.substring(0, 5) || '', // "HH:mm:ss" -> "HH:mm"
-      status: d.status, // API의 status 사용
-      stage: enumToStage(d.stage) || d.stage, // 작업 단계 (Enum → 한국어 변환)
-      deploymentStatus: d.deploymentStatus, // 배포 상태 (변환은 표시 시점에 수행)
-      registrant: d.registrant, // 등록자
-      registrantDepartment: d.registrantDepartment, // 등록부서
+      service: d.projectName,
+      date: d.scheduledDate,
+      scheduledTime: d.scheduledTime?.substring(0, 5) || '',
+      status: d.status,
+      stage: enumToStage(d.stage) || d.stage,
+      isDeployed: d.isDeployed,
+      registrant: d.registrant,
+      registrantDepartment: d.registrantDepartment,
+      relatedServices: d.relatedServices || [],
     }));
-    console.log('[ScheduleManagement] Transformed deployments:', transformed);
-    if (transformed.length > 0) {
-      console.log(
-        '[ScheduleManagement] First transformed deployment:',
-        transformed[0],
-      );
-    }
-    return transformed;
   }, [deploymentsData]);
 
-  // 서비스 목록 추출 (메타데이터의 projects 사용)
   const availableServices = useMemo(() => {
     if (metadata?.projects) {
       return metadata.projects.map((project) => ({
@@ -137,25 +127,20 @@ export default function ScheduleManagement() {
         label: project.name,
       }));
     }
-    // 메타데이터가 없을 때는 빈 배열 반환
     return [];
   }, [metadata]);
 
-  // Ban 목록 조회 필터 구성
   const banFilters = useMemo(() => {
     const filters = {};
 
-    // 검색어
     if (searchQuery && searchQuery.trim()) {
       filters.query = searchQuery.trim();
     }
 
-    // 유형 필터 (전체가 아닐 때만)
     if (selectedBanType && selectedBanType !== 'all') {
-      filters.type = selectedBanType; // 이미 Enum 값 (banTypes에서 value로 설정됨)
+      filters.type = selectedBanType;
     }
 
-    // 프로젝트 ID 필터 (서비스 이름을 프로젝트 ID로 변환)
     if (selectedServices && selectedServices.length > 0 && metadata?.projects) {
       const projectIds = selectedServices
         .map((serviceName) => {
@@ -168,7 +153,6 @@ export default function ScheduleManagement() {
       }
     }
 
-    // 날짜 범위 필터
     if (periodStartDate) {
       filters.startDate = periodStartDate;
     }
@@ -186,9 +170,6 @@ export default function ScheduleManagement() {
     metadata,
   ]);
 
-  // Ban 목록 조회
-  // - 목록 뷰: 검색 버튼 클릭 시 또는 필터가 있을 때
-  // - 캘린더 뷰: 항상 조회 (날짜 범위 기준)
   const banFiltersForCalendar = useMemo(() => {
     if (!calendarDateRange) return null;
     return {
@@ -210,22 +191,19 @@ export default function ScheduleManagement() {
     },
   );
 
-  // 뷰 모드에 따라 적절한 데이터 선택
   const restrictedPeriodsData =
     viewMode === 'restricted-list'
       ? restrictedPeriodsDataForList
       : restrictedPeriodsDataForCalendar;
 
-  // API 응답을 컴포넌트가 기대하는 형식으로 변환 (Enum → 한글, durationHours → duration)
   const restrictedPeriods = useMemo(() => {
     return restrictedPeriodsData.map((period) => ({
       ...period,
-      type: enumToBanType(period.type) || period.type, // Enum → 한글 변환
-      duration: period.durationHours, // durationHours → duration 매핑
+      type: enumToBanType(period.type) || period.type,
+      duration: period.durationMinutes,
     }));
   }, [restrictedPeriodsData]);
 
-  // banTypes (메타데이터에서 가져오기)
   const banTypes = useMemo(() => {
     const types = [
       { value: 'all', label: '전체' },
@@ -237,7 +215,6 @@ export default function ScheduleManagement() {
     return types;
   }, [metadata]);
 
-  // 이벤트 핸들러
   const handleDeploymentClick = (deployment) => {
     setSelectedDeployment(deployment);
     setIsDetailModalOpen(true);
@@ -272,11 +249,9 @@ export default function ScheduleManagement() {
   };
 
   const handleSearchSubmit = () => {
-    // 검색 버튼 클릭 시 Ban 목록 조회
     setShouldFetchBans(true);
   };
 
-  // 캘린더 날짜 변경 시 연도 및 현재 날짜 업데이트
   const handleCalendarDateChange = (date) => {
     setCalendarCurrentDate(date);
     const year = date.getFullYear();

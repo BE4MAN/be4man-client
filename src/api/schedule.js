@@ -27,7 +27,7 @@ export const scheduleAPI = {
    * @param {string} banData.description - 설명 (필수)
    * @param {string} banData.startDate - 시작일 (YYYY-MM-DD, 필수)
    * @param {string} banData.startTime - 시작시간 (HH:mm, 필수)
-   * @param {number} banData.durationHours - 금지 시간 (시간 단위, 필수)
+   * @param {number} banData.durationMinutes - 금지 시간 (분 단위, 필수)
    * @param {string} banData.type - 작업 금지 유형 (DB_MIGRATION, ACCIDENT, MAINTENANCE, EXTERNAL_SCHEDULE, 필수)
    * @param {number[]} banData.relatedProjectIds - 연관 프로젝트 ID 목록 (필수, 최소 1개 이상)
    * @param {string|null} [banData.recurrenceType] - 반복 유형 (DAILY, WEEKLY, MONTHLY, null)
@@ -42,7 +42,7 @@ export const scheduleAPI = {
    *   startDate: string,
    *   startTime: string,
    *   endedAt: string,
-   *   durationHours: number,
+   *   durationMinutes: number,
    *   type: string,
    *   services: string[],
    *   registrant: string,
@@ -65,14 +65,14 @@ export const scheduleAPI = {
    * @returns {Promise<Array<{
    *   id: number,
    *   title: string,
-   *   status: string,
+   *   status: string, // DeploymentStatus enum: PENDING, REJECTED, IN_PROGRESS, CANCELED, COMPLETED, APPROVED
+   *   stage: string, // DeploymentStage enum: PLAN, DEPLOYMENT, REPORT, RETRY, ROLLBACK, DRAFT
+   *   isDeployed: boolean|null, // Jenkins 배포 성공 여부 (null: 배포 전, true: 성공, false: 실패)
    *   projectName: string,
    *   scheduledDate: string,
    *   scheduledTime: string,
    *   registrant: string,
-   *   registrantDepartment: string,
-   *   stage: string,
-   *   deploymentStatus: string
+   *   registrantDepartment: string
    * }>>}
    */
   getDeployments: async (startDate, endDate) => {
@@ -105,7 +105,7 @@ export const scheduleAPI = {
    *   startDate: string,
    *   startTime: string,
    *   endedAt: string,
-   *   durationHours: number,
+   *   durationMinutes: number,
    *   type: string,
    *   services: string[],
    *   registrant: string,
@@ -152,7 +152,7 @@ export const scheduleAPI = {
    * @param {number[]} params.projectIds - 연관 프로젝트 ID 목록 (필수)
    * @param {string} params.startDate - 시작일 (YYYY-MM-DD, 필수)
    * @param {string} params.startTime - 시작시간 (HH:mm, 필수)
-   * @param {number} params.durationHours - 금지 시간 (필수)
+   * @param {number} params.durationMinutes - 금지 시간 (분 단위, 필수)
    * @param {string|null} [params.recurrenceType] - 반복 유형 (DAILY, WEEKLY, MONTHLY, null)
    * @param {string|null} [params.recurrenceWeekday] - 반복 요일 (MON, TUE, WED, THU, FRI, SAT, SUN, null)
    * @param {string|null} [params.recurrenceWeekOfMonth] - 반복 주차 (FIRST, SECOND, THIRD, FOURTH, FIFTH, null)
@@ -175,7 +175,7 @@ export const scheduleAPI = {
       projectIds: params.projectIds,
       startDate: params.startDate,
       startTime: params.startTime,
-      durationHours: params.durationHours,
+      durationMinutes: params.durationMinutes,
       queryStartDate: params.queryStartDate,
       queryEndDate: params.queryEndDate,
     };

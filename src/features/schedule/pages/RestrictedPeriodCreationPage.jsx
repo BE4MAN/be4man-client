@@ -1,6 +1,6 @@
 import { format, addMonths } from 'date-fns';
-import { RotateCcw } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { RotateCcw, TriangleAlert } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { scheduleAPI } from '@/api/schedule';
@@ -15,6 +15,7 @@ import * as Detail from '@/components/schedule/RestrictedPeriodDetailModal.style
 import { DEPARTMENT_REVERSE_MAP } from '@/constants/accounts';
 import { useAuthStore } from '@/stores/authStore';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
+import { getForbiddenMessage, isForbiddenError } from '@/utils/errorHandler';
 
 import { useScheduleMetadata } from '../hooks/useScheduleMetadata';
 import {
@@ -24,10 +25,12 @@ import {
 } from '../utils/dateCalculator';
 import {
   banTypeToEnum,
+  enumToBanType,
   recurrenceTypeToEnum,
   weekdayToEnum,
   weekOfMonthToEnum,
 } from '../utils/enumConverter';
+import { formatTimeToKorean } from '../utils/timeFormatter';
 
 import * as S from './RestrictedPeriodCreationPage.styles';
 
@@ -38,8 +41,9 @@ export default function RestrictedPeriodCreationPage() {
   const [banType, setBanType] = useState(''); // 유형
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [duration, setDuration] = useState('');
+  const [startTime, setStartTime] = useState('00:00'); // 기본값: 00:00
+  const [durationHours, setDurationHours] = useState('');
+  const [durationMinutes, setDurationMinutes] = useState('');
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
   const [isRecurrenceEndNone, setIsRecurrenceEndNone] = useState(true);
   const [recurrenceType, setRecurrenceType] = useState(''); // '매일', '매주', '매월', ''
@@ -50,7 +54,8 @@ export default function RestrictedPeriodCreationPage() {
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [conflictingDeployments, setConflictingDeployments] = useState([]);
   const [isLoadingConflicts, setIsLoadingConflicts] = useState(false);
-  const restrictedHoursInputRef = useRef(null);
+  const [showForbiddenModal, setShowForbiddenModal] = useState(false);
+  const [forbiddenMessage, setForbiddenMessage] = useState('');
   const [errors, setErrors] = useState({
     title: false,
     banType: false,
@@ -91,19 +96,26 @@ export default function RestrictedPeriodCreationPage() {
       .filter((id) => id !== undefined);
   };
 
-  const parseDurationHours = (value) => {
+  const parseDurationValue = (value) => {
     const parsed = Number.parseInt(value, 10);
-    return Number.isFinite(parsed) ? parsed : 0;
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+  };
+
+  const getDurationInMinutes = () => {
+    const hours = parseDurationValue(durationHours);
+    const minutes = parseDurationValue(durationMinutes);
+    return hours * 60 + minutes;
   };
 
   const getEndedAtLabel = () => {
-    const hours = parseDurationHours(duration);
-    if (!startDate || !startTime || hours <= 0) return '—';
+    const totalMinutes = getDurationInMinutes();
+    if (!startDate || !startTime || totalMinutes <= 0) return '—';
     const base = new Date(`${startDate}T${startTime}:00`);
     if (Number.isNaN(base.getTime())) return '—';
     const ended = new Date(base);
-    ended.setHours(ended.getHours() + hours);
-    return format(ended, 'yyyy-MM-dd HH:mm');
+    ended.setMinutes(ended.getMinutes() + totalMinutes);
+    const formatted = format(ended, 'yyyy-MM-dd HH:mm');
+    return formatTimeToKorean(formatted);
   };
 
   // 주차 숫자 → 한글 변환 (getNextMonthlyWeekday에서 사용)
@@ -153,7 +165,7 @@ export default function RestrictedPeriodCreationPage() {
   };
 
   const getRecurrenceSummary = () => {
-    if (!recurrenceType || recurrenceType === '') return '없음';
+    if (!recurrenceType || recurrenceType === '') return '—';
 
     let summary = '';
     if (recurrenceType === '매일') {
@@ -185,7 +197,7 @@ export default function RestrictedPeriodCreationPage() {
     // 필수 필드 검증
     const titleError = !title.trim();
     const banTypeError = !banType || banType === '';
-    const hasDuration = parseDurationHours(duration) > 0;
+    const hasDuration = getDurationInMinutes() > 0;
     const timeError = !(startTime && hasDuration);
     const descriptionError = !description.trim();
     const servicesError =
@@ -241,7 +253,7 @@ export default function RestrictedPeriodCreationPage() {
         projectIds,
         startDate,
         startTime,
-        durationHours: parseDurationHours(duration),
+        durationMinutes: getDurationInMinutes(),
         queryStartDate,
         queryEndDate,
       };
@@ -322,7 +334,7 @@ export default function RestrictedPeriodCreationPage() {
       description,
       startDate,
       startTime,
-      durationHours: parseDurationHours(duration),
+      durationMinutes: getDurationInMinutes(),
       type: typeEnum,
       relatedProjectIds: projectIds,
       endedAt: null, // 백엔드에서 계산
@@ -348,14 +360,21 @@ export default function RestrictedPeriodCreationPage() {
       await scheduleAPI.createBan(banData);
       navigate('/schedule', { state: { viewMode: 'list' } });
     } catch (error) {
-      // 에러 처리 (나중에 토스트 메시지 등으로 개선 가능)
-      console.error('Ban 생성 실패:', error);
+      // 403 Forbidden 에러 처리
+      if (isForbiddenError(error)) {
+        const message = getForbiddenMessage(error);
+        setForbiddenMessage(message);
+        setShowForbiddenModal(true);
+      } else {
+        // 기타 에러 처리
+        console.error('Ban 생성 실패:', error);
+      }
     }
   };
 
   const isTitleValid = title.trim().length > 0;
   const isBanTypeValid = banType && banType !== '';
-  const isTimeValid = !!(startTime && parseDurationHours(duration) > 0);
+  const isTimeValid = !!(startTime && getDurationInMinutes() > 0);
   const isDescriptionValid = description.trim().length > 0;
   const isServicesValid =
     Array.isArray(selectedServices) && selectedServices.length > 0;
@@ -402,10 +421,20 @@ export default function RestrictedPeriodCreationPage() {
   };
 
   const renderConfirmationDetail = () => {
-    const durationHours = parseDurationHours(duration);
-    const durationLabel = durationHours > 0 ? `${durationHours} 시간` : '—';
+    const hours = parseDurationValue(durationHours);
+    const minutes = parseDurationValue(durationMinutes);
+    const durationLabel =
+      hours > 0 && minutes > 0
+        ? `${hours}시간 ${minutes}분`
+        : hours > 0
+          ? `${hours}시간`
+          : minutes > 0
+            ? `${minutes}분`
+            : '—';
     const startDateTimeLabel =
-      startDate && startTime ? `${startDate} ${startTime}:00` : '—';
+      startDate && startTime
+        ? formatTimeToKorean(`${startDate} ${startTime}:00`)
+        : '—';
     const endedAtLabel = getEndedAtLabel();
     const recurrenceSummary = getRecurrenceSummary();
     const registrantName = user?.name || '—';
@@ -437,7 +466,9 @@ export default function RestrictedPeriodCreationPage() {
               <Detail.InfoTh>제목</Detail.InfoTh>
               <Detail.InfoTd>{title || '—'}</Detail.InfoTd>
               <Detail.InfoTh>유형</Detail.InfoTh>
-              <Detail.InfoTd>{banType || '—'}</Detail.InfoTd>
+              <Detail.InfoTd>
+                {banType ? enumToBanType(banType) || banType : '—'}
+              </Detail.InfoTd>
             </Detail.InfoRow>
             <Detail.InfoRow>
               <Detail.InfoTh>등록자</Detail.InfoTh>
@@ -464,14 +495,14 @@ export default function RestrictedPeriodCreationPage() {
               <Detail.InfoTd colSpan={3}>{startDateTimeLabel}</Detail.InfoTd>
             </Detail.InfoRow>
             <Detail.InfoRow>
-              <Detail.InfoTh>금지 시간</Detail.InfoTh>
+              <Detail.InfoTh>지속시간</Detail.InfoTh>
               <Detail.InfoTd>{durationLabel}</Detail.InfoTd>
-              <Detail.InfoTh>종료 일시</Detail.InfoTh>
-              <Detail.InfoTd>{endedAtLabel}</Detail.InfoTd>
+              <Detail.InfoTh>반복 주기</Detail.InfoTh>
+              <Detail.InfoTd>{recurrenceSummary}</Detail.InfoTd>
             </Detail.InfoRow>
             <Detail.InfoRow>
-              <Detail.InfoTh>금지 주기</Detail.InfoTh>
-              <Detail.InfoTd colSpan={3}>{recurrenceSummary}</Detail.InfoTd>
+              <Detail.InfoTh>종료일자</Detail.InfoTh>
+              <Detail.InfoTd colSpan={3}>{endedAtLabel}</Detail.InfoTd>
             </Detail.InfoRow>
           </Detail.InfoTable>
 
@@ -576,7 +607,7 @@ export default function RestrictedPeriodCreationPage() {
           </S.MetaRow>
 
           <S.MetaRow>
-            <S.MetaTh>금지 주기</S.MetaTh>
+            <S.MetaTh>반복 주기</S.MetaTh>
             <S.MetaTdRecurrence colSpan={3}>
               <S.RecurrenceContainerWrapper>
                 <S.RecurrenceContainer>
@@ -783,7 +814,7 @@ export default function RestrictedPeriodCreationPage() {
                       startDate: !isRegularEvent && !date,
                     }));
                   }
-                  // 금지 일자를 선택하면 금지 주기 초기화
+                  // 금지 일자를 선택하면 반복 주기 초기화
                   if (date) {
                     setRecurrenceType('');
                     setRecurrenceWeekday('');
@@ -818,7 +849,7 @@ export default function RestrictedPeriodCreationPage() {
                 onChange={(newValue) => {
                   setStartTime(newValue);
                   if (touched.time) {
-                    const hasDuration = parseDurationHours(duration) > 0;
+                    const hasDuration = getDurationInMinutes() > 0;
                     setErrors((prev) => ({
                       ...prev,
                       time: !(newValue && hasDuration),
@@ -830,33 +861,67 @@ export default function RestrictedPeriodCreationPage() {
               />
             </S.MetaTdTime>
             <S.MetaTh>
-              금지 시간 <RequiredAsterisk>*</RequiredAsterisk>
+              지속시간 <RequiredAsterisk>*</RequiredAsterisk>
             </S.MetaTh>
             <S.MetaTdRestrictedHours>
-              <S.RestrictedHoursInputWrapper>
-                <S.RestrictedHoursInput
-                  ref={restrictedHoursInputRef}
-                  type="number"
-                  min="1"
-                  step="1"
-                  disabled={false}
-                  value={duration}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    setDuration(value);
-                    if (touched.time) {
-                      const hasDuration = parseDurationHours(value) > 0;
-                      setErrors((prev) => ({
-                        ...prev,
-                        time: !(startTime && hasDuration),
-                      }));
+              <S.DurationInputContainer>
+                <S.RestrictedHoursInputWrapper>
+                  <S.RestrictedHoursInput
+                    type="number"
+                    min="0"
+                    step="1"
+                    disabled={false}
+                    value={durationHours}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      setDurationHours(value);
+                      if (touched.time) {
+                        const hasDuration = getDurationInMinutes() > 0;
+                        setErrors((prev) => ({
+                          ...prev,
+                          time: !(startTime && hasDuration),
+                        }));
+                      }
+                    }}
+                    onBlur={() =>
+                      setTouched((prev) => ({ ...prev, time: true }))
                     }
-                  }}
-                  onBlur={() => setTouched((prev) => ({ ...prev, time: true }))}
-                  $hasError={touched.time && errors.time}
-                />
-                <S.HoursUnit>시간</S.HoursUnit>
-              </S.RestrictedHoursInputWrapper>
+                    $hasError={touched.time && errors.time}
+                  />
+                  <S.HoursUnit>시간</S.HoursUnit>
+                </S.RestrictedHoursInputWrapper>
+                <S.RestrictedHoursInputWrapper>
+                  <S.RestrictedHoursInput
+                    type="number"
+                    min="0"
+                    max="59"
+                    step="1"
+                    disabled={false}
+                    value={durationMinutes}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      const numValue = Number.parseInt(value, 10);
+                      const clampedValue =
+                        Number.isFinite(numValue) && numValue > 59
+                          ? '59'
+                          : value;
+                      setDurationMinutes(clampedValue);
+                      if (touched.time) {
+                        const hasDuration = getDurationInMinutes() > 0;
+                        setErrors((prev) => ({
+                          ...prev,
+                          time: !(startTime && hasDuration),
+                        }));
+                      }
+                    }}
+                    onBlur={() =>
+                      setTouched((prev) => ({ ...prev, time: true }))
+                    }
+                    $hasError={touched.time && errors.time}
+                  />
+                  <S.MinutesUnit>분</S.MinutesUnit>
+                </S.RestrictedHoursInputWrapper>
+              </S.DurationInputContainer>
             </S.MetaTdRestrictedHours>
           </S.MetaRow>
 
@@ -1018,6 +1083,24 @@ export default function RestrictedPeriodCreationPage() {
             </Detail.ConfirmMessage>
           </>
         )}
+      </ScheduleModal>
+
+      {/* 403 권한 없음 모달 */}
+      <ScheduleModal
+        isOpen={showForbiddenModal}
+        onClose={() => setShowForbiddenModal(false)}
+        title="관리자 권한이 필요합니다."
+        titleIcon={<TriangleAlert size={20} color="#EF4444" />}
+        maxWidth="400px"
+        footer={
+          <Detail.Footer>
+            <PrimaryBtn onClick={() => setShowForbiddenModal(false)}>
+              확인
+            </PrimaryBtn>
+          </Detail.Footer>
+        }
+      >
+        <Detail.ConfirmMessage>{forbiddenMessage}</Detail.ConfirmMessage>
       </ScheduleModal>
     </S.PageContainer>
   );

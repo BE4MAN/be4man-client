@@ -179,7 +179,7 @@ export const MetaTdTime = styled(MetaTd)`
 // 금지 시간 (RestrictedHoursInput)
 export const MetaTdRestrictedHours = styled(MetaTd)`
   & > div {
-    width: 30%;
+    width: 45%;
     min-width: 80px;
   }
 `;
@@ -405,4 +405,21 @@ export const HoursUnit = styled.span`
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   color: ${({ theme }) => theme.colors.textSecondary};
   pointer-events: none;
+`;
+
+export const MinutesUnit = styled.span`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  pointer-events: none;
+`;
+
+export const DurationInputContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  width: 100%;
 `;

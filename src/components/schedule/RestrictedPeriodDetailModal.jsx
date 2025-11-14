@@ -1,30 +1,37 @@
 import { useTheme } from '@emotion/react';
 import { format, parseISO } from 'date-fns';
-import { CalendarOff } from 'lucide-react';
+import { CalendarOff, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 
 import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
 import { useCancelBan } from '@/features/schedule/hooks/useCancelBan';
+import {
+  formatDuration,
+  getDurationInMinutes,
+} from '@/features/schedule/utils/durationUtils';
 import { enumToWeekday } from '@/features/schedule/utils/enumConverter';
+import { formatTimeToKorean } from '@/features/schedule/utils/timeFormatter';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
+import { getForbiddenMessage, isForbiddenError } from '@/utils/errorHandler';
 
 import * as S from './RestrictedPeriodDetailModal.styles';
 
 export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
   const theme = useTheme();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showForbiddenModal, setShowForbiddenModal] = useState(false);
+  const [forbiddenMessage, setForbiddenMessage] = useState('');
   const cancelBanMutation = useCancelBan();
 
   if (!period) return null;
 
-  // 금지 시간 계산 (시간 차이)
   const getRestrictedTime = () => {
-    // durationHours 또는 duration 필드 확인
-    const duration = period.durationHours ?? period.duration;
-    if (duration !== undefined && duration !== null) {
-      return `${duration} 시간`;
+    const durationMinutes = getDurationInMinutes(period);
+    if (durationMinutes > 0) {
+      return formatDuration(durationMinutes);
     }
+
     if (!period.startTime) return '—';
     const start = new Date(`2000-01-01T${period.startTime}:00`);
     const end = period.endTime
@@ -35,49 +42,44 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
       end.setDate(end.getDate() + 1);
     }
     const diffMinutes = Math.floor((end.getTime() - start.getTime()) / 60000);
-    const hours = Math.floor(diffMinutes / 60)
-      .toString()
-      .padStart(2, '0');
-    const minutes = (diffMinutes % 60).toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
+    return formatDuration(diffMinutes);
   };
 
-  // 시작일자 형식 (YYYY-MM-DD HH:mm:ss)
   const getStartDateTime = () => {
     if (!period.startDate || !period.startTime) return '—';
-    return `${period.startDate} ${period.startTime}:00`;
+    const dateTime = `${period.startDate} ${period.startTime}:00`;
+    return formatTimeToKorean(dateTime);
   };
 
   const getEndedAt = () => {
     if (period.endedAt) {
       const ended = parseISO(period.endedAt);
       if (!Number.isNaN(ended.getTime())) {
-        return format(ended, 'yyyy-MM-dd HH:mm');
+        const formatted = format(ended, 'yyyy-MM-dd HH:mm');
+        return formatTimeToKorean(formatted);
       }
     }
-    const duration = period.durationHours ?? period.duration;
-    if (
-      period.startDate &&
-      period.startTime &&
-      duration !== undefined &&
-      duration !== null
-    ) {
+    const durationMinutes = getDurationInMinutes(period);
+    if (period.startDate && period.startTime && durationMinutes > 0) {
       const start = parseISO(`${period.startDate}T${period.startTime}:00`);
       if (!Number.isNaN(start.getTime())) {
         const computed = new Date(start);
-        computed.setHours(computed.getHours() + Number(duration));
-        return format(computed, 'yyyy-MM-dd HH:mm');
+        computed.setMinutes(computed.getMinutes() + durationMinutes);
+        const formatted = format(computed, 'yyyy-MM-dd HH:mm');
+        return formatTimeToKorean(formatted);
       }
     }
     if (period.endDate || period.endTime) {
-      return `${period.endDate || period.startDate} ${period.endTime || ''}`.trim();
+      const dateTime =
+        `${period.endDate || period.startDate} ${period.endTime || ''}`.trim();
+      return dateTime ? formatTimeToKorean(dateTime) : '—';
     }
     return '—';
   };
 
   const getRecurrenceLabel = () => {
     if (!period.recurrenceType || period.recurrenceType === 'NONE') {
-      return '없음';
+      return '—';
     }
     if (period.recurrenceType === 'DAILY') return '매일';
     if (period.recurrenceType === 'WEEKLY') {
@@ -119,8 +121,16 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
       setShowConfirmModal(false);
       onClose();
     } catch (error) {
-      // 에러 처리 (나중에 토스트 메시지 등으로 개선 가능)
-      console.error('Ban 취소 실패:', error);
+      // 403 Forbidden 에러 처리
+      if (isForbiddenError(error)) {
+        const message = getForbiddenMessage(error);
+        setForbiddenMessage(message);
+        setShowConfirmModal(false);
+        setShowForbiddenModal(true);
+      } else {
+        // 기타 에러 처리
+        console.error('Ban 취소 실패:', error);
+      }
     }
   };
 
@@ -198,6 +208,29 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
           </S.InfoRow>
 
           <S.InfoRow>
+            <S.InfoTh>시작일자</S.InfoTh>
+            <S.InfoTd>{getStartDateTime()}</S.InfoTd>
+            <S.InfoTh>종료일자</S.InfoTh>
+            <S.InfoTd>{getEndedAt()}</S.InfoTd>
+          </S.InfoRow>
+
+          <S.InfoRow>
+            <S.InfoTh>지속시간</S.InfoTh>
+            <S.InfoTd>{getRestrictedTime()}</S.InfoTd>
+            <S.InfoTh>반복 주기</S.InfoTh>
+            <S.InfoTd>{getRecurrenceLabel()}</S.InfoTd>
+          </S.InfoRow>
+        </S.InfoTable>
+
+        <S.InfoTable role="table">
+          <S.InfoColGroup>
+            <col />
+            <col />
+            <col />
+            <col />
+          </S.InfoColGroup>
+
+          <S.InfoRow>
             <S.InfoTh>연관 서비스</S.InfoTh>
             <S.InfoTd colSpan={3}>
               {period.services && period.services.length > 0 ? (
@@ -211,32 +244,6 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
               )}
             </S.InfoTd>
           </S.InfoRow>
-
-          <S.InfoRow>
-            <S.InfoTh>시작일자</S.InfoTh>
-            <S.InfoTd colSpan={3}>{getStartDateTime()}</S.InfoTd>
-          </S.InfoRow>
-
-          <S.InfoRow>
-            <S.InfoTh>금지 시간</S.InfoTh>
-            <S.InfoTd>{getRestrictedTime()}</S.InfoTd>
-            <S.InfoTh>종료 일시</S.InfoTh>
-            <S.InfoTd>{getEndedAt()}</S.InfoTd>
-          </S.InfoRow>
-
-          <S.InfoRow>
-            <S.InfoTh>금지 주기</S.InfoTh>
-            <S.InfoTd colSpan={3}>{getRecurrenceLabel()}</S.InfoTd>
-          </S.InfoRow>
-        </S.InfoTable>
-
-        <S.InfoTable role="table">
-          <S.InfoColGroup>
-            <col />
-            <col />
-            <col />
-            <col />
-          </S.InfoColGroup>
 
           <S.InfoRow>
             <S.InfoTh>설명</S.InfoTh>
@@ -267,6 +274,24 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
           <br />
           취소된 일정은 복구할 수 없습니다.
         </S.ConfirmMessage>
+      </ScheduleModal>
+
+      {/* 403 권한 없음 모달 */}
+      <ScheduleModal
+        isOpen={showForbiddenModal}
+        onClose={() => setShowForbiddenModal(false)}
+        title="관리자 권한이 필요합니다."
+        titleIcon={<TriangleAlert size={20} color="#EF4444" />}
+        maxWidth="400px"
+        footer={
+          <S.Footer>
+            <PrimaryBtn onClick={() => setShowForbiddenModal(false)}>
+              확인
+            </PrimaryBtn>
+          </S.Footer>
+        }
+      >
+        <S.ConfirmMessage>{forbiddenMessage}</S.ConfirmMessage>
       </ScheduleModal>
     </ScheduleModal>
   );

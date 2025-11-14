@@ -14,7 +14,7 @@ export default function DateTimeRangePicker({
   showLabel = false,
   error = false,
 }) {
-  // 금지 시간 계산 (시간 차이)
+  // 지속시간 계산 (시간 차이)
   const restrictedHours = useMemo(() => {
     if (!startTime || !endTime) return '';
     const start = new Date(`2000-01-01T${startTime}:00`);
@@ -37,7 +37,7 @@ export default function DateTimeRangePicker({
 
   const handleStartTimeChange = (e) => {
     const newStartTime = e.target.value;
-    // 시작 시간이 변경되면, 금지 시간을 기준으로 종료 시간 계산
+    // 시작 시간이 변경되면, 지속시간을 기준으로 종료 시간 계산
     if (newStartTime && restrictedHoursInput) {
       const hours = parseInt(restrictedHoursInput, 10);
       if (!isNaN(hours) && hours > 0) {
@@ -56,7 +56,7 @@ export default function DateTimeRangePicker({
   const handleRestrictedHoursChange = (e) => {
     const value = e.target.value;
     setRestrictedHoursInput(value);
-    // 금지 시간이 변경되면, 시작 시간을 기준으로 종료 시간 계산
+    // 지속시간이 변경되면, 시작 시간을 기준으로 종료 시간 계산
     if (startTime && value) {
       const hours = parseInt(value, 10);
       if (!isNaN(hours) && hours > 0) {
@@ -79,7 +79,7 @@ export default function DateTimeRangePicker({
             시작 시간<S.RequiredAsterisk> *</S.RequiredAsterisk>
           </S.TimeLabel>
           <S.TimeLabel>
-            금지 시간<S.RequiredAsterisk> *</S.RequiredAsterisk>
+            지속시간<S.RequiredAsterisk> *</S.RequiredAsterisk>
           </S.TimeLabel>
         </S.LabelContainer>
       )}
@@ -105,7 +105,7 @@ export default function DateTimeRangePicker({
         </S.TimeInputField>
 
         <S.TimeInputField>
-          <S.TimeLabelText>금지 시간</S.TimeLabelText>
+          <S.TimeLabelText>지속시간</S.TimeLabelText>
           <S.RestrictedHoursInput
             type="number"
             min="1"

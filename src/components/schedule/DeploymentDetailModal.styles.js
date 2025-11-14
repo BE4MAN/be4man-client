@@ -78,3 +78,9 @@ export const Footer = styled.div`
   justify-content: flex-end;
   gap: ${({ theme }) => theme.spacing.md};
 `;
+
+export const ServicesContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;

@@ -1,9 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
+import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
-import { enumToStage } from '@/features/schedule/utils/enumConverter';
-import { getDeploymentStatusLabel } from '@/features/schedule/utils/statusMapper';
+import {
+  enumToStage,
+  enumToStatus,
+} from '@/features/schedule/utils/enumConverter';
+import { formatTimeToKorean } from '@/features/schedule/utils/timeFormatter';
 import { PrimaryBtn } from '@/styles/modalButtons';
 
 import * as S from './DeploymentDetailModal.styles';
@@ -57,30 +61,57 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
           </S.InfoRow>
 
           <S.InfoRow>
-            <S.InfoTh>작업 단계</S.InfoTh>
-            <S.InfoTd>
-              {deployment.stage
-                ? enumToStage(deployment.stage) || deployment.stage
-                : '—'}
-            </S.InfoTd>
             <S.InfoTh>작업 상태</S.InfoTh>
             <S.InfoTd>
-              {deployment.status
-                ? getDeploymentStatusLabel(deployment.status)
+              {(() => {
+                const stageLabel = deployment.stage
+                  ? enumToStage(deployment.stage) || deployment.stage
+                  : null;
+                const statusLabel = deployment.status
+                  ? enumToStatus(deployment.status) || deployment.status
+                  : null;
+                if (stageLabel && statusLabel) {
+                  return `${stageLabel} ${statusLabel}`;
+                }
+                if (stageLabel) return stageLabel;
+                if (statusLabel) return statusLabel;
+                return '—';
+              })()}
+            </S.InfoTd>
+            <S.InfoTh>배포 상태</S.InfoTh>
+            <S.InfoTd>
+              {deployment.isDeployed === true
+                ? '성공'
+                : deployment.isDeployed === false
+                  ? '실패'
+                  : '—'}
+            </S.InfoTd>
+          </S.InfoRow>
+
+          <S.InfoRow>
+            <S.InfoTh>작업일자</S.InfoTh>
+            <S.InfoTd colSpan={3}>
+              {deployment.date && deployment.scheduledTime
+                ? formatTimeToKorean(
+                    `${deployment.date} ${deployment.scheduledTime}`,
+                  )
                 : '—'}
             </S.InfoTd>
           </S.InfoRow>
 
           <S.InfoRow>
-            <S.InfoTh>배포 상태</S.InfoTh>
-            <S.InfoTd>
-              {deployment.deploymentStatus
-                ? getDeploymentStatusLabel(deployment.deploymentStatus)
-                : '—'}
-            </S.InfoTd>
-            <S.InfoTh>작업 시각</S.InfoTh>
-            <S.InfoTd>
-              {deployment.date} {deployment.scheduledTime}
+            <S.InfoTh>연관 서비스</S.InfoTh>
+            <S.InfoTd colSpan={3}>
+              {deployment.relatedServices &&
+              deployment.relatedServices.length > 0 ? (
+                <S.ServicesContainer>
+                  {deployment.relatedServices.map((service) => (
+                    <ServiceTag key={service} service={service} />
+                  ))}
+                </S.ServicesContainer>
+              ) : (
+                '—'
+              )}
             </S.InfoTd>
           </S.InfoRow>
         </S.InfoTable>

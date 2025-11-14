@@ -1,0 +1,106 @@
+/**
+ * 시간 형식 변환 유틸리티
+ * 'HH:mm:ss' 또는 'HH:mm' 형식을 '오전/오후 H시 M분' 형식으로 변환
+ * 날짜 형식: 'YYYY-MM-DD' → 'YYYY년 MM월 DD일'
+ */
+
+/**
+ * 날짜 부분을 한국어 형식으로 변환
+ * @param {string} datePart - 날짜 문자열 ('YYYY-MM-DD')
+ * @returns {string} 한국어 형식 ('YYYY년 MM월 DD일')
+ */
+const formatDatePart = (datePart) => {
+  if (!datePart) return datePart;
+
+  const dateMatch = datePart.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (dateMatch) {
+    const year = dateMatch[1];
+    const month = parseInt(dateMatch[2], 10);
+    const day = parseInt(dateMatch[3], 10);
+    return `${year}년 ${month}월 ${day}일`;
+  }
+
+  return datePart;
+};
+
+/**
+ * 시간 부분을 12시간제 한국어 형식으로 변환 (초 제거, 오전/오후 추가)
+ * @param {string} timePart - 시간 부분 ('HH:mm:ss' 또는 'HH:mm')
+ * @returns {string} 한국어 형식 ('오전/오후 H시 M분')
+ */
+const formatTimePart = (timePart) => {
+  if (!timePart) return timePart;
+
+  let hours = 0;
+  let minutes = 0;
+
+  // HH:mm:ss 형식
+  const timeWithSecondsMatch = timePart.match(
+    /^(\d{1,2}):(\d{1,2}):(\d{1,2})$/,
+  );
+  if (timeWithSecondsMatch) {
+    hours = parseInt(timeWithSecondsMatch[1], 10);
+    minutes = parseInt(timeWithSecondsMatch[2], 10);
+    // seconds는 무시
+  } else {
+    // HH:mm 형식
+    const timeMatch = timePart.match(/^(\d{1,2}):(\d{1,2})$/);
+    if (timeMatch) {
+      hours = parseInt(timeMatch[1], 10);
+      minutes = parseInt(timeMatch[2], 10);
+    } else {
+      // 형식이 맞지 않으면 그대로 반환
+      return timePart;
+    }
+  }
+
+  // 12시간제 변환 및 오전/오후 결정
+  let period = '오전';
+  let displayHours = hours;
+
+  if (hours === 0) {
+    // 0시 → 오전 00시
+    period = '오전';
+    displayHours = 0;
+  } else if (hours === 12) {
+    // 12시 → 오후 12시
+    period = '오후';
+    displayHours = 12;
+  } else if (hours > 12) {
+    // 13-23시 → 오후 1-11시
+    period = '오후';
+    displayHours = hours - 12;
+  } else {
+    // 1-11시 → 오전 1-11시
+    period = '오전';
+    displayHours = hours;
+  }
+
+  // 시와 분을 문자열로 변환 (0 → 00)
+  const hoursStr = displayHours === 0 ? '00' : displayHours.toString();
+  const minutesStr = minutes === 0 ? '00' : minutes.toString();
+
+  return `${period} ${hoursStr}시 ${minutesStr}분`;
+};
+
+/**
+ * 시간 문자열을 한국어 형식으로 변환
+ * @param {string} timeString - 시간 문자열 ('HH:mm:ss', 'HH:mm', 'YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD HH:mm')
+ * @returns {string} 한국어 형식 시간 문자열
+ */
+export const formatTimeToKorean = (timeString) => {
+  if (!timeString || typeof timeString !== 'string') return timeString;
+
+  // 날짜+시간 형식인 경우 (YYYY-MM-DD HH:mm:ss 또는 YYYY-MM-DD HH:mm)
+  const dateTimeMatch = timeString.match(/^(\d{4}-\d{2}-\d{2})\s+(.+)$/);
+  if (dateTimeMatch) {
+    const datePart = dateTimeMatch[1];
+    const timePart = dateTimeMatch[2];
+    const formattedDate = formatDatePart(datePart);
+    const formattedTime = formatTimePart(timePart);
+    return `${formattedDate} ${formattedTime}`;
+  }
+
+  // 시간만 있는 경우 (HH:mm:ss 또는 HH:mm)
+  return formatTimePart(timeString);
+};
