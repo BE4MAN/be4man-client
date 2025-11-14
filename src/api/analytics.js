@@ -1,14 +1,39 @@
-// src/api/analytics.js
-// Small helper for analytics-related endpoints.
-// Add more analytics endpoints or fetch helpers here as needed.
+import axiosInstance from './axios';
+import { API_ENDPOINTS } from './endpoints';
 
 /**
  * Deployment failure statistics (used by DeploymentFailureCharts)
- * Example: /api/projects/{projectId}/deploy-failures/stats?from=2025-01-01&to=2025-02-01
  */
 export const DEPLOY_FAILURE_STATS = (projectId) =>
-  `/api/projects/${projectId}/deploy-failures/stats`;
+  `/api/statistics/${projectId}/deploy-failures/stats`;
+
+export async function getDeploySuccessRate() {
+  const { data } = await axiosInstance.get(API_ENDPOINTS.DEPLOY_SUCCESS_RATE);
+  return data;
+}
+
+export async function getDeployDurationSummary(serviceId = 'all') {
+  const params = serviceId ? { service: serviceId } : undefined;
+  const { data } = await axiosInstance.get(
+    API_ENDPOINTS.DEPLOY_DURATION_SUMMARY,
+    { params },
+  );
+  return data;
+}
+
+export async function getDeploymentPeriodStats({ period, projectId } = {}) {
+  if (!period) throw new Error('period is required: "month" or "year"');
+  const params = { period };
+  if (projectId != null && projectId !== 'all') params.projectId = projectId;
+  const { data } = await axiosInstance.get(API_ENDPOINTS.DEPLOY_PERIOD_STATS, {
+    params,
+  });
+  return data;
+}
 
 export default {
   DEPLOY_FAILURE_STATS,
+  getDeploySuccessRate,
+  getDeployDurationSummary,
+  getDeploymentPeriodStats,
 };

@@ -88,7 +88,7 @@ export default function DeploymentFailureCharts({
 
   const url = useMemo(() => {
     const base =
-      endpoint || `/api/projects/${projectId}/deploy-failures/series`;
+      endpoint || `/api/statistics/${projectId}/deploy-failures/series`;
     const params = new URLSearchParams();
     if (from) params.set('from', from);
     if (to) params.set('to', to);
@@ -248,7 +248,6 @@ export default function DeploymentFailureCharts({
 
   return (
     <S.Container>
-      {/* Grouped panel with title */}
       <S.Panel>
         <S.Header>
           <S.Title>배포 실패 결과 통계</S.Title>

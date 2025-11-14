@@ -17,4 +17,9 @@ export const API_ENDPOINTS = {
   CONSOLE_LOG: '/api/console-log',
   BUILD_RESULT: '/api/build-result',
   ALL_STAGES: '/api/console-log',
+
+  // Statistics
+  DEPLOY_SUCCESS_RATE: '/api/statistics/deploy-success-rate',
+  DEPLOY_DURATION_SUMMARY: '/api/statistics/deploy-duration',
+  DEPLOY_PERIOD_STATS: '/api/statistics/period',
 };

@@ -1,4 +1,7 @@
-// Analytics 페이지용 데이터 생성 함수들 및 상수
+import { getDeployDurationSummary } from '@/api/analytics';
+import { getDeploymentPeriodStats } from '@/api/analytics';
+
+import { getDeploySuccessRate } from '../api/analytics';
 
 // Constants
 export const errorTypes = [
@@ -178,105 +181,146 @@ export const generateYearlyBanData = () => {
   return data;
 };
 
-/**
- * 월별 배포 통계 데이터 생성
- */
-export const generateMonthlyDeploymentData = () => {
-  const data = [];
-  const months = 12;
+const toKoreanMonth = (label) => `${Number(label)}월`;
+const toKoreanYear = (label) => `${label}년`;
 
-  for (let i = 0; i < months; i++) {
-    const date = new Date();
-    date.setMonth(date.getMonth() - (months - i - 1));
-    data.push({
-      label: monthNames[date.getMonth()],
-      deployments: Math.floor(Math.random() * 50) + 30,
-      success: Math.floor(Math.random() * 45) + 25,
-      failed: Math.floor(Math.random() * 10) + 2,
-    });
+/**
+ * API 기반 월별 배포 통계
+ * @param {string|number} projectId 'all' | number
+ * @returns Promise<Array<{label:string, deployments:number, success:number, failed:number}>>
+ */
+export async function fetchMonthlyDeploymentData(projectId = 'all') {
+  const json = await getDeploymentPeriodStats({ period: 'month', projectId });
+  // 백엔드 응답: items: [{label:"1".."12", deployments, success, failed}]
+  const items = Array.isArray(json?.items) ? json.items : [];
+  return items.map((it) => ({
+    label: toKoreanMonth(it.label), // "1월"
+    deployments: Number(it.deployments || 0),
+    success: Number(it.success || 0),
+    failed: Number(it.failed || 0),
+  }));
+}
+
+/**
+ * API 기반 연도별 배포 통계
+ */
+export async function fetchYearlyDeploymentData(projectId = 'all') {
+  const json = await getDeploymentPeriodStats({ period: 'year', projectId });
+  const items = Array.isArray(json?.items) ? json.items : [];
+  return items.map((it) => ({
+    label: toKoreanYear(it.label), // "2025년"
+    deployments: Number(it.deployments || 0),
+    success: Number(it.success || 0),
+    failed: Number(it.failed || 0),
+  }));
+}
+
+const _durationCache = new Map();
+// 옵션 캐시(선택): 성공률 서비스 목록을 재사용하거나 duration 응답에 포함된 목록을 사용
+let _durationOptions = null;
+
+/**
+ * 서비스 목록(드롭다운) 로드
+ * - 우선 성공률의 services를 재사용해도 되지만,
+ *   duration API에서 함께 내려줄 수 있으면 그걸 쓰는게 더 일관됨.
+ */
+export async function listDurationServices() {
+  if (_durationOptions) return _durationOptions;
+
+  // duration API가 service=all일 때 services 목록을 내려준다고 가정
+  const json = await getDeployDurationSummary('all');
+  const servicesFromApi = Array.isArray(json.services) ? json.services : [];
+
+  const opts = [
+    { id: 'all', name: '전체' },
+    ...servicesFromApi.map((s) => ({
+      id: String(s.id ?? s.name),
+      name: s.name ?? String(s.id),
+    })),
+  ];
+  _durationOptions = opts;
+  return _durationOptions;
+}
+
+/**
+ *   배포 소요시간(월별) 데이터
+ * - 컴포넌트 인터페이스 유지: [{date, duration}] 배열을 반환
+ * - 내부적으로 axios+endpoint 호출, 결과 캐시(Map) 사용
+ */
+export async function generateDurationData(serviceId = 'all') {
+  const key = String(serviceId || 'all');
+
+  if (_durationCache.has(key)) {
+    return _durationCache.get(key);
   }
-  return data;
-};
+
+  const json = await getDeployDurationSummary(key);
+
+  // API 응답 규약(권장):
+  // { months: [{date:'1월', duration: 5.4}, ...] }
+  const months = Array.isArray(json.months) ? json.months : [];
+
+  _durationCache.set(key, months);
+  return months;
+}
+
+// analyticsDataGenerators.js
+let _successCache = null; // { services: [...], all: {success,failed} }
+
+async function _fetchSuccessSummary() {
+  const json = await getDeploySuccessRate();
+
+  const services = Array.isArray(json.services) ? json.services : [];
+  const all = json.all || _sumAll(services);
+
+  _successCache = { services, all };
+  return _successCache;
+}
+
+function _sumAll(services) {
+  return services.reduce(
+    (acc, s) => ({
+      success: acc.success + (s.success || 0),
+      failed: acc.failed + (s.failed || 0),
+    }),
+    { success: 0, failed: 0 },
+  );
+}
+
+/** 최초 로딩(선호딩) 선택사항 */
+export async function preloadSuccessSummary() {
+  if (!_successCache) await _fetchSuccessSummary();
+}
+
+/** 동적 서비스 목록 반환 (드롭다운 등에 사용) */
+export async function listSuccessServices() {
+  if (!_successCache) await _fetchSuccessSummary();
+  // 'all' 포함해서 옵션 만들기
+  return [
+    { id: 'all', name: '전체' },
+    ..._successCache.services.map((s) => ({
+      id: String(s.id ?? s.name),
+      name: s.name ?? String(s.id),
+    })),
+  ];
+}
 
 /**
- * 연도별 배포 통계 데이터 생성
+ * 배포 성공률 데이터 (동적 서비스)
+ * @param {string} serviceId 'all' 또는 services[].id/name
+ * @returns {Promise<{success:number, failed:number}>}
  */
-export const generateYearlyDeploymentData = () => {
-  const data = [];
-  const currentYear = new Date().getFullYear();
+export async function generateSuccessData(serviceId) {
+  if (!_successCache) await _fetchSuccessSummary();
 
-  for (let i = 4; i >= 0; i--) {
-    const year = currentYear - i;
-    data.push({
-      label: `${year}년`,
-      deployments: Math.floor(Math.random() * 500) + 300,
-      success: Math.floor(Math.random() * 450) + 250,
-      failed: Math.floor(Math.random() * 80) + 20,
-    });
-  }
-  return data;
-};
+  if (serviceId === 'all') return _successCache.all;
 
-/**
- * 배포 소요 시간 데이터 생성
- * @param {string} service - 서비스 이름 ('hr', 'payment', 'resource', 'aiwacs', 'all')
- */
-export const generateDurationData = (service) => {
-  const data = [];
-  const months = 12;
+  const wanted = String(serviceId);
+  const found =
+    _successCache.services.find((s) => String(s.id ?? s.name) === wanted) ||
+    _successCache.services.find((s) => String(s.name ?? s.id) === wanted);
 
-  const baseValues = {
-    hr: 4.5,
-    payment: 6.2,
-    resource: 5.1,
-    aiwacs: 3.8,
-    all: 5.0,
-  };
-
-  const base = baseValues[service] || baseValues.all;
-
-  for (let i = 0; i < months; i++) {
-    const date = new Date();
-    date.setMonth(date.getMonth() - (months - i - 1));
-    data.push({
-      date: monthNames[date.getMonth()],
-      duration: base + Math.random() * 2 - 1,
-    });
-  }
-  return data;
-};
-
-/**
- * 배포 성공률 데이터 생성
- * @param {string} service - 서비스 이름 ('hr', 'payment', 'resource', 'aiwacs', 'all')
- */
-export const generateSuccessData = (service) => {
-  const dataByService = {
-    hr: { success: 142, failed: 18 },
-    payment: { success: 156, failed: 24 },
-    resource: { success: 98, failed: 15 },
-    aiwacs: { success: 165, failed: 12 },
-    all: { success: 561, failed: 69 },
-  };
-
-  return dataByService[service] || dataByService.all;
-};
-
-/**
- * 서버 모니터링 CPU/메모리 데이터 생성
- */
-export const generateCpuData = () => {
-  const data = [];
-  const months = 12;
-
-  for (let i = 0; i < months; i++) {
-    const date = new Date();
-    date.setMonth(date.getMonth() - (months - i - 1));
-    data.push({
-      date: monthNames[date.getMonth()],
-      cpu: 40 + Math.random() * 30,
-      memory: 50 + Math.random() * 25,
-    });
-  }
-  return data;
-};
+  return found
+    ? { success: found.success || 0, failed: found.failed || 0 }
+    : _successCache.all;
+}
