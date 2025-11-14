@@ -24,7 +24,7 @@
  * @property {string} startDate - 시작 날짜 (YYYY-MM-DD)
  * @property {string} startTime - 시작 시간 (HH:mm)
  * @property {string} endedAt - 종료 일시 (YYYY-MM-DDTHH:mm)
- * @property {number} duration - 금지 시간 (시간 단위)
+ * @property {number} duration - 금지 시간 (분 단위, durationMinutes의 별칭)
  * @property {RestrictedPeriodType} type - 유형
  * @property {boolean} [applyToAll] - 전체 적용 여부 (선택)
  * @property {string[]} [services] - 연관 서비스 목록 (선택)

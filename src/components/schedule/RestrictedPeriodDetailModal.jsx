@@ -6,6 +6,10 @@ import { useState } from 'react';
 import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
 import { useCancelBan } from '@/features/schedule/hooks/useCancelBan';
+import {
+  formatDuration,
+  getDurationInMinutes,
+} from '@/features/schedule/utils/durationUtils';
 import { enumToWeekday } from '@/features/schedule/utils/enumConverter';
 import { formatTimeToKorean } from '@/features/schedule/utils/timeFormatter';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
@@ -22,35 +26,12 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
 
   if (!period) return null;
 
-  // 지속시간 계산 (분 단위를 시간+분으로 변환)
   const getRestrictedTime = () => {
-    // durationMinutes 필드 확인 (우선순위)
-    const durationMinutes = period.durationMinutes ?? period.duration;
-    if (durationMinutes !== undefined && durationMinutes !== null) {
-      const totalMinutes = Number.parseInt(durationMinutes, 10);
-      if (Number.isFinite(totalMinutes) && totalMinutes > 0) {
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        if (hours > 0 && minutes > 0) {
-          return `${hours}시간 ${minutes}분`;
-        }
-        if (hours > 0) {
-          return `${hours}시간`;
-        }
-        if (minutes > 0) {
-          return `${minutes}분`;
-        }
-      }
+    const durationMinutes = getDurationInMinutes(period);
+    if (durationMinutes > 0) {
+      return formatDuration(durationMinutes);
     }
-    // 하위 호환성: durationHours 필드 확인
-    const durationHours = period.durationHours;
-    if (durationHours !== undefined && durationHours !== null) {
-      const hours = Number.parseInt(durationHours, 10);
-      if (Number.isFinite(hours) && hours > 0) {
-        return `${hours}시간`;
-      }
-    }
-    // fallback: startTime과 endTime으로 계산
+
     if (!period.startTime) return '—';
     const start = new Date(`2000-01-01T${period.startTime}:00`);
     const end = period.endTime
@@ -61,21 +42,9 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
       end.setDate(end.getDate() + 1);
     }
     const diffMinutes = Math.floor((end.getTime() - start.getTime()) / 60000);
-    const hours = Math.floor(diffMinutes / 60);
-    const minutes = diffMinutes % 60;
-    if (hours > 0 && minutes > 0) {
-      return `${hours}시간 ${minutes}분`;
-    }
-    if (hours > 0) {
-      return `${hours}시간`;
-    }
-    if (minutes > 0) {
-      return `${minutes}분`;
-    }
-    return '—';
+    return formatDuration(diffMinutes);
   };
 
-  // 시작일자 형식 (YYYY-MM-DD HH:mm:ss)
   const getStartDateTime = () => {
     if (!period.startDate || !period.startTime) return '—';
     const dateTime = `${period.startDate} ${period.startTime}:00`;
@@ -90,36 +59,12 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
         return formatTimeToKorean(formatted);
       }
     }
-    // durationMinutes 우선 확인
-    const durationMinutes = period.durationMinutes ?? period.duration;
-    if (
-      period.startDate &&
-      period.startTime &&
-      durationMinutes !== undefined &&
-      durationMinutes !== null
-    ) {
+    const durationMinutes = getDurationInMinutes(period);
+    if (period.startDate && period.startTime && durationMinutes > 0) {
       const start = parseISO(`${period.startDate}T${period.startTime}:00`);
       if (!Number.isNaN(start.getTime())) {
         const computed = new Date(start);
-        computed.setMinutes(
-          computed.getMinutes() + Number.parseInt(durationMinutes, 10),
-        );
-        const formatted = format(computed, 'yyyy-MM-dd HH:mm');
-        return formatTimeToKorean(formatted);
-      }
-    }
-    // 하위 호환성: durationHours 확인
-    const durationHours = period.durationHours;
-    if (
-      period.startDate &&
-      period.startTime &&
-      durationHours !== undefined &&
-      durationHours !== null
-    ) {
-      const start = parseISO(`${period.startDate}T${period.startTime}:00`);
-      if (!Number.isNaN(start.getTime())) {
-        const computed = new Date(start);
-        computed.setHours(computed.getHours() + Number(durationHours));
+        computed.setMinutes(computed.getMinutes() + durationMinutes);
         const formatted = format(computed, 'yyyy-MM-dd HH:mm');
         return formatTimeToKorean(formatted);
       }

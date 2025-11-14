@@ -17,6 +17,7 @@ import {
   TableHead,
   TableCell,
 } from '@/components/common/Table';
+import { getDurationInMinutes } from '@/features/schedule/utils/durationUtils';
 
 import * as S from './RestrictedPeriodList.styles';
 
@@ -38,17 +39,15 @@ export default function RestrictedPeriodList({ periods, onPeriodClick }) {
         return formatDate(ended, 'yyyy-MM-dd HH:mm');
       }
     }
-    if (
-      period.startDate &&
-      period.startTime &&
-      period.duration !== undefined &&
-      period.duration !== null
-    ) {
+    if (period.startDate && period.startTime) {
       const start = parseISO(`${period.startDate}T${period.startTime}:00`);
       if (!Number.isNaN(start.getTime())) {
         const computed = new Date(start);
-        computed.setHours(computed.getHours() + Number(period.duration));
-        return formatDate(computed, 'yyyy-MM-dd HH:mm');
+        const durationMinutes = getDurationInMinutes(period);
+        if (durationMinutes > 0) {
+          computed.setMinutes(computed.getMinutes() + durationMinutes);
+          return formatDate(computed, 'yyyy-MM-dd HH:mm');
+        }
       }
     }
     if (period.endDate || period.endTime) {

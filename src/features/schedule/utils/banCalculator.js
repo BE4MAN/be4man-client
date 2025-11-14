@@ -1,18 +1,11 @@
+import { getDurationInMinutes } from './durationUtils';
+
 const MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
 
 const toDateOrNull = (value) => {
   if (!value) return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
-};
-
-const parseDurationHours = (duration) => {
-  if (duration === undefined || duration === null) return 0;
-  if (typeof duration === 'number') {
-    return Number.isFinite(duration) ? duration : 0;
-  }
-  const parsed = Number.parseFloat(duration);
-  return Number.isFinite(parsed) ? parsed : 0;
 };
 
 const getBanDateRange = (ban) => {
@@ -28,13 +21,11 @@ const getBanDateRange = (ban) => {
   let endDateTime = toDateOrNull(ban.endedAt);
 
   if (!endDateTime) {
-    // durationHours 또는 duration 필드 확인
-    const durationHours = parseDurationHours(ban.durationHours ?? ban.duration);
-    if (durationHours > 0) {
+    const durationMinutes = getDurationInMinutes(ban);
+    if (durationMinutes > 0) {
       endDateTime = new Date(startDateTime);
-      endDateTime.setHours(endDateTime.getHours() + durationHours);
+      endDateTime.setMinutes(endDateTime.getMinutes() + durationMinutes);
     } else if (ban.endDate || ban.endTime) {
-      // Legacy fallback
       const legacyEnd = ban.endDate
         ? `${ban.endDate}T${ban.endTime || ban.startTime || '00:00'}:00`
         : `${ban.startDate}T${ban.endTime}:00`;
@@ -67,12 +58,6 @@ export function calculateBanDatesFromRange(startDateTime, endDateTime) {
   return dates;
 }
 
-/**
- * 특정 날짜에 해당하는 금지 기간들을 필터링
- * @param {Array} restrictedPeriods - 금지 기간 배열
- * @param {string} targetDate - 대상 날짜 (YYYY-MM-DD)
- * @returns {Array} 해당 날짜에 포함되는 금지 기간 배열
- */
 export function getBansForDate(restrictedPeriods, targetDate) {
   if (!restrictedPeriods || !targetDate) {
     return [];
