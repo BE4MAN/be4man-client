@@ -30,6 +30,9 @@ const RestrictedPeriodCreationPage = lazy(
 const AnalyticsPage = lazy(
   () => import('@/features/analytics/pages/AnalyticsPage'),
 );
+const ProblemManagement = lazy(
+  () => import('@/features/problem/pages/ProblemManagement'),
+);
 
 export const router = createBrowserRouter([
   {
@@ -127,6 +130,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageSkeleton />}>
             <AnalyticsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: PATHS.PROBLEMS,
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <ProblemManagement />
           </Suspense>
         ),
       },
