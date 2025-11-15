@@ -1,17 +1,42 @@
 import styled from '@emotion/styled';
 
 export const Container = styled.div`
-  padding: ${({ theme }) => theme.spacing.lg};
+  height: 100%;
+  display: flex;
+  background-color: ${({ theme }) => theme.colors.bg};
+  overflow: hidden;
 `;
 
-export const Title = styled.h1`
-  color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.typography.fontSize['2xl']};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
+export const MainContent = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
 `;
 
-export const Content = styled.div`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.typography.fontSize.md};
+export const ActionBar = styled.div`
+  height: 64px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 ${({ theme }) => theme.spacing.lg};
+  gap: ${({ theme }) => theme.spacing.sm};
+  flex-shrink: 0;
+`;
+
+export const ContentArea = styled.div`
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-width: 0;
+`;
+
+export const ListContainer = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 `;

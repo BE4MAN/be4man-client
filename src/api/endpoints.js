@@ -17,4 +17,9 @@ export const API_ENDPOINTS = {
   CONSOLE_LOG: '/api/console-log',
   BUILD_RESULT: '/api/build-result',
   ALL_STAGES: '/api/console-log',
+
+  // Problem
+  PROBLEM_CATEGORIES: '/api/problems/categories',
+  PROBLEMS: '/api/problems',
+  DEPLOYMENTS: '/api/deployments',
 };
