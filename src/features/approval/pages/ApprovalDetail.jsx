@@ -1,4 +1,3 @@
-// src/features/approval/pages/ApprovalDetail.jsx
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -113,9 +112,6 @@ export default function ApprovalDetail() {
   const user = useAuthStore((s) => s.user);
   let currentUserId = user?.accountId || user?.id;
   let currentUserName = user?.name || user?.username || user?.displayName || '';
-
-  currentUserId = 2;
-  currentUserName = '이원석';
 
   const { data: apiDetail, isLoading, isError } = useApprovalDetailQuery(id);
 
@@ -238,7 +234,6 @@ export default function ApprovalDetail() {
       <S.Panel>
         <S.HeaderRow>
           {isDraft ? (
-            // 🔸 임시저장 상태: 삭제 · 수정 · 결재라인 · 뒤로가기
             <>
               <S.DangerBtn onClick={() => openActionModal('delete')}>
                 삭제
@@ -254,7 +249,6 @@ export default function ApprovalDetail() {
               <S.SubtleBtn onClick={() => navigate(-1)}>뒤로가기</S.SubtleBtn>
             </>
           ) : (
-            // 🔸 상신 이후 상태
             <>
               {!isFinished && isDrafterMe && (
                 <S.DangerBtn onClick={() => openActionModal('cancel')}>
