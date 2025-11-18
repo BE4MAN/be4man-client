@@ -112,6 +112,9 @@ export default function Sidebar() {
     pathname === PATHS.APPROVAL_NEW ||
     pathname.startsWith('/approval/');
 
+  const isScheduleFamily =
+    pathname === PATHS.SCHEDULE || pathname.startsWith(`${PATHS.SCHEDULE}/`);
+
   const isTasksFamily =
     pathname === PATHS.TASKS || pathname.startsWith('/tasks/');
 
@@ -122,9 +125,11 @@ export default function Sidebar() {
           const forceActive =
             it.key === 'approvals'
               ? isApprovalFamily
-              : it.key === 'tasks'
-                ? isTasksFamily
-                : false;
+              : it.key === 'schedule'
+                ? isScheduleFamily
+                : it.key === 'tasks'
+                  ? isTasksFamily
+                  : false;
 
           return (
             <S.Item

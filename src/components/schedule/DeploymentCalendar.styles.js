@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { ChevronDown } from 'lucide-react';
 
 export const Container = styled.div`
   width: 100%;
@@ -89,7 +90,6 @@ export const DayCell = styled.div`
     isToday ? theme.colors.schedule.cellToday : theme.colors.bg};
   border: 1px solid ${({ theme }) => theme.colors.border};
   padding: ${({ theme }) => theme.spacing.sm};
-  transition: background-color 0.2s ease;
 `;
 
 export const DayNumber = styled.div`
@@ -97,33 +97,66 @@ export const DayNumber = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing.xs};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ isToday, theme }) =>
-    isToday ? theme.colors.textPrimary : theme.colors.textSecondary};
   margin-bottom: ${({ theme }) => theme.spacing.sm};
   padding-right: 2px;
+`;
+
+export const DayNumberInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+`;
+
+export const DayNumberText = styled.span`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ $isHoliday, isToday, theme }) => {
+    if ($isHoliday) return theme.colors.error;
+    if (isToday) return theme.colors.textPrimary;
+    return theme.colors.textSecondary;
+  }};
+  font-weight: ${({ $isHoliday, theme }) =>
+    $isHoliday
+      ? theme.typography.fontWeight.semibold
+      : theme.typography.fontWeight.medium};
+`;
+
+export const HolidayName = styled.span`
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  color: ${({ theme }) => theme.colors.error};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
 `;
 
 export const ExpandButton = styled.button`
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   background: transparent;
   border: none;
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.typography.fontSize.xs};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
   padding: 0;
   cursor: pointer;
-  transition: color 0.2s ease;
 
   &:hover {
     color: ${({ theme }) => theme.colors.textPrimary};
   }
+`;
 
-  svg {
-    flex-shrink: 0;
-  }
+export const ExpandChevron = styled(ChevronDown, {
+  shouldForwardProp: (prop) => prop !== '$expanded',
+})`
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transform: ${({ $expanded }) =>
+    $expanded ? 'rotate(180deg)' : 'rotate(0deg)'};
+`;
+
+export const ExpandButtonCount = styled.span`
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
 `;
 
 export const CardList = styled.div`

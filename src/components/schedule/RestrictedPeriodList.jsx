@@ -1,4 +1,4 @@
-import { parseISO, compareAsc } from 'date-fns';
+import { parseISO, compareAsc, format as formatDate } from 'date-fns';
 import { useState } from 'react';
 
 import {
@@ -17,6 +17,7 @@ import {
   TableHead,
   TableCell,
 } from '@/components/common/Table';
+import { getDurationInMinutes } from '@/features/schedule/utils/durationUtils';
 
 import * as S from './RestrictedPeriodList.styles';
 
@@ -30,6 +31,30 @@ export default function RestrictedPeriodList({ periods, onPeriodClick }) {
     const dateB = parseISO(`${b.startDate}T${b.startTime}`);
     return compareAsc(dateA, dateB);
   });
+
+  const getEndDateTimeLabel = (period) => {
+    if (period.endedAt) {
+      const ended = parseISO(period.endedAt);
+      if (!Number.isNaN(ended.getTime())) {
+        return formatDate(ended, 'yyyy-MM-dd HH:mm');
+      }
+    }
+    if (period.startDate && period.startTime) {
+      const start = parseISO(`${period.startDate}T${period.startTime}:00`);
+      if (!Number.isNaN(start.getTime())) {
+        const computed = new Date(start);
+        const durationMinutes = getDurationInMinutes(period);
+        if (durationMinutes > 0) {
+          computed.setMinutes(computed.getMinutes() + durationMinutes);
+          return formatDate(computed, 'yyyy-MM-dd HH:mm');
+        }
+      }
+    }
+    if (period.endDate || period.endTime) {
+      return `${period.endDate || period.startDate} ${period.endTime || ''}`.trim();
+    }
+    return '—';
+  };
 
   const totalPages = Math.ceil(sortedPeriods.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -49,16 +74,17 @@ export default function RestrictedPeriodList({ periods, onPeriodClick }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentPeriods.map((period) => (
-              <TableRow key={period.id} onClick={() => onPeriodClick(period)}>
+            {currentPeriods.map((period, index) => (
+              <TableRow
+                key={`${period.id}-${period.startDate}-${period.startTime}-${index}`}
+                onClick={() => onPeriodClick(period)}
+              >
                 <TableCell>{period.title}</TableCell>
                 <TableCell>{period.type}</TableCell>
                 <S.TimeCell>
                   {period.startDate} {period.startTime}
                 </S.TimeCell>
-                <S.TimeCell>
-                  {period.endDate} {period.endTime}
-                </S.TimeCell>
+                <S.TimeCell>{getEndDateTimeLabel(period)}</S.TimeCell>
               </TableRow>
             ))}
           </TableBody>

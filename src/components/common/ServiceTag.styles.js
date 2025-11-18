@@ -6,7 +6,7 @@ export const Tag = styled.div`
   gap: ${({ theme }) => theme.spacing.xs};
   height: 28px;
   padding: 0 ${({ theme }) => theme.spacing.sm};
-  border-radius: ${({ theme }) => theme.radius.md};
+  border-radius: ${({ theme }) => theme.radius.sm};
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   color: ${({ theme }) => theme.colors.textPrimary};

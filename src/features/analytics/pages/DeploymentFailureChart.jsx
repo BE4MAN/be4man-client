@@ -88,7 +88,7 @@ export default function DeploymentFailureCharts({
 
   const url = useMemo(() => {
     const base =
-      endpoint || `/api/projects/${projectId}/deploy-failures/series`;
+      endpoint || `/api/statistics/${projectId}/deploy-failures/series`;
     const params = new URLSearchParams();
     if (from) params.set('from', from);
     if (to) params.set('to', to);
@@ -248,46 +248,49 @@ export default function DeploymentFailureCharts({
 
   return (
     <S.Container>
-      {/* Grouped panel with title */}
       <S.Panel>
-        <S.Title>배포 실패 결과 통계</S.Title>
+        <S.Header>
+          <S.Title>배포 실패 결과 통계</S.Title>
+        </S.Header>
 
-        <S.ChartsRow>
-          <S.ChartCard>
-            <S.CardTitle>유형별 실패 건수</S.CardTitle>
-            <S.ChartWrapper>
-              <Doughnut data={doughnutData} options={doughnutOptions} />
-            </S.ChartWrapper>
-            <LegendList
-              labels={doughnutData.labels}
-              values={doughnutData.datasets[0].data}
-              colors={COLORS}
-            />
-          </S.ChartCard>
+        <S.PanelContent>
+          <S.ChartsRow>
+            <S.ChartCard>
+              <S.CardTitle>유형별 실패 건수</S.CardTitle>
+              <S.ChartWrapper>
+                <Doughnut data={doughnutData} options={doughnutOptions} />
+              </S.ChartWrapper>
+              <LegendList
+                labels={doughnutData.labels}
+                values={doughnutData.datasets[0].data}
+                colors={COLORS}
+              />
+            </S.ChartCard>
 
-          <S.ChartCard>
-            <S.CardTitle>월별 실패 추이</S.CardTitle>
+            <S.ChartCard>
+              <S.CardTitle>월별 실패 추이</S.CardTitle>
 
-            <S.ChipsRow>
-              {PROBLEM_TYPES.map((k) => (
-                <S.ChipButton
-                  key={k}
-                  type="button"
-                  onClick={() =>
-                    setSelectedType((prev) => (prev === k ? null : k))
-                  }
-                  className={selectedType === k ? 'active' : ''}
-                >
-                  {PROBLEM_LABELS[k]}
-                </S.ChipButton>
-              ))}
-            </S.ChipsRow>
+              <S.ChipsRow>
+                {PROBLEM_TYPES.map((k) => (
+                  <S.ChipButton
+                    key={k}
+                    type="button"
+                    onClick={() =>
+                      setSelectedType((prev) => (prev === k ? null : k))
+                    }
+                    className={selectedType === k ? 'active' : ''}
+                  >
+                    {PROBLEM_LABELS[k]}
+                  </S.ChipButton>
+                ))}
+              </S.ChipsRow>
 
-            <S.ChartWrapper>
-              <Line data={lineData} options={lineOptions} />
-            </S.ChartWrapper>
-          </S.ChartCard>
-        </S.ChartsRow>
+              <S.ChartWrapper>
+                <Line data={lineData} options={lineOptions} />
+              </S.ChartWrapper>
+            </S.ChartCard>
+          </S.ChartsRow>
+        </S.PanelContent>
       </S.Panel>
     </S.Container>
   );

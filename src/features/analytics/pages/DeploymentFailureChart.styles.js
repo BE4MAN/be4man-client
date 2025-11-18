@@ -9,10 +9,11 @@ export const Container = styled.div`
 `;
 
 export const Header = styled.div`
+  width: 100%;
+  padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: ${({ theme }) => theme.spacing.md};
+  align-items: center;
+  justify-content: space-between;
 `;
 
 export const Title = styled.h2`
@@ -107,11 +108,24 @@ export const Panel = styled.section`
   background: ${({ theme }) => theme.colors.bg};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius.md};
+  padding: 0; /* inner header/content will provide padding */
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  /* keep outer container responsive, inner spacing is handled by PanelContent */
+  ${({ theme }) => theme.mq.sm`
+    gap: 0;
+  `}
+`;
+
+export const PanelContent = styled.div`
   padding: 20px ${({ theme }) => theme.spacing.lg}
     calc(${({ theme }) => theme.spacing.lg} + 30px);
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
 
   /* reduce panel padding on small screens so inner elements scale down */
   ${({ theme }) => theme.mq.sm`
@@ -140,7 +154,9 @@ export const ChartWrapper = styled.div`
   /* use a modest fixed min-height to align with other dashboard charts */
 
   /* responsive height: shrinks on small screens, grows on larger viewports */
-  height: clamp(140px, 28vw, 260px);
+
+  /* responsive height: shrinks on small screens, grows on larger viewports */
+  height: clamp(120px, 22vw, 220px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -148,7 +164,7 @@ export const ChartWrapper = styled.div`
 
   /* slightly taller on medium screens */
   ${({ theme }) => theme.mq.md`
-    height: clamp(180px, 24vw, 300px);
+      height: clamp(150px, 20vw, 260px);
   `}
 
   /* ensure the Chart.js canvas always fills the wrapper */
@@ -156,6 +172,18 @@ export const ChartWrapper = styled.div`
     width: 100% !important;
     height: 100% !important;
   }
+`;
+
+export const DoughnutWrapper = styled(ChartWrapper)`
+  /* smaller, centered doughnut for the left card */
+  height: clamp(120px, 18vw, 220px);
+  max-width: 360px;
+  margin: 0 auto;
+
+  ${({ theme }) => theme.mq.md`
+    height: clamp(140px, 16vw, 240px);
+    max-width: 420px;
+  `}
 `;
 
 export const ChartCard = styled.div`

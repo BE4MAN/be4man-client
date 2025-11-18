@@ -1,30 +1,28 @@
 import styled from '@emotion/styled';
 
-export const Card = styled.div`
-  background: ${({ theme }) => theme.colors.schedule.restrictedBg};
-  border-radius: 0.3125rem;
+export const Card = styled.button`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xs};
   padding: ${({ theme }) => theme.spacing.sm};
-  border: 1px solid ${({ theme }) => theme.colors.schedule.restrictedBorder};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.schedule.restrictedBg};
   cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    opacity: 0.9;
-  }
 `;
 
 export const Content = styled.div`
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.25rem;
 `;
 
 export const BanIcon = styled.svg`
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   color: ${({ theme }) => theme.colors.schedule.restrictedDanger};
   flex-shrink: 0;
-  margin-top: 2px;
   margin-left: 4px;
   margin-right: 4px;
 `;
@@ -32,7 +30,7 @@ export const BanIcon = styled.svg`
 export const TitleWrapper = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: ${({ theme }) => theme.spacing.xs};
   flex: 1;
   min-width: 0;
@@ -52,4 +50,5 @@ export const Title = styled.h3`
   overflow-wrap: break-word;
   flex: 1;
   min-width: 0;
+  text-align: left;
 `;

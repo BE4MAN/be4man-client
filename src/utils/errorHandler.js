@@ -66,3 +66,30 @@ export const getErrorMessage = (errorInfo) => {
   // 서버 메시지가 있으면 사용, 없으면 기본 메시지
   return message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
 };
+
+/**
+ * 403 Forbidden 에러인지 확인
+ * @param {Error} error - Axios 에러 객체
+ * @returns {boolean} 403 에러 여부
+ */
+export const isForbiddenError = (error) => {
+  return error?.response?.status === 403;
+};
+
+/**
+ * 403 에러의 서버 응답 메시지 추출
+ * @param {Error} error - Axios 에러 객체
+ * @returns {string} 서버 응답 메시지 또는 기본 메시지
+ */
+export const getForbiddenMessage = (error) => {
+  if (!isForbiddenError(error)) {
+    return null;
+  }
+
+  const message =
+    error.response?.data?.message ||
+    error.response?.data?.error ||
+    '권한이 없습니다.';
+
+  return message;
+};

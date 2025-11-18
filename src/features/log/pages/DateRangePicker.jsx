@@ -229,23 +229,32 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
     return days;
   };
 
+  const formatDateToString = (date) => {
+    if (!date) return '';
+    // 로컬 날짜 기준으로 YYYY-MM-DD 형식 생성 (시간대 문제 방지)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const isDateInRange = (date) => {
     if (!date || !startDate || !endDate) return false;
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateToString(date);
     return dateStr >= startDate && dateStr <= endDate;
   };
 
   const isDateSelected = (date) => {
     if (!date) return false;
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateToString(date);
     return dateStr === startDate || dateStr === endDate;
   };
 
   const isDateHovered = (date) => {
     if (!date || !selecting || !hoveredDate) return false;
-    const dateStr = date.toISOString().split('T')[0];
-    const selectingStr = selecting.toISOString().split('T')[0];
-    const hoveredStr = hoveredDate.toISOString().split('T')[0];
+    const dateStr = formatDateToString(date);
+    const selectingStr = formatDateToString(selecting);
+    const hoveredStr = formatDateToString(hoveredDate);
 
     const min = selectingStr < hoveredStr ? selectingStr : hoveredStr;
     const max = selectingStr > hoveredStr ? selectingStr : hoveredStr;
@@ -256,13 +265,13 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
   const handleDateClick = (date) => {
     if (!date) return;
 
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateToString(date);
 
     if (!selecting) {
       setSelecting(date);
       onChange(dateStr, '');
     } else {
-      const selectingStr = selecting.toISOString().split('T')[0];
+      const selectingStr = formatDateToString(selecting);
       if (dateStr < selectingStr) {
         onChange(dateStr, selectingStr);
       } else {

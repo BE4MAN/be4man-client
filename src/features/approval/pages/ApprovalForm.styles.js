@@ -551,6 +551,11 @@ export const TableRow = styled.div`
     border-right: 0;
   }
 
+  &[data-full='true'] > div {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+
   cursor: pointer;
 
   &:hover {
@@ -665,6 +670,5 @@ export const ConfirmFoot = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 12px 14px 14px;
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  padding: 12px 14px;
 `;
