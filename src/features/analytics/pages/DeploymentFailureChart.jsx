@@ -13,12 +13,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Doughnut, Line } from 'react-chartjs-2';
 
 import { axiosInstance } from '@/api/axios';
+import { listSuccessServices } from '@/utils/analyticsDataGenerators';
 
 import * as S from './DeploymentFailureChart.styles';
 
-// If you want nice time axis ticks, you could add the adapter:
-// import 'chartjs-adapter-date-fns';
-
+// Chart.js 기본 등록
 ChartJS.register(
   ArcElement,
   Tooltip,
@@ -30,7 +29,7 @@ ChartJS.register(
   TimeSeriesScale,
 );
 
-// Problem type constants (module-level so useMemo won't need to include them in deps)
+// 문제 유형 상수
 const PROBLEM_TYPES = [
   'BUILD_AND_PACKAGING_FAILURES',
   'AUTOMATION_TEST_FAILED',
@@ -55,7 +54,7 @@ const COLORS = [
   '#6b7280', // gray-500
 ];
 
-// Return an array of month keys YYYY-MM for the last N months (including current)
+// 최근 N개월(포함) YYYY-MM 라벨 생성
 function getLastNMonths(n) {
   const res = [];
   const now = new Date();
@@ -70,41 +69,84 @@ function getLastNMonths(n) {
 
 /**
  * Props:
- *   projectId: number (required)
  *   from?: string (YYYY-MM-DD)
- *   to?: string (YYYY-MM-DD)
- *   endpoint?: string  (default: `/api/projects/{projectId}/deploy-failures/stats`)
+ *   to?: string   (YYYY-MM-DD)
+ *   endpoint?: string  (기본값: `/api/statistics/deploy-failures/series`)
+ *
+ * 백엔드 규약(예시):
+ *  GET /api/statistics/deploy-failures/series?serviceId={id|all}&from=YYYY-MM-DD&to=YYYY-MM-DD
+ *  → 응답:
+ *  {
+ *    projectId: 1, // (선택)
+ *    summary: {
+ *      total: 12,
+ *      typeCounts: {
+ *        BUILD_AND_PACKAGING_FAILURES: 10,
+ *        ...
+ *      }
+ *    },
+ *    series: {
+ *      ALL: [{month:"2025-01", count:5}, ...],
+ *      BUILD_AND_PACKAGING_FAILURES: [...],
+ *      ...
+ *    }
+ *  }
  */
-export default function DeploymentFailureCharts({
-  projectId,
-  from,
-  to,
-  endpoint,
-}) {
+export default function DeploymentFailureCharts({ from, to, endpoint }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
 
+  // 서비스 필터 상태
+  const [selectedService, setSelectedService] = useState('all');
+  const [serviceOptions, setServiceOptions] = useState([
+    { id: 'all', name: '전체' },
+  ]);
+
+  // 서비스 목록 로딩 (성공률 서비스 목록 재사용)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const opts = await listSuccessServices();
+        if (cancelled) return;
+        setServiceOptions(opts);
+      } catch (e) {
+        // 실패해도 기본 "전체"만 있는 상태로 동작
+        console.error('Failed to load failure services', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 호출할 URL (path variable 없이 고정 endpoint + query string 사용)
   const url = useMemo(() => {
-    const base =
-      endpoint || `/api/statistics/${projectId}/deploy-failures/series`;
+    const base = endpoint || '/api/statistics/deploy-failures/series';
     const params = new URLSearchParams();
     if (from) params.set('from', from);
     if (to) params.set('to', to);
+    // 전체(프로젝트 전체)는 쿼리 생략, 특정 서비스 선택 시에만 쿼리 전송
+    if (selectedService && selectedService !== 'all') {
+      params.set('serviceId', selectedService);
+    }
     const qs = params.toString();
     return qs ? `${base}?${qs}` : base;
-  }, [projectId, from, to, endpoint]);
+  }, [from, to, endpoint, selectedService]);
 
+  // 데이터 로딩
   useEffect(() => {
     let alive = true;
     setLoading(true);
     setError(null);
+
     (async () => {
       try {
         const res = await axiosInstance.get(url);
         const respData = res.data;
-        // If server returned HTML (e.g., an auth redirect or error page), abort with clearer message
+        // 서버가 HTML을 돌려준 경우(예: 인증 리다이렉트) 방어
         if (typeof respData === 'string' && respData.trim().startsWith('<')) {
           throw new Error('Invalid JSON response (HTML received)');
         }
@@ -121,11 +163,19 @@ export default function DeploymentFailureCharts({
     };
   }, [url]);
 
-  // Normalize API data → ensure all 5 types exist, fill 0
+  // API 응답 → 차트용 데이터 변환
   const { doughnutData, doughnutOptions, lineData, lineOptions } =
     useMemo(() => {
-      if (!data) return {};
-      // Build counts for doughnut from summary.typeCounts
+      if (!data) {
+        return {
+          doughnutData: null,
+          doughnutOptions: null,
+          lineData: null,
+          lineOptions: null,
+        };
+      }
+
+      // 도넛 차트: summary.typeCounts 기준으로 5개 유형 정규화
       const countsByType = [];
       for (let i = 0; i < PROBLEM_TYPES.length; i++) {
         const key = PROBLEM_TYPES[i];
@@ -134,10 +184,7 @@ export default function DeploymentFailureCharts({
       const total = countsByType.reduce((a, b) => a + b, 0);
 
       const last12 = getLastNMonths(12);
-
-      // series is now an object keyed by type and 'ALL' -> array of {month, count}
       const seriesObj = data.series || {};
-
       const monthLabels = last12;
 
       const seriesFor = (typeKey) => {
@@ -178,8 +225,7 @@ export default function DeploymentFailureCharts({
         cutout: '60%',
       };
 
-      // Monthly trend → ensure chronological sort and gap-friendly labels (YYYY-MM)
-      // line dataset: if a type is selected show that type's series, otherwise show total failures
+      // 라인 차트: 선택된 유형만, 없으면 ALL
       const selectedIndex = selectedType
         ? PROBLEM_TYPES.indexOf(selectedType)
         : -1;
@@ -218,7 +264,7 @@ export default function DeploymentFailureCharts({
           x: {
             ticks: {
               // eslint-disable-next-line no-unused-vars
-              callback: (v, idx, ticks) => lineData.labels[idx], // keep YYYY-MM
+              callback: (v, idx, ticks) => lineData.labels[idx], // YYYY-MM 그대로 사용
             },
             grid: { display: false },
           },
@@ -237,14 +283,12 @@ export default function DeploymentFailureCharts({
       };
     }, [data, selectedType]);
 
-  if (loading) return <div className="p-4">Loading…</div>;
-  if (error)
-    return (
-      <div className="p-4 text-red-600">
-        Failed to load stats: {String(error.message || error)}
-      </div>
-    );
-  if (!data) return null;
+  const hasChartData =
+    !!doughnutData &&
+    !!lineData &&
+    Array.isArray(doughnutData.labels) &&
+    Array.isArray(doughnutData.datasets) &&
+    doughnutData.datasets.length > 0;
 
   return (
     <S.Container>
@@ -254,54 +298,82 @@ export default function DeploymentFailureCharts({
         </S.Header>
 
         <S.PanelContent>
-          <S.ChartsRow>
-            <S.ChartCard>
-              <S.CardTitle>유형별 실패 건수</S.CardTitle>
-              <S.ChartWrapper>
-                <Doughnut data={doughnutData} options={doughnutOptions} />
-              </S.ChartWrapper>
-              <LegendList
-                labels={doughnutData.labels}
-                values={doughnutData.datasets[0].data}
-                colors={COLORS}
-              />
-            </S.ChartCard>
-
-            <S.ChartCard>
-              <S.CardTitle>월별 실패 추이</S.CardTitle>
-
-              <S.ChipsRow>
-                {PROBLEM_TYPES.map((k) => (
-                  <S.ChipButton
-                    key={k}
-                    type="button"
-                    onClick={() =>
-                      setSelectedType((prev) => (prev === k ? null : k))
-                    }
-                    className={selectedType === k ? 'active' : ''}
-                  >
-                    {PROBLEM_LABELS[k]}
-                  </S.ChipButton>
+          {/* 상단 서비스 필터 (DeploymentPeriodStats와 유사) */}
+          <S.FilterRow>
+            <S.FilterGroup>
+              <S.FilterLabel>서비스</S.FilterLabel>
+              <S.Select
+                value={selectedService}
+                onChange={(e) => setSelectedService(e.target.value)}
+              >
+                {serviceOptions.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.name ?? o.id}
+                  </option>
                 ))}
-              </S.ChipsRow>
+              </S.Select>
+            </S.FilterGroup>
+          </S.FilterRow>
 
-              <S.ChartWrapper>
-                <Line data={lineData} options={lineOptions} />
-              </S.ChartWrapper>
-            </S.ChartCard>
-          </S.ChartsRow>
+          {/* 상태 메시지들: 레이아웃 유지한 채로 표시 */}
+          {loading && (
+            <div style={{ padding: '4px 0', fontSize: 13 }}>
+              선택한 서비스 통계를 불러오는 중입니다…
+            </div>
+          )}
+          {error && (
+            <div style={{ padding: '4px 0', fontSize: 13, color: 'tomato' }}>
+              통계 불러오기 실패: {String(error.message || error)}
+            </div>
+          )}
+
+          {!hasChartData && !loading && !error && (
+            <div style={{ padding: '8px 0', fontSize: 13, color: '#6b7280' }}>
+              표시할 데이터가 없습니다.
+            </div>
+          )}
+
+          {hasChartData && (
+            <S.ChartsRow>
+              <S.ChartCard>
+                <S.CardTitle>유형별 실패 건수</S.CardTitle>
+                <S.DoughnutWrapper>
+                  <Doughnut data={doughnutData} options={doughnutOptions} />
+                </S.DoughnutWrapper>
+                <LegendList
+                  labels={doughnutData.labels}
+                  values={doughnutData.datasets[0].data}
+                  colors={COLORS}
+                />
+              </S.ChartCard>
+
+              <S.ChartCard>
+                <S.CardTitle>월별 실패 추이</S.CardTitle>
+
+                <S.ChipsRow>
+                  {PROBLEM_TYPES.map((k) => (
+                    <S.ChipButton
+                      key={k}
+                      type="button"
+                      onClick={() =>
+                        setSelectedType((prev) => (prev === k ? null : k))
+                      }
+                      className={selectedType === k ? 'active' : ''}
+                    >
+                      {PROBLEM_LABELS[k]}
+                    </S.ChipButton>
+                  ))}
+                </S.ChipsRow>
+
+                <S.ChartWrapper>
+                  <Line data={lineData} options={lineOptions} />
+                </S.ChartWrapper>
+              </S.ChartCard>
+            </S.ChartsRow>
+          )}
         </S.PanelContent>
       </S.Panel>
     </S.Container>
-  );
-}
-
-function Card({ title, children }) {
-  return (
-    <section className="bg-white border rounded-2xl shadow-sm p-4 flex flex-col gap-3">
-      <div className="text-sm font-medium text-gray-500">{title}</div>
-      {children}
-    </section>
   );
 }
 

@@ -123,7 +123,15 @@ export const ToggleButton = styled.button`
 export const ChartWrapper = styled.div`
   position: relative;
   width: 100%;
-  height: ${({ height }) => height || '250px'};
+  box-sizing: border-box;
+  padding-bottom: ${({ theme }) => theme.spacing.sm}; /* 범례와 여유 공간 */
+
+  /* 안쪽 svg의 높이만 고정하고, 래퍼는 내용(height + legend)만큼 늘어나게 */
+  svg {
+    display: block;
+    width: 100%;
+    height: ${({ height }) => height || '250px'};
+  }
 `;
 
 // Legend
