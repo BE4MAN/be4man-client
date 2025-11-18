@@ -45,6 +45,9 @@ export const globalStyles = (theme) => css`
       Arial;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scrollbar-width: thin;
+    scrollbar-color: ${theme.colors.scrollbarThumb}
+      ${theme.colors.scrollbarTrack};
   }
 
   a {
@@ -61,5 +64,30 @@ export const globalStyles = (theme) => css`
   :focus-visible {
     outline: 2px solid ${theme.colors.brand};
     outline-offset: 2px;
+  }
+
+  /* Custom scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: ${theme.colors.scrollbarThumb}
+      ${theme.colors.scrollbarTrack};
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: ${theme.colors.scrollbarTrack};
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: ${theme.colors.scrollbarThumb};
+    border-radius: 999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: ${theme.colors.scrollbarThumbHover};
   }
 `;

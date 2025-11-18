@@ -1,16 +1,15 @@
 import styled from '@emotion/styled';
 
-export const Card = styled.div`
-  background: ${({ theme }) => theme.colors.surface};
-  border-radius: 0.3125rem;
-  padding: ${({ theme }) => theme.spacing.md};
+export const Card = styled.button`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xs};
+  padding: ${({ theme }) => theme.spacing.sm};
+  border-radius: ${({ theme }) => theme.radius.sm};
   border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
   cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.interactiveHover};
-  }
 `;
 
 export const Content = styled.div`
@@ -31,28 +30,14 @@ export const StatusIcon = styled.div`
   justify-content: center;
   flex-shrink: 0;
   margin-top: 2px;
-
-  svg {
-    ${({ status, theme }) => {
-      switch (status) {
-        case 'scheduled':
-          return `color: ${theme.colors.textPrimary};`;
-        case 'success':
-          return `color: ${theme.colors.schedule.successGreen};`;
-        case 'failed':
-          return `color: ${theme.colors.schedule.restrictedDanger};`;
-        default:
-          return `color: ${theme.colors.textPrimary};`;
-      }
-    }}
-  }
 `;
 
 export const Details = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
-  margin-left: 18px;
+  margin-left: 25px;
+  align-items: flex-start;
 `;
 
 export const Title = styled.h3`
@@ -73,10 +58,14 @@ export const Service = styled.p`
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.typography.fontSize.xs};
   margin: 0;
+  text-align: left;
+  width: 100%;
 `;
 
 export const Time = styled.p`
   color: ${({ theme }) => theme.colors.schedule.deploymentPrimary};
   font-size: ${({ theme }) => theme.typography.fontSize.xs};
   margin: 0;
+  text-align: left;
+  width: 100%;
 `;

@@ -31,16 +31,15 @@ export const SelectWrapper = styled.div`
 export const SelectButton = styled.button`
   width: 100%;
   height: 2.2rem;
-  border-radius: ${({ theme }) => `calc(${theme.radius.md} * 0.5)`};
+  border-radius: 0.3125rem;
   background-color: ${({ theme }) => theme.colors.bg};
   border: 1px solid
     ${({ $hasError, theme }) =>
       $hasError ? theme.colors.error : theme.colors.border};
-  color: ${({ $hasValue, theme }) =>
-    !$hasValue ? theme.colors.textPrimary : theme.colors.textPrimary};
+  color: ${({ theme }) => theme.colors.textSecondary};
   padding: 0 2.5rem 0 ${({ theme }) => theme.spacing.md};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  transition: border-color 0.2s ease;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
   outline: none;
   cursor: pointer;
   text-align: left;
@@ -51,11 +50,7 @@ export const SelectButton = styled.button`
   span {
     font-size: 14px;
     color: ${({ theme }) => theme.colors.textSecondary};
-  }
-
-  &:focus {
-    border-color: ${({ $hasError, theme }) =>
-      $hasError ? theme.colors.error : theme.colors.brand};
+    font-family: Arial, sans-serif;
   }
 
   &:disabled {
@@ -72,21 +67,19 @@ export const ChevronIcon = styled(ChevronDown, {
   top: 50%;
   transform: translateY(-50%)
     ${({ $open }) => ($open ? 'rotate(180deg)' : 'rotate(0deg)')};
-  transition: transform 0.2s ease;
   pointer-events: none;
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
 export const OptionsPanel = styled.div`
   position: absolute;
-  top: calc(100% + 4px);
+  top: 100%;
   left: 0;
   right: 0;
   z-index: 50;
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  box-shadow: ${({ theme }) => theme.shadow.md};
+  border-radius: 0.3125rem;
   max-height: 200px;
   overflow-y: auto;
   margin: 0;
@@ -112,17 +105,42 @@ export const OptionsPanel = styled.div`
   }
 `;
 
+export const SelectAllOption = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  cursor: pointer;
+  border-radius: 0.3125rem;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  background: transparent;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.interactiveHover};
+  }
+
+  svg {
+    color: ${({ theme }) => theme.colors.brand};
+    flex-shrink: 0;
+  }
+`;
+
 export const Option = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   cursor: pointer;
-  border-radius: ${({ theme }) => theme.radius.sm};
-  transition: all 0.2s ease;
-  color: ${({ theme }) => theme.colors.textPrimary};
+  border-radius: 0.3125rem;
+  color: ${({ theme }) => theme.colors.textSecondary};
   background: ${({ $active, theme }) =>
     $active ? theme.colors.interactiveHover : 'transparent'};
+  font-family: Arial, sans-serif;
+  font-size: 14px;
 
   &:hover {
     background: ${({ theme }) => theme.colors.interactiveHover};

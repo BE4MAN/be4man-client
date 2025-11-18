@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
 
   // Account
   ME: '/api/accounts/me',
+  APPROVAL_LINE_CANDIDATES: '/api/accounts/approval-line/candidates',
 
   // Task
   CONSOLE_LOG: '/api/console-log',
@@ -25,4 +26,22 @@ export const API_ENDPOINTS = {
   BAN_TYPE_STATS: '/api/statistics/ban-type',
 
   TIME_TO_NEXT_SUCCESS: '/api/statistics/follow-up/next-success',
+
+  PROJECTS: '/api/projects',
+  PROJECT_BY_ID: (id) => `/api/projects/${id}`,
+  PROJECT_MEMBERSHIPS_BY_ACCOUNT: (accountId) =>
+    `/api/projects/by-account/${accountId}`,
+
+  PULL_REQUESTS: '/api/prs',
+  PULL_REQUEST_BY_ID: (id) => `/api/prs/${id}`,
+
+  // ===== Approvals =====
+  APPROVALS: '/api/approvals',
+  APPROVAL_BY_ID: (id) => `/api/approvals/${id}`,
+  APPROVAL_DRAFTS: '/api/approvals/drafts',
+  APPROVAL_CREATE_SUBMIT: '/api/approvals/submit',
+  APPROVAL_SUBMIT: (id) => `/api/approvals/${id}/submit`,
+  APPROVAL_CANCEL: (id) => `/api/approvals/${id}/cancel`,
+  APPROVAL_APPROVE: (id) => `/api/approvals/${id}/approve`,
+  APPROVAL_REJECT: (id) => `/api/approvals/${id}/reject`,
 };

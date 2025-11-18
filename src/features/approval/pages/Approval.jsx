@@ -1,158 +1,13 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// 🔹 TanStack Query 훅
+import { useApprovalsQuery } from '../../../hooks/useApprovalQueries';
+import { useAuthStore } from '../../../stores/authStore';
+
 import * as S from './Approval.styles';
 
-const MOCK = [
-  {
-    id: 301,
-    type: '계획서',
-    title: '유저 서비스 배포 계획서 상신',
-    serviceName: '유저 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-25T14:32:00+09:00',
-    currentApprover: '이원석',
-    approvedAt: null,
-    status: '승인요청',
-  },
-  {
-    id: 302,
-    type: '결과보고',
-    title: '결제 서비스 배포 결과 보고서 상신',
-    serviceName: '결제 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-24T19:20:00+09:00',
-    currentApprover: '—',
-    approvedAt: '2025-07-25T14:32:00+09:00',
-    status: '완료',
-  },
-  {
-    id: 303,
-    type: '계획서',
-    title: '정산 서비스 배포 계획',
-    serviceName: '정산 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-23T10:00:00+09:00',
-    currentApprover: '박지훈',
-    approvedAt: null,
-    status: '반려',
-    rejectedAt: '2025-07-24T11:02:00+09:00',
-    rejectedBy: '박지훈',
-    rejectedReason:
-      '성수기 거래량 증가 기간. 모니터링/롤백 전략 보강 후 재상신 바랍니다.',
-  },
-  {
-    id: 304,
-    type: '결과보고',
-    title: '검색 서비스 롤백 보고서',
-    serviceName: '검색 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-26T08:40:00+09:00',
-    approval: { current: 0, total: 2 },
-    currentApprover: '-',
-    approvedAt: null,
-    status: '승인취소',
-    canceledAt: '2025-07-26T09:10:00+09:00',
-    canceledBy: '관리자',
-    canceledReason: '신규 증빙 누락으로 승인 절차 취소 처리되었습니다.',
-  },
-  {
-    id: 305,
-    type: '계획서',
-    title: '푸시 서비스 핫픽스 계획',
-    serviceName: '푸시 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-27T12:10:00+09:00',
-    approval: { current: 0, total: 2 },
-    currentApprover: '-',
-    approvedAt: null,
-    status: '임시저장',
-  },
-  {
-    id: 306,
-    type: '계획서',
-    title: '푸시 서비스 핫픽스 계획',
-    serviceName: '푸시 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-27T12:10:00+09:00',
-    approval: { current: 0, total: 2 },
-    currentApprover: '-',
-    approvedAt: null,
-    status: '임시저장',
-  },
-  {
-    id: 307,
-    type: '계획서',
-    title: '푸시 서비스 핫픽스 계획',
-    serviceName: '푸시 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-27T12:10:00+09:00',
-    approval: { current: 0, total: 2 },
-    currentApprover: '-',
-    approvedAt: null,
-    status: '임시저장',
-  },
-  {
-    id: 308,
-    type: '계획서',
-    title: '푸시 서비스 핫픽스 계획',
-    serviceName: '푸시 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-27T12:10:00+09:00',
-    approval: { current: 0, total: 2 },
-    currentApprover: '-',
-    approvedAt: null,
-    status: '임시저장',
-  },
-  {
-    id: 309,
-    type: '계획서',
-    title: '푸시 서비스 핫픽스 계획',
-    serviceName: '푸시 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-27T12:10:00+09:00',
-    approval: { current: 0, total: 2 },
-    currentApprover: '-',
-    approvedAt: null,
-    status: '임시저장',
-  },
-  {
-    id: 310,
-    type: '계획서',
-    title: '푸시 서비스 핫픽스 계획',
-    serviceName: '푸시 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-27T12:10:00+09:00',
-    approval: { current: 0, total: 2 },
-    currentApprover: '-',
-    approvedAt: null,
-    status: '임시저장',
-  },
-  {
-    id: 311,
-    type: '계획서',
-    title: '푸시 서비스 핫픽스 계획',
-    serviceName: '푸시 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-27T12:10:00+09:00',
-    approval: { current: 0, total: 2 },
-    currentApprover: '-',
-    approvedAt: null,
-    status: '임시저장',
-  },
-  {
-    id: 312,
-    type: '계획서',
-    title: '푸시 서비스 핫픽스 계획',
-    serviceName: '푸시 서비스',
-    drafter: '김민호',
-    draftedAt: '2025-07-27T12:10:00+09:00',
-    approval: { current: 0, total: 2 },
-    currentApprover: '-',
-    approvedAt: null,
-    status: '임시저장',
-  },
-];
+// ----- 유틸 & 매핑 -----
 
 function toArray(x) {
   if (Array.isArray(x)) return x;
@@ -175,6 +30,102 @@ function formatYmdHm(iso) {
   return `${y}.${m}.${day} ${hh}:${mm}`;
 }
 
+// 백엔드 ApprovalStatus → 한글
+function mapStatusEnumToLabel(status) {
+  switch (status) {
+    case 'DRAFT':
+      return '임시저장';
+    case 'PENDING':
+      return '승인요청';
+    case 'CANCELED':
+      return '승인취소';
+    case 'APPROVED':
+      return '완료';
+    case 'REJECTED':
+      return '반려';
+    default:
+      return status || '-';
+  }
+}
+
+// 화면 필터용 한글 → 백엔드 ApprovalStatus
+function mapStatusLabelToEnum(label) {
+  switch (label) {
+    case '임시저장':
+      return 'DRAFT';
+    case '승인요청':
+      return 'PENDING';
+    case '승인취소':
+      return 'CANCELED';
+    case '완료':
+      return 'APPROVED';
+    case '반려':
+      return 'REJECTED';
+    case '전체':
+    default:
+      return undefined;
+  }
+}
+
+// 백엔드 ApprovalType(enum) → 화면 유형 라벨
+function mapTypeEnumToLabel(type) {
+  switch (type) {
+    case 'PLAN':
+      return '계획서';
+    case 'DEPLOYMENT':
+    case 'REPORT':
+      return '결과보고';
+    case 'RETRY':
+      return '재배포';
+    case 'ROLLBACK':
+      return '복구';
+    case 'DRAFT':
+      return '임시저장';
+    default:
+      return type || '-';
+  }
+}
+
+// 🔥🔥 Summary → Row 변환 (결재일/상태 정상)
+function mapSummaryToRow(item) {
+  const statusLabel = mapStatusEnumToLabel(item.status);
+
+  return {
+    id: item.id,
+    type: mapTypeEnumToLabel(item.type),
+    title: item.title,
+    serviceName: item.service || item.serviceName || '-',
+
+    drafter: item.drafterName || item.drafter || '—',
+
+    draftedAt: item.createdAt || item.draftedAt,
+
+    nextApprover: item.nextApproverName || item.nextApprover || '—',
+
+    // 🔥 결재일: updatedAt 절대 사용 금지
+    updatedAt: item.approvedAt || item.rejectedAt || item.canceledAt || null,
+
+    approvedAt: item.approvedAt || null,
+
+    status: statusLabel,
+
+    approval: {
+      current: item.currentApprovalOrder || 0,
+      total: item.totalApprovalCount || 1,
+    },
+
+    rejectedAt: item.rejectedAt,
+    rejectedBy: item.rejectedBy,
+    rejectedReason: item.rejectedReason,
+    canceledAt: item.canceledAt,
+    canceledBy: item.canceledBy,
+    canceledReason: item.canceledReason,
+
+    approvedBy: item.approvedBy,
+    approvedReason: item.approvedReason,
+  };
+}
+
 const STATUS_OPTIONS = [
   '전체',
   '임시저장',
@@ -183,23 +134,34 @@ const STATUS_OPTIONS = [
   '완료',
   '반려',
 ];
-const TYPE_OPTIONS = ['전체', '계획서', '결과보고'];
+
+const TYPE_OPTIONS = [
+  '전체',
+  '계획서',
+  '결과보고',
+  '임시저장',
+  '재배포',
+  '복구',
+];
+
 const SEARCH_FIELDS = [
   { key: 'ALL', label: '전체' },
   { key: 'title', label: '제목' },
   { key: 'serviceName', label: '서비스명' },
   { key: 'drafter', label: '기안자' },
-  { key: 'currentApprover', label: '현재 승인자' },
+  { key: 'nextApprover', label: '현재 승인자' },
 ];
 
 export default function Approval({
   items: itemsProp,
-  useMockWhenEmpty = true,
   defaultPageSize = 10,
   onClickCreate,
   onClickDetail,
 }) {
   const navigate = useNavigate();
+
+  const user = useAuthStore((state) => state.user);
+  const accountId = user?.accountId || user?.id;
 
   const [decisionRow, setDecisionRow] = useState(null);
   const closeDecision = useCallback(() => setDecisionRow(null), []);
@@ -208,47 +170,7 @@ export default function Approval({
     setDecisionRow(row);
   }, []);
 
-  const itemsArr = useMemo(() => {
-    const arr = toArray(itemsProp);
-    return arr.length === 0 && useMockWhenEmpty ? MOCK : arr;
-  }, [itemsProp, useMockWhenEmpty]);
-
-  const handleCreate = useCallback(() => {
-    if (onClickCreate) return onClickCreate();
-    navigate('/approval/new');
-  }, [navigate, onClickCreate]);
-
-  const handleRowClick = useCallback(
-    (row) => {
-      if (onClickDetail) return onClickDetail(row);
-      navigate(`/approval/${row.id}`, { state: row });
-    },
-    [navigate, onClickDetail],
-  );
-
-  const rows = useMemo(
-    () =>
-      itemsArr.map((r) => {
-        const cur = Number(r?.approval?.current ?? 0);
-        const totRaw = Number(r?.approval?.total ?? 1);
-        const tot = Number.isFinite(totRaw) && totRaw > 0 ? totRaw : 1;
-        let status = r.status;
-        if (!status) {
-          if (r.rejectedAt) status = '반려';
-          else if (r.canceledAt) status = '승인취소';
-          else if (r.approvedAt || cur >= tot) status = '완료';
-          else if (r?.draftedAt) status = '승인요청';
-          else status = '승인요청';
-        }
-        return {
-          ...r,
-          status,
-          approval: { current: Math.min(cur, tot), total: tot },
-        };
-      }),
-    [itemsArr],
-  );
-
+  // ----- 필터/검색/페이지 state -----
   const [statusFilter, setStatusFilter] = useState('전체');
   const [typeFilter, setTypeFilter] = useState('전체');
   const [drafterFilter, setDrafterFilter] = useState('전체');
@@ -266,6 +188,63 @@ export default function Approval({
 
   const dropdownRef = useRef(null);
 
+  // ----- 백엔드 상태 필터 값 변환 -----
+  const backendStatus = useMemo(
+    () => mapStatusLabelToEnum(statusFilter),
+    [statusFilter],
+  );
+
+  // ----- TanStack Query로 결재 목록 가져오기 -----
+  const {
+    data: approvalsData,
+    isLoading,
+    isError,
+  } = useApprovalsQuery(accountId, backendStatus);
+
+  // ----- 데이터 소스 결정: API → itemsProp -----
+  const itemsArr = useMemo(() => {
+    if (Array.isArray(approvalsData) && approvalsData.length > 0) {
+      return approvalsData.map(mapSummaryToRow);
+    }
+
+    const arr = toArray(itemsProp);
+    if (arr.length > 0) return arr;
+
+    return [];
+  }, [approvalsData, itemsProp]);
+
+  const handleCreate = useCallback(() => {
+    if (onClickCreate) return onClickCreate();
+    navigate('/approval/new');
+  }, [navigate, onClickCreate]);
+
+  const handleRowClick = useCallback(
+    (row) => {
+      if (onClickDetail) return onClickDetail(row);
+      navigate(`/approval/${row.id}`, { state: row });
+    },
+    [navigate, onClickDetail],
+  );
+
+  // 🔥🔥🔥 여기 수정됨 — status 재계산 제거
+  const rows = useMemo(
+    () =>
+      itemsArr.map((r) => {
+        const cur = Number(r?.approval?.current ?? 0);
+        const totRaw = Number(r?.approval?.total ?? 1);
+        const tot = Number.isFinite(totRaw) && totRaw > 0 ? totRaw : 1;
+
+        // 백엔드 status 그대로 사용
+        return {
+          ...r,
+          status: r.status,
+          approval: { current: Math.min(cur, tot), total: tot },
+        };
+      }),
+    [itemsArr],
+  );
+
+  // ----- 드롭다운 닫기 이벤트 -----
   useEffect(() => {
     function handleClickOutside(e) {
       const el = e.target;
@@ -279,8 +258,10 @@ export default function Approval({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // ----- 필터/검색/페이지 계산 -----
   const filtered = useMemo(() => {
     const text = q.trim().toLowerCase();
+
     const passStatus = (row) =>
       statusFilter === '전체' ? true : row.status === statusFilter;
     const passType = (row) =>
@@ -298,9 +279,9 @@ export default function Approval({
           row.title,
           row.serviceName,
           row.drafter,
-          row.currentApprover,
+          row.nextApprover,
           row.draftedAt,
-          row.approvedAt,
+          row.updatedAt,
           row.status,
           `${row?.approval?.current ?? ''}/${row?.approval?.total ?? ''}`,
         ]
@@ -311,6 +292,7 @@ export default function Approval({
       const v = (row?.[searchField] ?? '').toString().toLowerCase();
       return v.includes(text);
     };
+
     return rows.filter(
       (r) =>
         passStatus(r) &&
@@ -378,6 +360,69 @@ export default function Approval({
     setSearchField('ALL');
     setQ('');
   };
+
+  // 🔹 모달에서 보여줄 라벨/값 계산
+  const decisionLabels = decisionRow
+    ? (() => {
+        const status = decisionRow.status;
+
+        // ⭐ 공통으로 쓸 값들: 백엔드가 어디에 넣어주든 최대한 다 받아보자
+        const actor =
+          decisionRow.rejectedBy ||
+          decisionRow.canceledBy ||
+          decisionRow.approvedBy ||
+          decisionRow.nextApprover ||
+          '—';
+
+        const dateValue =
+          decisionRow.rejectedAt ||
+          decisionRow.canceledAt ||
+          decisionRow.approvedAt ||
+          decisionRow.updatedAt ||
+          null;
+
+        const date = dateValue ? formatYmdHm(dateValue) : '-';
+
+        const commentRaw =
+          decisionRow.rejectedReason ||
+          decisionRow.canceledReason ||
+          decisionRow.approvedReason ||
+          '';
+
+        // 상태별로 타이틀/라벨만 바꿔주고, comment 는 공통으로 사용
+        if (status === '반려') {
+          return {
+            title: '반려 사유',
+            actorLabel: '반려자',
+            dateLabel: '반려일',
+            actor,
+            date,
+            comment: commentRaw || '반려 사유가 제공되지 않았습니다.',
+          };
+        }
+
+        if (status === '승인취소') {
+          return {
+            title: '취소 사유',
+            actorLabel: '취소자',
+            dateLabel: '취소일',
+            actor,
+            date,
+            comment: commentRaw || '취소 사유가 제공되지 않았습니다.',
+          };
+        }
+
+        // 🔹 완료(승인)
+        return {
+          title: '승인 사유',
+          actorLabel: '승인자',
+          dateLabel: '승인일',
+          actor,
+          date,
+          comment: commentRaw || '승인 사유가 제공되지 않았습니다.',
+        };
+      })()
+    : null;
 
   return (
     <S.Wrap>
@@ -479,6 +524,12 @@ export default function Approval({
       </S.FilterCard>
 
       <S.Panel>
+        {isError && (
+          <div style={{ padding: 16, color: 'red' }}>
+            결재 목록을 불러오는 중 오류가 발생했습니다.
+          </div>
+        )}
+
         <S.Table role="table" aria-label="결재함 목록">
           <S.Head role="rowgroup">
             <S.Tr role="row">
@@ -511,86 +562,147 @@ export default function Approval({
           </S.Head>
 
           <S.Body role="rowgroup">
-            {pageItems.length === 0 ? (
+            {isLoading ? (
+              <S.Tr role="row">
+                <S.Td role="cell" colSpan={9}>
+                  불러오는 중...
+                </S.Td>
+              </S.Tr>
+            ) : pageItems.length === 0 ? (
               <S.Tr role="row">
                 <S.Td role="cell" colSpan={9}>
                   조건에 맞는 항목이 없습니다.
                 </S.Td>
               </S.Tr>
             ) : (
-              pageItems.map((r, idx) => (
-                <S.Tr
-                  role="row"
-                  key={`${r.id}-${idx}`}
-                  onClick={() => handleRowClick(r)}
-                >
-                  <S.Td role="cell">
-                    <S.LinkLike
-                      href={`/approval/${r.id}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleRowClick(r);
-                      }}
-                    >
-                      {r.id}
-                    </S.LinkLike>
-                  </S.Td>
-                  <S.Td role="cell">{r.type}</S.Td>
-                  <S.Td role="cell">
-                    <S.Title>{r.title}</S.Title>
-                  </S.Td>
-                  <S.Td role="cell">{r.serviceName}</S.Td>
-                  <S.Td role="cell">{r.drafter}</S.Td>
-                  <S.Td role="cell">
-                    {r.status === '임시저장'
-                      ? '임시저장'
-                      : formatYmdHm(r.draftedAt)}
-                  </S.Td>
-                  <S.Td
-                    role="cell"
-                    data-nopointer
-                    onClick={(e) => e.stopPropagation()}
+              pageItems.map((r, idx) => {
+                const isDraftType =
+                  r.status === '임시저장' || r.status === 'DRAFT';
+
+                return (
+                  <S.Tr
+                    role="row"
+                    key={`${r.id}-${idx}`}
+                    onClick={() => handleRowClick(r)}
                   >
-                    {r.status === '임시저장' ? (
-                      '-'
-                    ) : r.status === '반려' ? (
-                      <S.StatusBtn
-                        data-variant="danger"
-                        type="button"
-                        onClick={(e) => openDecision(e, r)}
-                        aria-label="반려 사유 보기"
-                        title="반려 사유 보기"
-                      >
-                        반려
-                      </S.StatusBtn>
-                    ) : r.status === '승인취소' ? (
-                      <S.StatusBtn
-                        data-variant="warning"
-                        type="button"
-                        onClick={(e) => openDecision(e, r)}
-                        aria-label="취소 사유 보기"
-                        title="취소 사유 보기"
-                      >
-                        취소
-                      </S.StatusBtn>
-                    ) : r.status === '완료' ? (
-                      '완료'
-                    ) : (
-                      <S.ApproveWrap>대기</S.ApproveWrap>
-                    )}
-                  </S.Td>
-                  <S.Td role="cell">
-                    {r.status === '완료' ? '완료' : r.currentApprover}
-                  </S.Td>
-                  <S.Td role="cell">
-                    {r.approvedAt ? formatYmdHm(r.approvedAt) : '-'}
-                  </S.Td>
-                </S.Tr>
-              ))
+                    <S.Td role="cell">{r.id}</S.Td>
+                    <S.Td role="cell">{r.type}</S.Td>
+                    <S.Td role="cell">
+                      <S.Title>{r.title}</S.Title>
+                    </S.Td>
+                    <S.Td role="cell">{r.serviceName}</S.Td>
+                    <S.Td role="cell">{r.drafter}</S.Td>
+
+                    {/* 🔹 기안일: type 이 임시저장이면 텍스트, 아니면 날짜 */}
+                    <S.Td role="cell">
+                      {isDraftType
+                        ? '임시저장'
+                        : r.draftedAt
+                          ? formatYmdHm(r.draftedAt)
+                          : '-'}
+                    </S.Td>
+
+                    {/* 🔹 승인 상태 버튼: 임시저장은 '-' */}
+                    <S.Td
+                      role="cell"
+                      data-nopointer
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {isDraftType ? (
+                        '-'
+                      ) : r.status === '반려' ? (
+                        <S.StatusBtn
+                          data-variant="danger"
+                          type="button"
+                          onClick={(e) => openDecision(e, r)}
+                          aria-label="반려 사유 보기"
+                          title="반려 사유 보기"
+                        >
+                          반려
+                        </S.StatusBtn>
+                      ) : r.status === '승인취소' ? (
+                        <S.StatusBtn
+                          data-variant="warning"
+                          type="button"
+                          onClick={(e) => openDecision(e, r)}
+                          aria-label="취소 사유 보기"
+                          title="취소 사유 보기"
+                        >
+                          취소
+                        </S.StatusBtn>
+                      ) : r.status === '완료' ? (
+                        <S.StatusBtn
+                          data-variant="success"
+                          type="button"
+                          onClick={(e) => openDecision(e, r)}
+                          aria-label="승인 사유 보기"
+                          title="승인 사유 보기"
+                        >
+                          완료
+                        </S.StatusBtn>
+                      ) : (
+                        <S.ApproveWrap>대기</S.ApproveWrap>
+                      )}
+                    </S.Td>
+
+                    {/* 🔹 승인 예정자: 임시저장은 '-' */}
+                    <S.Td role="cell">
+                      {isDraftType
+                        ? '-'
+                        : r.status === '완료'
+                          ? '완료'
+                          : r.nextApprover}
+                    </S.Td>
+
+                    {/* 🔹 결재일: 임시저장은 '-', 나머지는 updatedAt */}
+                    <S.Td role="cell">
+                      {isDraftType
+                        ? '-'
+                        : r.updatedAt
+                          ? formatYmdHm(r.updatedAt)
+                          : '-'}
+                    </S.Td>
+                  </S.Tr>
+                );
+              })
             )}
           </S.Body>
         </S.Table>
       </S.Panel>
+
+      {decisionRow && decisionLabels && (
+        <S.ModalOverlay onClick={closeDecision} role="dialog" aria-modal="true">
+          <S.Modal onClick={(e) => e.stopPropagation()}>
+            <S.ModalHeader>
+              <S.ModalTitle>{decisionLabels.title}</S.ModalTitle>
+            </S.ModalHeader>
+            <S.ModalBody>
+              <S.Card>
+                <S.KV>
+                  <S.K>{decisionLabels.actorLabel}</S.K>
+                  <S.V>{decisionLabels.actor}</S.V>
+                  <S.K>{decisionLabels.dateLabel}</S.K>
+                  <S.V>{decisionLabels.date}</S.V>
+                </S.KV>
+
+                {decisionRow.status !== '승인취소' && (
+                  <>
+                    <S.Dashed />
+                    <S.ReasonScroll>
+                      <S.ReasonBox>{decisionLabels.comment}</S.ReasonBox>
+                    </S.ReasonScroll>
+                  </>
+                )}
+              </S.Card>
+            </S.ModalBody>
+            <S.ModalActions>
+              <S.PrimaryBtn type="button" onClick={closeDecision}>
+                닫기
+              </S.PrimaryBtn>
+            </S.ModalActions>
+          </S.Modal>
+        </S.ModalOverlay>
+      )}
 
       <S.Pagination role="navigation" aria-label="페이지네이션">
         <S.PageInfo>
@@ -634,59 +746,6 @@ export default function Approval({
           </S.PageBtn>
         </S.PageBtns>
       </S.Pagination>
-
-      {decisionRow && (
-        <S.ModalOverlay onClick={closeDecision} role="dialog" aria-modal="true">
-          <S.Modal onClick={(e) => e.stopPropagation()}>
-            <S.ModalHeader>
-              <S.ModalTitle>
-                {decisionRow.status === '반려' ? '반려 사유' : '취소 사유'}
-              </S.ModalTitle>
-            </S.ModalHeader>
-            <S.ModalBody>
-              <S.Card>
-                <S.KV>
-                  <S.K>
-                    {decisionRow.status === '반려' ? '반려자' : '취소자'}
-                  </S.K>
-                  <S.V>
-                    {(decisionRow.status === '반려'
-                      ? decisionRow.rejectedBy
-                      : decisionRow.canceledBy) ?? '—'}
-                  </S.V>
-                  <S.K>
-                    {decisionRow.status === '반려' ? '반려일' : '취소일'}
-                  </S.K>
-                  <S.V>
-                    {decisionRow.status === '반려'
-                      ? decisionRow.rejectedAt
-                        ? formatYmdHm(decisionRow.rejectedAt)
-                        : '—'
-                      : decisionRow.canceledAt
-                        ? formatYmdHm(decisionRow.canceledAt)
-                        : '—'}
-                  </S.V>
-                </S.KV>
-                <S.Dashed />
-                <S.ReasonScroll>
-                  <S.ReasonBox>
-                    {decisionRow.status === '반려'
-                      ? (decisionRow.rejectedReason ??
-                        '반려 사유가 제공되지 않았습니다.')
-                      : (decisionRow.canceledReason ??
-                        '취소 사유가 제공되지 않았습니다.')}
-                  </S.ReasonBox>
-                </S.ReasonScroll>
-              </S.Card>
-            </S.ModalBody>
-            <S.ModalActions>
-              <S.PrimaryBtn type="button" onClick={closeDecision}>
-                닫기
-              </S.PrimaryBtn>
-            </S.ModalActions>
-          </S.Modal>
-        </S.ModalOverlay>
-      )}
     </S.Wrap>
   );
 }

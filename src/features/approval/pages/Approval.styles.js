@@ -278,7 +278,7 @@ export const StatusBtn = styled.button`
         ? (theme.colors.danger ?? '#DC2626')
         : p['data-variant'] === 'warning'
           ? (theme.colors.warning ?? '#D97706')
-          : theme.colors.border};
+          : '#007aff'};
   background: ${({ theme, ...p }) => {
     const isDanger = p['data-variant'] === 'danger';
     const isWarn = p['data-variant'] === 'warning';
@@ -301,7 +301,7 @@ export const StatusBtn = styled.button`
     }
     if (isDanger) return theme.colors.danger ?? '#DC2626';
     if (isWarn) return theme.colors.warning ?? '#D97706';
-    return theme.colors.textPrimary;
+    return '#007aff';
   }};
   font-weight: 600;
   cursor: pointer;
@@ -328,7 +328,7 @@ export const ModalOverlay = styled.div`
   background: rgb(2 6 23 / 50%);
   display: grid;
   place-items: center;
-  z-index: 60;
+  z-index: 9999;
 `;
 
 export const Modal = styled.div`

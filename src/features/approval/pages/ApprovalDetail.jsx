@@ -1,81 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+
+import { PATHS } from '../../../app/routes/paths';
+import {
+  useApprovalDetailQuery,
+  useApproveApprovalMutation,
+  useRejectApprovalMutation,
+  useCancelApprovalMutation,
+  useDeleteApprovalMutation,
+} from '../../../hooks/useApprovalQueries';
+import { useAuthStore } from '../../../stores/authStore';
 
 import * as S from './ApprovalDetail.styles';
 
-const FALLBACK_DETAIL = {
-  id: '-',
-  title: '제목 없음',
-  type: '작업 계획서',
-  dept: '개발1팀',
-  drafter: '김푸름',
-  draftedAt: '2025-07-25T14:32:00+09:00',
-  retention: '5년',
-  docType: '작업 계획서',
-  body: `
-  <h2>작업 계획서</h2>
-  <h3>1. 개요</h3>
-  <p>프로젝트(작업) 개요를 간단히 작성합니다.</p>
-  <h3>2. 목표</h3>
-  <ul>
-    <li>핵심 목표 1</li>
-    <li>핵심 목표 2</li>
-  </ul>
-  <h3>3. 일정</h3>
-  <p>YYYY-MM-DD ~ YYYY-MM-DD</p>
-  <h3>4. 담당자</h3>
-  <p>담당/협업 부서 및 인원</p>
-  <h3>5. 수행 내용</h3>
-  <ul>
-    <li> 수행 항목 1</li>
-  </ul>
-  <h3>6. 리스크</h3>
-  <ul>
-    <li>리스크 항목 1 – 방안</li>
-  </ul>
-
-  <h3>7. 백업</h3>
-  <ul>
-    <li>백업 항목 1 – 백업 방안</li>
-  </ul>
-
-  <h3>8. 실패 시 복구 방안</h3>
-  <ul>
-    <li>복구 항목 1 – 복구 방안</li>
-  </ul>
-`,
-  attachments: [],
-  sections: [],
-  approvalLine: [
-    {
-      type: 'draft',
-      dept: '개발1팀',
-      name: '김민호',
-      rank: '사원',
-      status: '완료',
-      approvedAt: '2025-07-25T14:32:00+09:00',
-      comment: '유저 서비스 배포 계획서 상신 드립니다.',
-    },
-    {
-      type: 'approve',
-      dept: '개발2팀',
-      name: '이원석',
-      rank: '과장',
-      status: '진행',
-      approvedAt: null,
-      comment: '',
-    },
-    {
-      type: 'consent',
-      dept: '개발1팀',
-      name: '강지현',
-      rank: '부장',
-      status: '대기',
-      approvedAt: null,
-      comment: '',
-    },
-  ],
-};
+const APPROVAL_LIST_PATH = '/approvals';
 
 const TYPE_LABEL = {
   draft: '기안',
@@ -93,42 +31,251 @@ function formatYmd(iso) {
   return `${y}.${m}.${day}`;
 }
 
+function mapTypeEnumToDocType(type) {
+  switch (type) {
+    case 'PLAN':
+      return '작업 계획서';
+    case 'REPORT':
+      return '결과 보고서';
+    case 'RETRY':
+      return '재배포';
+    case 'ROLLBACK':
+      return '복구';
+    default:
+      return '작업 계획서';
+  }
+}
+
+function mapDetailToUi(detail) {
+  if (!detail) return null;
+
+  const {
+    id,
+    title,
+    content,
+    type,
+    status,
+    createdAt,
+    updatedAt,
+    drafterName,
+    drafterDept,
+    drafterRank,
+    lines,
+  } = detail;
+
+  const isFinished =
+    status === 'APPROVED' || status === 'REJECTED' || status === 'CANCELED';
+
+  const approvalLine = (lines || []).map((line, idx) => {
+    const lineType = (line.type || '').toLowerCase();
+    return {
+      type: lineType || (idx === 0 ? 'draft' : 'approve'),
+      dept: line.deptName || line.dept || drafterDept || '',
+      name:
+        line.accountName ||
+        line.name ||
+        (line.accountId != null ? `#${line.accountId}` : ''),
+      rank: line.rank || drafterRank || '',
+      status: line.statusLabel || '대기',
+      approvedAt: line.approvedAt || null,
+      comment: line.comment || '',
+    };
+  });
+
+  return {
+    id,
+    title,
+    type: mapTypeEnumToDocType(type),
+    dept: drafterDept || '',
+    drafter: drafterName || '',
+    draftedAt: createdAt || null,
+    decidedAt: isFinished ? updatedAt : null,
+    rawStatus: status || null,
+    retention: '5년',
+    docType: mapTypeEnumToDocType(type),
+    body: content || '',
+    attachments: [],
+    sections: [],
+    approvalLine,
+  };
+}
+
 export default function ApprovalDetail() {
   const { id } = useParams();
   const { state } = useLocation();
   const navigate = useNavigate();
-  const [data, setData] = useState(null);
+
   const [showLine, setShowLine] = useState(false);
+  const [actionModal, setActionModal] = useState(null);
+  const [actionComment, setActionComment] = useState('');
+
+  const user = useAuthStore((s) => s.user);
+  let currentUserId = user?.accountId || user?.id;
+  let currentUserName = user?.name || user?.username || user?.displayName || '';
+
+  const { data: apiDetail, isLoading, isError } = useApprovalDetailQuery(id);
+
+  const approveMut = useApproveApprovalMutation();
+  const rejectMut = useRejectApprovalMutation();
+  const cancelMut = useCancelApprovalMutation();
+  const deleteMut = useDeleteApprovalMutation();
+
+  const data = useMemo(() => {
+    if (apiDetail) return mapDetailToUi(apiDetail);
+    if (state?.__isFull) return state;
+    return null;
+  }, [apiDetail, state]);
 
   useEffect(() => {
-    if (state?.__isFull) {
-      setData(state);
-      return;
+    if (isError) {
+      console.error('결재 상세 조회 실패');
     }
-    const composed = {
-      ...FALLBACK_DETAIL,
-      id: id ?? FALLBACK_DETAIL.id,
-      title: state?.title ?? FALLBACK_DETAIL.title,
-      drafter: state?.drafter ?? FALLBACK_DETAIL.drafter,
-      draftedAt: state?.draftedAt ?? FALLBACK_DETAIL.draftedAt,
-      type: state?.type ?? FALLBACK_DETAIL.type,
-    };
-    setData(composed);
-  }, [id, state]);
+  }, [isError]);
 
-  if (!data) return null;
+  if (isLoading && !data) {
+    return (
+      <S.Wrap>
+        <S.Panel>
+          <div style={{ padding: 16 }}>불러오는 중...</div>
+        </S.Panel>
+      </S.Wrap>
+    );
+  }
+
+  if (!data) {
+    return (
+      <S.Wrap>
+        <S.Panel>
+          <div style={{ padding: 16 }}>데이터가 없습니다.</div>
+          <S.SubtleBtn onClick={() => navigate(-1)}>뒤로가기</S.SubtleBtn>
+        </S.Panel>
+      </S.Wrap>
+    );
+  }
+
+  const rawStatus = apiDetail?.status || data.rawStatus;
+  const isFinished =
+    rawStatus === 'APPROVED' ||
+    rawStatus === 'REJECTED' ||
+    rawStatus === 'CANCELED';
+  const isDraft = rawStatus === 'DRAFT';
+
+  const currentStep =
+    (data.approvalLine || []).find(
+      (s) =>
+        s.type !== 'draft' &&
+        (s.status === '대기' || s.status === 'PENDING' || s.approvedAt == null),
+    ) ?? null;
+
+  const isDrafterMe =
+    !!currentUserName && data.drafter && data.drafter === currentUserName;
+
+  const isMyTurnToApprove =
+    !!currentUserName &&
+    currentStep &&
+    currentStep.name &&
+    currentStep.name === currentUserName;
+
+  const openActionModal = (type) => {
+    setActionModal({ type });
+    setActionComment('');
+  };
+
+  const closeActionModal = () => {
+    setActionModal(null);
+    setActionComment('');
+  };
+
+  const handleActionSubmit = async () => {
+    if (!actionModal || !id) return;
+
+    try {
+      if (actionModal.type === 'delete') {
+        await deleteMut.mutateAsync({ approvalId: id });
+        navigate(APPROVAL_LIST_PATH);
+        return;
+      }
+
+      if (actionModal.type === 'cancel') {
+        await cancelMut.mutateAsync({ approvalId: id });
+        navigate(APPROVAL_LIST_PATH);
+        return;
+      }
+
+      if (actionModal.type === 'approve') {
+        await approveMut.mutateAsync({
+          approvalId: id,
+          approverAccountId: currentUserId,
+          comment: actionComment,
+        });
+        navigate(APPROVAL_LIST_PATH);
+        return;
+      }
+
+      if (actionModal.type === 'reject') {
+        await rejectMut.mutateAsync({
+          approvalId: id,
+          approverAccountId: currentUserId,
+          comment: actionComment,
+        });
+        navigate(APPROVAL_LIST_PATH);
+        return;
+      }
+
+      closeActionModal();
+    } catch (e) {
+      console.error(e);
+      alert('요청 처리 중 오류가 발생했습니다.');
+    }
+  };
 
   return (
     <S.Wrap>
       <S.Panel>
         <S.HeaderRow>
-          <S.PrimaryBtn onClick={() => setShowLine(true)}>
-            결재라인
-          </S.PrimaryBtn>
-          <S.SubtleBtn onClick={() => navigate(-1)}>뒤로가기</S.SubtleBtn>
+          {isDraft ? (
+            <>
+              <S.DangerBtn onClick={() => openActionModal('delete')}>
+                삭제
+              </S.DangerBtn>
+              <S.PrimaryBtn
+                onClick={() => navigate(PATHS.APPROVAL_EDIT.replace(':id', id))}
+              >
+                수정
+              </S.PrimaryBtn>
+              <S.PrimaryBtn onClick={() => setShowLine(true)}>
+                결재라인
+              </S.PrimaryBtn>
+              <S.SubtleBtn onClick={() => navigate(-1)}>뒤로가기</S.SubtleBtn>
+            </>
+          ) : (
+            <>
+              {!isFinished && isDrafterMe && (
+                <S.DangerBtn onClick={() => openActionModal('cancel')}>
+                  취소
+                </S.DangerBtn>
+              )}
+
+              {!isFinished && isMyTurnToApprove && (
+                <>
+                  <S.PrimaryBtn onClick={() => openActionModal('approve')}>
+                    승인
+                  </S.PrimaryBtn>
+                  <S.DangerBtn onClick={() => openActionModal('reject')}>
+                    반려
+                  </S.DangerBtn>
+                </>
+              )}
+
+              <S.PrimaryBtn onClick={() => setShowLine(true)}>
+                결재라인
+              </S.PrimaryBtn>
+              <S.SubtleBtn onClick={() => navigate(-1)}>뒤로가기</S.SubtleBtn>
+            </>
+          )}
         </S.HeaderRow>
 
-        <S.InfoTable role="table" aria-label="기본 정보">
+        <S.InfoTable>
           <S.InfoColGroup>
             <col />
             <col />
@@ -136,81 +283,78 @@ export default function ApprovalDetail() {
             <col />
           </S.InfoColGroup>
 
-          <S.InfoRow role="row">
-            <S.InfoTh role="columnheader">기안부서</S.InfoTh>
-            <S.InfoTd role="cell">{data.dept}</S.InfoTd>
-            <S.InfoTh role="columnheader">기안자</S.InfoTh>
-            <S.InfoTd role="cell">{data.drafter}</S.InfoTd>
+          <S.InfoRow>
+            <S.InfoTh>기안부서</S.InfoTh>
+            <S.InfoTd>{data.dept || '-'}</S.InfoTd>
+            <S.InfoTh>기안자</S.InfoTh>
+            <S.InfoTd>{data.drafter || '-'}</S.InfoTd>
           </S.InfoRow>
 
-          <S.InfoRow role="row">
-            <S.InfoTh role="columnheader">기안일자</S.InfoTh>
-            <S.InfoTd role="cell">{formatYmd(data.draftedAt)}</S.InfoTd>
-            <S.InfoTh data-bb role="columnheader">
-              문서분류
-            </S.InfoTh>
-            <S.InfoTd data-bb role="cell">
-              {data.docType}
+          <S.InfoRow>
+            <S.InfoTh>기안일자</S.InfoTh>
+            <S.InfoTd>
+              {isDraft
+                ? '임시저장'
+                : data.draftedAt
+                  ? formatYmd(data.draftedAt)
+                  : '-'}
             </S.InfoTd>
+            <S.InfoTh>문서분류</S.InfoTh>
+            <S.InfoTd>{data.docType}</S.InfoTd>
           </S.InfoRow>
 
-          <S.InfoRow role="row">
-            <S.InfoTh role="columnheader">제 목</S.InfoTh>
-            <S.InfoTd role="cell" colSpan={3}>
-              {data.title}
-            </S.InfoTd>
+          <S.InfoRow>
+            <S.InfoTh>제 목</S.InfoTh>
+            <S.InfoTd colSpan={3}>{data.title}</S.InfoTd>
           </S.InfoRow>
         </S.InfoTable>
 
         <S.Section>
           <S.BodyViewer
             dangerouslySetInnerHTML={{
-              __html: data.body || '<p>(내용 없음)</p>',
+              __html: data.body?.trim() ? data.body : '<p>(내용 없음)</p>',
             }}
           />
         </S.Section>
       </S.Panel>
 
       {showLine && (
-        <S.ModalOverlay
-          onClick={() => setShowLine(false)}
-          role="dialog"
-          aria-modal="true"
-        >
+        <S.ModalOverlay onClick={() => setShowLine(false)}>
           <S.Modal onClick={(e) => e.stopPropagation()}>
             <S.ModalHeader>
               <S.ModalTitle>결재라인</S.ModalTitle>
             </S.ModalHeader>
             <S.ModalBody>
-              <S.ALTable role="table" aria-label="결재라인">
-                <S.ALHeadRow role="row" data-head>
-                  <S.ALCell role="columnheader">유형</S.ALCell>
-                  <S.ALCell role="columnheader">부서명</S.ALCell>
-                  <S.ALCell role="columnheader">성명</S.ALCell>
-                  <S.ALCell role="columnheader">직책</S.ALCell>
-                  <S.ALCell role="columnheader">상태</S.ALCell>
-                  <S.ALCell role="columnheader">처리 이력</S.ALCell>
-                  <S.ALCell role="columnheader" data-col="comment">
-                    코멘트
-                  </S.ALCell>
+              <S.ALTable>
+                <S.ALHeadRow data-head>
+                  <S.ALCell>유형</S.ALCell>
+                  <S.ALCell>부서명</S.ALCell>
+                  <S.ALCell>성명</S.ALCell>
+                  <S.ALCell>직책</S.ALCell>
+                  <S.ALCell>상태</S.ALCell>
+                  <S.ALCell>처리일</S.ALCell>
+                  <S.ALCell data-col="comment">코멘트</S.ALCell>
                 </S.ALHeadRow>
 
                 {(data.approvalLine || []).map((s, i) => (
-                  <S.ALRow key={`${s.name}-${i}`} role="row">
-                    <S.ALCell role="cell">
-                      {TYPE_LABEL[s.type] ?? s.type}
+                  <S.ALRow key={`${s.name}-${i}`}>
+                    <S.ALCell>{TYPE_LABEL[s.type] ?? s.type}</S.ALCell>
+                    <S.ALCell>{s.dept || '-'}</S.ALCell>
+                    <S.ALCell>{s.name || '-'}</S.ALCell>
+                    <S.ALCell>{s.rank || '-'}</S.ALCell>
+                    <S.ALCell>{s.status || '대기'}</S.ALCell>
+                    <S.ALCell>
+                      {s.approvedAt
+                        ? formatYmd(s.approvedAt)
+                        : data.decidedAt &&
+                            (apiDetail?.status === 'APPROVED' ||
+                              apiDetail?.status === 'REJECTED' ||
+                              apiDetail?.status === 'CANCELED')
+                          ? formatYmd(data.decidedAt)
+                          : '-'}
                     </S.ALCell>
-                    <S.ALCell role="cell">{s.dept}</S.ALCell>
-                    <S.ALCell role="cell">{s.name}</S.ALCell>
-                    <S.ALCell role="cell">{s.rank}</S.ALCell>
-                    <S.ALCell role="cell">{s.status || '대기'}</S.ALCell>
-                    <S.ALCell role="cell">
-                      {s.approvedAt ? formatYmd(s.approvedAt) : '-'}
-                    </S.ALCell>
-                    <S.ALCell role="cell" data-col="comment">
-                      <S.CommentText>
-                        {s.comment?.trim() ? s.comment : ''}
-                      </S.CommentText>
+                    <S.ALCell data-col="comment">
+                      <S.CommentText>{s.comment || ''}</S.CommentText>
                     </S.ALCell>
                   </S.ALRow>
                 ))}
@@ -220,6 +364,49 @@ export default function ApprovalDetail() {
               <S.PrimaryBtn onClick={() => setShowLine(false)}>
                 닫기
               </S.PrimaryBtn>
+            </S.ModalActions>
+          </S.Modal>
+        </S.ModalOverlay>
+      )}
+
+      {actionModal && (
+        <S.ModalOverlay onClick={closeActionModal}>
+          <S.Modal onClick={(e) => e.stopPropagation()}>
+            <S.ModalHeader>
+              <S.ModalTitle>
+                {actionModal.type === 'delete' && '문서를 삭제하시겠습니까?'}
+                {actionModal.type === 'cancel' && '문서를 취소하시겠습니까?'}
+                {actionModal.type === 'approve' && '승인 사유'}
+                {actionModal.type === 'reject' && '반려 사유'}
+              </S.ModalTitle>
+            </S.ModalHeader>
+
+            <S.ModalBody>
+              {(actionModal.type === 'delete' ||
+                actionModal.type === 'cancel') && (
+                <div style={{ padding: '12px 0' }}>
+                  {actionModal.type === 'delete'
+                    ? '정말 삭제하시겠습니까?'
+                    : '정말 문서를 취소하시겠습니까?'}
+                </div>
+              )}
+
+              {(actionModal.type === 'approve' ||
+                actionModal.type === 'reject') && (
+                <>
+                  <S.ReasonLabel>사유를 입력해 주세요.</S.ReasonLabel>
+                  <S.ReasonTextarea
+                    value={actionComment}
+                    onChange={(e) => setActionComment(e.target.value)}
+                    placeholder="사유를 입력하세요."
+                  />
+                </>
+              )}
+            </S.ModalBody>
+
+            <S.ModalActions>
+              <S.SubtleBtn onClick={closeActionModal}>취소</S.SubtleBtn>
+              <S.PrimaryBtn onClick={handleActionSubmit}>확인</S.PrimaryBtn>
             </S.ModalActions>
           </S.Modal>
         </S.ModalOverlay>

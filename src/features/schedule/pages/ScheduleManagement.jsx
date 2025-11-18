@@ -1,4 +1,11 @@
 import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  addDays,
+} from 'date-fns';
+import {
   Calendar,
   List,
   Plus,
@@ -20,7 +27,11 @@ import RestrictedPeriodModal from '@/components/schedule/RestrictedPeriodModal';
 import WeeklyCalendar from '@/components/schedule/WeeklyCalendar';
 import DateRangePicker from '@/features/log/pages/DateRangePicker';
 
-import { mockDeployments, mockRestrictedPeriods } from '../mockData';
+import { useBans } from '../hooks/useBans';
+import { useDeployments } from '../hooks/useDeployments';
+import { useHolidays } from '../hooks/useHolidays';
+import { useScheduleMetadata } from '../hooks/useScheduleMetadata';
+import { enumToBanType, enumToStage } from '../utils/enumConverter';
 
 import * as S from './ScheduleManagement.styles';
 
@@ -44,78 +55,166 @@ export default function ScheduleManagement() {
   const [periodStartDate, setPeriodStartDate] = useState('');
   const [periodEndDate, setPeriodEndDate] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [calendarCurrentDate, setCalendarCurrentDate] = useState(new Date());
+  const [shouldFetchBans, setShouldFetchBans] = useState(false);
 
-  // 서비스 목록 추출 (모든 배포 작업에서 고유한 서비스 추출)
+  const normalizedSelectedServices = Array.isArray(selectedServices)
+    ? selectedServices
+    : [];
+
+  // 공휴일 데이터 조회 (현재 보는 연도 기준)
+  const { data: holidays = [] } = useHolidays(currentYear);
+
+  // 메타데이터 조회
+  const { data: metadata } = useScheduleMetadata();
+
+  // 캘린더 뷰의 날짜 범위 계산 함수
+  const getCalendarDateRange = () => {
+    if (viewMode === 'monthly') {
+      // 월간 뷰: 해당 달의 첫날 ~ 마지막 날
+      const firstDay = startOfMonth(calendarCurrentDate);
+      const lastDay = endOfMonth(calendarCurrentDate);
+      return {
+        startDate: format(firstDay, 'yyyy-MM-dd'),
+        endDate: format(lastDay, 'yyyy-MM-dd'),
+      };
+    } else if (viewMode === 'weekly') {
+      // 주간 뷰: 현재 보는 주의 첫날 ~ 마지막 날
+      const weekStart = startOfWeek(calendarCurrentDate, { weekStartsOn: 0 });
+      const weekEnd = addDays(weekStart, 6);
+      return {
+        startDate: format(weekStart, 'yyyy-MM-dd'),
+        endDate: format(weekEnd, 'yyyy-MM-dd'),
+      };
+    }
+    // 목록 뷰는 날짜 범위 없음
+    return null;
+  };
+
+  // 캘린더 날짜 범위 계산
+  const calendarDateRange = getCalendarDateRange();
+
+  // Deployment 목록 조회 (월간/주간 뷰일 때만)
+  const { data: deploymentsData = [] } = useDeployments(
+    calendarDateRange?.startDate,
+    calendarDateRange?.endDate,
+    {
+      enabled: !!calendarDateRange,
+    },
+  );
+
+  const deployments = useMemo(() => {
+    return deploymentsData.map((d) => ({
+      id: d.id,
+      title: d.title,
+      service: d.projectName,
+      date: d.scheduledDate,
+      scheduledTime: d.scheduledTime?.substring(0, 5) || '',
+      status: d.status,
+      stage: enumToStage(d.stage) || d.stage,
+      isDeployed: d.isDeployed,
+      registrant: d.registrant,
+      registrantDepartment: d.registrantDepartment,
+      relatedServices: d.relatedServices || [],
+    }));
+  }, [deploymentsData]);
+
   const availableServices = useMemo(() => {
-    const services = new Set(
-      mockDeployments.map((deployment) => deployment.service),
-    );
-    return Array.from(services)
-      .sort()
-      .map((service) => ({ value: service, label: service }));
-  }, []);
+    if (metadata?.projects) {
+      return metadata.projects.map((project) => ({
+        value: project.name,
+        label: project.name,
+      }));
+    }
+    return [];
+  }, [metadata]);
 
-  const banTypes = [
-    { value: 'all', label: '전체' },
-    { value: 'DB 마이그레이션', label: 'DB 마이그레이션' },
-    { value: '서버 점검', label: '서버 점검' },
-    { value: '외부 일정', label: '외부 일정' },
-    { value: '재난 재해', label: '재난 재해' },
-  ];
+  const banFilters = useMemo(() => {
+    const filters = {};
 
-  // 필터링
-  let filteredRestrictedPeriods =
-    selectedBanType === 'all'
-      ? mockRestrictedPeriods
-      : mockRestrictedPeriods.filter(
-          (period) => period.type === selectedBanType,
-        );
+    if (searchQuery && searchQuery.trim()) {
+      filters.query = searchQuery.trim();
+    }
 
-  if (searchQuery) {
-    filteredRestrictedPeriods = filteredRestrictedPeriods.filter(
-      (period) =>
-        period.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        period.description.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }
+    if (selectedBanType && selectedBanType !== 'all') {
+      filters.type = selectedBanType;
+    }
 
-  // 서비스 필터링
-  if (selectedServices.length > 0) {
-    filteredRestrictedPeriods = filteredRestrictedPeriods.filter((period) => {
-      if (!period.services || period.services.length === 0) return false;
-      return selectedServices.some((service) =>
-        period.services.includes(service),
-      );
-    });
-  }
+    if (selectedServices && selectedServices.length > 0 && metadata?.projects) {
+      const projectIds = selectedServices
+        .map((serviceName) => {
+          const project = metadata.projects.find((p) => p.name === serviceName);
+          return project?.id;
+        })
+        .filter((id) => id !== undefined);
+      if (projectIds.length > 0) {
+        filters.projectIds = projectIds;
+      }
+    }
 
-  // 기간 필터링
-  if (periodStartDate && periodEndDate) {
-    filteredRestrictedPeriods = filteredRestrictedPeriods.filter((period) => {
-      const periodStart = `${period.startDate}T${period.startTime}`;
-      const periodEnd = `${period.endDate}T${period.endTime}`;
-      return (
-        (periodStart >= `${periodStartDate}T00:00` &&
-          periodStart <= `${periodEndDate}T23:59`) ||
-        (periodEnd >= `${periodStartDate}T00:00` &&
-          periodEnd <= `${periodEndDate}T23:59`) ||
-        (periodStart <= `${periodStartDate}T00:00` &&
-          periodEnd >= `${periodEndDate}T23:59`)
-      );
-    });
-  } else if (periodStartDate) {
-    filteredRestrictedPeriods = filteredRestrictedPeriods.filter((period) => {
-      const periodEnd = `${period.endDate}T${period.endTime}`;
-      return periodEnd >= `${periodStartDate}T00:00`;
-    });
-  } else if (periodEndDate) {
-    filteredRestrictedPeriods = filteredRestrictedPeriods.filter((period) => {
-      const periodStart = `${period.startDate}T${period.startTime}`;
-      return periodStart <= `${periodEndDate}T23:59`;
-    });
-  }
+    if (periodStartDate) {
+      filters.startDate = periodStartDate;
+    }
+    if (periodEndDate) {
+      filters.endDate = periodEndDate;
+    }
 
-  // 이벤트 핸들러
+    return filters;
+  }, [
+    searchQuery,
+    selectedBanType,
+    selectedServices,
+    periodStartDate,
+    periodEndDate,
+    metadata,
+  ]);
+
+  const banFiltersForCalendar = useMemo(() => {
+    if (!calendarDateRange) return null;
+    return {
+      startDate: calendarDateRange.startDate,
+      endDate: calendarDateRange.endDate,
+    };
+  }, [calendarDateRange]);
+
+  const { data: restrictedPeriodsDataForList = [] } = useBans(banFilters, {
+    enabled: shouldFetchBans || viewMode === 'restricted-list',
+  });
+
+  const { data: restrictedPeriodsDataForCalendar = [] } = useBans(
+    banFiltersForCalendar || {},
+    {
+      enabled:
+        !!banFiltersForCalendar &&
+        (viewMode === 'monthly' || viewMode === 'weekly'),
+    },
+  );
+
+  const restrictedPeriodsData =
+    viewMode === 'restricted-list'
+      ? restrictedPeriodsDataForList
+      : restrictedPeriodsDataForCalendar;
+
+  const restrictedPeriods = useMemo(() => {
+    return restrictedPeriodsData.map((period) => ({
+      ...period,
+      type: enumToBanType(period.type) || period.type,
+      duration: period.durationMinutes,
+    }));
+  }, [restrictedPeriodsData]);
+
+  const banTypes = useMemo(() => {
+    const types = [
+      { value: 'all', label: '전체' },
+      ...(metadata?.restrictedPeriodTypes?.map((type) => ({
+        value: type.value, // Enum 값 사용
+        label: type.label,
+      })) || []),
+    ];
+    return types;
+  }, [metadata]);
+
   const handleDeploymentClick = (deployment) => {
     setSelectedDeployment(deployment);
     setIsDetailModalOpen(true);
@@ -149,8 +248,16 @@ export default function ScheduleManagement() {
     setPeriodEndDate('');
   };
 
-  const handleSelectAllServices = () => {
-    setSelectedServices(availableServices.map((service) => service.value));
+  const handleSearchSubmit = () => {
+    setShouldFetchBans(true);
+  };
+
+  const handleCalendarDateChange = (date) => {
+    setCalendarCurrentDate(date);
+    const year = date.getFullYear();
+    if (year !== currentYear) {
+      setCurrentYear(year);
+    }
   };
 
   // location state에서 viewMode 확인
@@ -205,98 +312,62 @@ export default function ScheduleManagement() {
       <S.Content>
         {viewMode === 'monthly' ? (
           <DeploymentCalendar
-            deployments={mockDeployments}
-            restrictedPeriods={mockRestrictedPeriods}
+            deployments={deployments}
+            restrictedPeriods={restrictedPeriods}
+            holidays={holidays}
             onDeploymentClick={handleDeploymentClick}
             onRestrictedPeriodClick={handleRestrictedPeriodClick}
+            onDateChange={handleCalendarDateChange}
           />
         ) : viewMode === 'weekly' ? (
           <WeeklyCalendar
-            deployments={mockDeployments}
-            restrictedPeriods={mockRestrictedPeriods}
+            deployments={deployments}
+            restrictedPeriods={restrictedPeriods}
+            holidays={holidays}
             onDeploymentClick={handleDeploymentClick}
             onRestrictedPeriodClick={handleRestrictedPeriodClick}
+            onDateChange={handleCalendarDateChange}
           />
         ) : (
           <S.ListContainer>
             {/* 검색 및 필터 영역 */}
             <S.SearchFilterSection>
-              <S.TopControls>
-                <S.SearchBar>
-                  <Search className="search-icon" />
-                  <S.SearchInput
-                    type="text"
-                    placeholder="제목, 내용 검색"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setSearchFocused(true)}
-                    onBlur={() => setSearchFocused(false)}
-                    $focused={searchFocused}
-                  />
-                  {searchQuery && (
-                    <S.ClearButton
-                      type="button"
-                      onClick={() => setSearchQuery('')}
-                    >
-                      ✕
-                    </S.ClearButton>
-                  )}
-                </S.SearchBar>
-                <S.ResetButton type="button" onClick={handleResetFilters}>
-                  <RotateCcw size={16} />
-                  <span>필터 초기화</span>
-                </S.ResetButton>
-              </S.TopControls>
-
               <S.FiltersPanel>
                 <S.FiltersRow>
-                  <S.FilterRowItem>
-                    <S.FilterLabel>유형</S.FilterLabel>
-                    <S.SelectWrapper>
-                      <ScheduleCustomSelect
-                        value={selectedBanType}
-                        onChange={(value) => setSelectedBanType(value)}
-                        options={banTypes}
-                      />
-                    </S.SelectWrapper>
-                  </S.FilterRowItem>
+                  <S.FiltersLabel>검색 옵션</S.FiltersLabel>
 
-                  <S.FilterRowItem>
-                    <S.FilterLabel>연관 서비스</S.FilterLabel>
-                    <S.ServiceSelectContainer>
-                      <S.SelectWrapper>
-                        <ScheduleCustomSelect
-                          value={
-                            Array.isArray(selectedServices)
-                              ? selectedServices
-                              : []
-                          }
-                          onChange={(value) => {
-                            setSelectedServices(
-                              Array.isArray(value) ? value : [],
-                            );
-                          }}
-                          options={availableServices}
-                          multiple
-                        />
-                      </S.SelectWrapper>
-                      <S.FilterButton
-                        type="button"
-                        onClick={handleSelectAllServices}
-                      >
-                        전체
-                      </S.FilterButton>
-                    </S.ServiceSelectContainer>
-                  </S.FilterRowItem>
-
-                  <S.FilterRowItem>
-                    <S.FilterLabel>기간</S.FilterLabel>
-                    <DateRangePicker
-                      startDate={periodStartDate}
-                      endDate={periodEndDate}
-                      onChange={handleDateRangeChange}
+                  <S.SelectWrapper>
+                    <ScheduleCustomSelect
+                      value={selectedBanType}
+                      onChange={(value) => setSelectedBanType(value)}
+                      options={banTypes}
+                      placeholder="유형 - 전체"
                     />
-                  </S.FilterRowItem>
+                  </S.SelectWrapper>
+
+                  <S.SelectWrapper>
+                    <ScheduleCustomSelect
+                      value={normalizedSelectedServices}
+                      onChange={(value) => {
+                        setSelectedServices(Array.isArray(value) ? value : []);
+                      }}
+                      options={availableServices}
+                      multiple
+                      showSelectAll
+                      placeholder="연관 서비스 - 전체"
+                    />
+                  </S.SelectWrapper>
+
+                  <DateRangePicker
+                    startDate={periodStartDate}
+                    endDate={periodEndDate}
+                    onChange={handleDateRangeChange}
+                  />
+
+                  <S.ResetButton type="button" onClick={handleResetFilters}>
+                    <RotateCcw size={16} />
+                    <span>초기화</span>
+                  </S.ResetButton>
                 </S.FiltersRow>
               </S.FiltersPanel>
 
@@ -316,10 +387,38 @@ export default function ScheduleManagement() {
                   ))}
                 </S.TagContainer>
               )}
+
+              <S.SearchBox>
+                <S.SearchLabel>검색명</S.SearchLabel>
+                <S.SearchBar>
+                  <Search className="search-icon" />
+                  <S.SearchInput
+                    type="text"
+                    placeholder="제목, 내용, 등록자명 검색"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setSearchFocused(false)}
+                    $focused={searchFocused}
+                  />
+                  {searchQuery && (
+                    <S.ClearButton
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      ✕
+                    </S.ClearButton>
+                  )}
+                </S.SearchBar>
+
+                <S.SearchButton type="button" onClick={handleSearchSubmit}>
+                  검색
+                </S.SearchButton>
+              </S.SearchBox>
             </S.SearchFilterSection>
 
             <RestrictedPeriodList
-              periods={filteredRestrictedPeriods}
+              periods={restrictedPeriods}
               onPeriodClick={handleRestrictedPeriodClick}
             />
           </S.ListContainer>

@@ -1,22 +1,21 @@
 import styled from '@emotion/styled';
 
-export const Card = styled.div`
-  background: ${({ theme }) => theme.colors.surface};
-  border-radius: 0.3125rem;
+export const Card = styled.button`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xs};
   padding: ${({ theme }) => theme.spacing.sm};
+  border-radius: ${({ theme }) => theme.radius.sm};
   border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
   cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.interactiveHover};
-  }
 `;
 
 export const Content = styled.div`
   display: flex;
-  align-items: flex-start;
-  gap: 0.375rem;
+  align-items: center;
+  gap: 0.25rem;
 `;
 
 export const StatusIcon = styled.div`
@@ -24,30 +23,14 @@ export const StatusIcon = styled.div`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-top: 2px;
   margin-left: 4px;
   margin-right: 4px;
-
-  svg {
-    ${({ status, theme }) => {
-      switch (status) {
-        case 'scheduled':
-          return `color: ${theme.colors.textPrimary};`;
-        case 'success':
-          return `color: ${theme.colors.schedule.successGreen};`;
-        case 'failed':
-          return `color: ${theme.colors.schedule.restrictedDanger};`;
-        default:
-          return `color: ${theme.colors.textPrimary};`;
-      }
-    }}
-  }
 `;
 
 export const TitleWrapper = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: ${({ theme }) => theme.spacing.xs};
   flex: 1;
   min-width: 0;
@@ -67,4 +50,5 @@ export const Title = styled.h3`
   overflow-wrap: break-word;
   flex: 1;
   min-width: 0;
+  text-align: left;
 `;
