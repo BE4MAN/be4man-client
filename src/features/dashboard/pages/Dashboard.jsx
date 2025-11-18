@@ -1,4 +1,4 @@
-import { css, useTheme } from '@emotion/react';
+import { useTheme } from '@emotion/react';
 import { format, parseISO } from 'date-fns';
 import { Bell, CalendarOff, ClipboardClock, ClipboardList } from 'lucide-react';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
@@ -435,27 +435,10 @@ export default function Dashboard() {
                           theme,
                           20,
                         );
-                        const { Icon, color, animated } = iconConfig;
+                        const { Icon, color } = iconConfig;
                         return (
                           <>
-                            <S.PanelTitleIcon
-                              css={
-                                animated
-                                  ? css`
-                                      animation: spin 2s linear infinite;
-
-                                      @keyframes spin {
-                                        from {
-                                          transform: rotate(0deg);
-                                        }
-                                        to {
-                                          transform: rotate(360deg);
-                                        }
-                                      }
-                                    `
-                                  : undefined
-                              }
-                            >
+                            <S.PanelTitleIcon>
                               <Icon size={20} color={color} />
                             </S.PanelTitleIcon>
                             <S.PanelTitle>
@@ -894,7 +877,7 @@ export default function Dashboard() {
                       theme,
                       16,
                     );
-                    const { Icon, color, animated } = iconConfig;
+                    const { Icon, color } = iconConfig;
                     return (
                       <S.TaskItem
                         key={ev.id}
@@ -909,24 +892,7 @@ export default function Dashboard() {
                       >
                         <div>
                           <S.TaskTitle>
-                            <S.TaskIcon
-                              css={
-                                animated
-                                  ? css`
-                                      animation: spin 2s linear infinite;
-
-                                      @keyframes spin {
-                                        from {
-                                          transform: rotate(0deg);
-                                        }
-                                        to {
-                                          transform: rotate(360deg);
-                                        }
-                                      }
-                                    `
-                                  : undefined
-                              }
-                            >
+                            <S.TaskIcon>
                               <Icon size={16} color={color} />
                             </S.TaskIcon>
                             {ev.label}

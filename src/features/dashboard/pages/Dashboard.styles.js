@@ -118,10 +118,6 @@ export const DayCol = styled.div`
   display: flex;
   flex-direction: column;
   cursor: pointer;
-  transition:
-    background 0.15s,
-    box-shadow 0.15s,
-    border-color 0.15s;
 
   ${({ $active, theme }) =>
     $active &&
@@ -225,6 +221,7 @@ export const Table = styled.table`
   font-size: 13px;
   text-align: center;
   color: ${({ theme }) => theme.colors.textPrimary || '#111827'};
+  table-layout: fixed;
 
   th {
     background: ${({ theme }) =>
@@ -236,10 +233,50 @@ export const Table = styled.table`
     color: ${({ theme }) => theme.colors.textPrimary || '#111827'};
   }
 
+  th:nth-child(1) {
+    width: 40%;
+  }
+
+  th:nth-child(2) {
+    width: 20%;
+  }
+
+  th:nth-child(3) {
+    width: 12%;
+  }
+
+  th:nth-child(4) {
+    width: 12%;
+  }
+
+  th:nth-child(5) {
+    width: 16%;
+  }
+
   td {
     border-bottom: 1px solid ${({ theme }) => theme.colors.border || '#e8e8ef'};
     padding: 8px;
     color: ${({ theme }) => theme.colors.textPrimary || '#111827'};
+  }
+
+  td:nth-child(1) {
+    width: 40%;
+  }
+
+  td:nth-child(2) {
+    width: 20%;
+  }
+
+  td:nth-child(3) {
+    width: 12%;
+  }
+
+  td:nth-child(4) {
+    width: 12%;
+  }
+
+  td:nth-child(5) {
+    width: 16%;
   }
 
   thead tr:hover {
@@ -366,7 +403,6 @@ export const TaskItem = styled.div`
   border-radius: 6px;
   background: ${({ theme }) => theme.colors.bg || '#fff'};
   cursor: pointer;
-  transition: background 0.2s;
 
   &:hover {
     background: ${({ theme }) =>
@@ -626,6 +662,7 @@ export const PageBtn = styled.button`
   color: ${({ theme }) => theme.colors?.textPrimary || '#111827'};
   cursor: pointer;
   font-size: ${({ theme }) => theme.typography?.fontSize.sm || '0.875rem'};
+  transition: none;
 
   &[disabled] {
     opacity: 0.5;
@@ -636,10 +673,6 @@ export const PageBtn = styled.button`
     background: ${({ theme }) => theme.colors?.brand || '#2563eb'};
     color: #fff;
     border-color: ${({ theme }) => theme.colors?.brand || '#2563eb'};
-  }
-
-  &:hover:not([disabled]) {
-    background: ${({ theme }) => theme.colors?.interactiveHover || '#f9fafb'};
   }
 `;
 
