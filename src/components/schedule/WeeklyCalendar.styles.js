@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { ChevronDown } from 'lucide-react';
 
 export const Container = styled.div`
   width: 100%;
@@ -93,8 +94,57 @@ export const DayCell = styled.div`
 export const DayNumber = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: ${({ theme }) => theme.spacing.xs};
   margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+export const DayNumberInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+`;
+
+export const ExpandButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+  padding: 0;
+  cursor: pointer;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.textPrimary};
+  }
+`;
+
+export const ExpandChevron = styled(ChevronDown, {
+  shouldForwardProp: (prop) => prop !== '$expanded',
+})`
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transform: ${({ $expanded }) =>
+    $expanded ? 'rotate(180deg)' : 'rotate(0deg)'};
+  transition: transform 0.2s ease;
+`;
+
+export const ExpandPlus = styled.span`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
+  line-height: 1;
+`;
+
+export const ExpandButtonCount = styled.span`
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+  color: ${({ $blue, theme }) =>
+    $blue ? theme.colors.brand || '#2563EB' : 'inherit'};
 `;
 
 export const DayNumberText = styled.span`
