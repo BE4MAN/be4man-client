@@ -3,138 +3,9 @@ import {
   getDeploymentPeriodStats,
   getBanTypeStats,
   getDeploySuccessRate,
+  getDeployFailureSeries,
   getTimeToNextSuccess,
 } from '@/api/analytics';
-
-// services 배열은 icon이 JSX 요소이므로 컴포넌트에서 처리
-// 여기서는 데이터 구조만 정의
-export const servicesData = [
-  {
-    name: 'API Gateway',
-    successRate: 98,
-    avgApprovalTime: 2.3,
-    violations: 0,
-    totalDeployments: 145,
-    trend: 12,
-    trendType: 'increase',
-  },
-  {
-    name: 'Mobile App',
-    successRate: 94,
-    avgApprovalTime: 4.5,
-    violations: 2,
-    totalDeployments: 89,
-    trend: 5,
-    trendType: 'increase',
-  },
-  {
-    name: 'Web Portal',
-    successRate: 96,
-    avgApprovalTime: 3.2,
-    violations: 1,
-    totalDeployments: 112,
-    trend: 8,
-    trendType: 'increase',
-  },
-  {
-    name: 'Database',
-    successRate: 92,
-    avgApprovalTime: 5.8,
-    violations: 3,
-    totalDeployments: 67,
-    trend: 3,
-    trendType: 'decrease',
-  },
-  {
-    name: 'Processing Engine',
-    successRate: 88,
-    avgApprovalTime: 6.1,
-    violations: 5,
-    totalDeployments: 54,
-    trend: 7,
-    trendType: 'decrease',
-  },
-  {
-    name: 'Cloud Functions',
-    successRate: 97,
-    avgApprovalTime: 2.8,
-    violations: 0,
-    totalDeployments: 178,
-    trend: 15,
-    trendType: 'increase',
-  },
-];
-
-// Data Generation Functions
-const monthNames = [
-  '1월',
-  '2월',
-  '3월',
-  '4월',
-  '5월',
-  '6월',
-  '7월',
-  '8월',
-  '9월',
-  '10월',
-  '11월',
-  '12월',
-];
-
-/**
- * 배포 실패 결과 통계용 데이터 생성
- */
-export const generateErrorData = () => {
-  const data = [];
-  const months = 12;
-
-  for (let i = 0; i < months; i++) {
-    const date = new Date();
-    date.setMonth(date.getMonth() - (months - i - 1));
-    data.push({
-      date: monthNames[date.getMonth()],
-      errorCount: Math.floor(Math.random() * 80) + 20,
-    });
-  }
-  return data;
-};
-
-/**
- * 월별 배포 금지 일정 데이터 생성
- */
-export const generateMonthlyBanData = () => {
-  const data = [];
-  const months = 12;
-
-  for (let i = 0; i < months; i++) {
-    const date = new Date();
-    date.setMonth(date.getMonth() - (months - i - 1));
-    data.push({
-      date: monthNames[date.getMonth()],
-      serverMaintenance: Math.floor(Math.random() * 8) + 2,
-      dbMigration: Math.floor(Math.random() * 5) + 1,
-    });
-  }
-  return data;
-};
-
-/**
- * 연도별 배포 금지 일정 데이터 생성
- */
-export const generateYearlyBanData = () => {
-  const data = [];
-  const currentYear = new Date().getFullYear();
-
-  for (let i = 4; i >= 0; i--) {
-    const year = currentYear - i;
-    data.push({
-      date: `${year}년`,
-      serverMaintenance: Math.floor(Math.random() * 80) + 20,
-      dbMigration: Math.floor(Math.random() * 50) + 10,
-    });
-  }
-  return data;
-};
 
 const toKoreanMonth = (label) => `${Number(label)}월`;
 const toKoreanYear = (label) => `${label}년`;
@@ -219,7 +90,15 @@ export async function generateDurationData(serviceId = 'all') {
   return months;
 }
 
-// analyticsDataGenerators.js
+export async function fetchDeployFailureSeriesData({
+  projectId = 'all',
+  from,
+  to,
+  serviceId = 'all',
+} = {}) {
+  return getDeployFailureSeries({ projectId, from, to, serviceId });
+}
+
 let _successCache = null; // { services: [...], all: {success,failed} }
 
 async function _fetchSuccessSummary() {

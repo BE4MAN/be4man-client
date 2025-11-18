@@ -1,11 +1,29 @@
 import axiosInstance from './axios';
 import { API_ENDPOINTS } from './endpoints';
 
-/**
- * Deployment failure statistics (used by DeploymentFailureCharts)
- */
-export const DEPLOY_FAILURE_STATS = (projectId) =>
-  `/api/statistics/${projectId}/deploy-failures/stats`;
+export async function getDeployFailureSeries({
+  projectId = 'all',
+  from,
+  to,
+  serviceId,
+} = {}) {
+  const params = {};
+
+  if (projectId != null && projectId !== 'all') {
+    params.projectId = projectId;
+  }
+  if (from) params.from = from;
+  if (to) params.to = to;
+  if (serviceId && serviceId !== 'all') {
+    params.serviceId = serviceId;
+  }
+
+  const { data } = await axiosInstance.get(
+    API_ENDPOINTS.DEPLOY_FAILURE_SERIES,
+    { params },
+  );
+  return data;
+}
 
 export async function getDeploySuccessRate() {
   const { data } = await axiosInstance.get(API_ENDPOINTS.DEPLOY_SUCCESS_RATE);
@@ -55,7 +73,7 @@ export async function getTimeToNextSuccess({
 }
 
 export default {
-  DEPLOY_FAILURE_STATS,
+  getDeployFailureSeries,
   getDeploySuccessRate,
   getDeployDurationSummary,
   getDeploymentPeriodStats,

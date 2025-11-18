@@ -1,13 +1,20 @@
+// src/features/analytics/pages/DeploymentFailureChart.styles.js
 import styled from '@emotion/styled';
 
+// 최상위 컨테이너 (여유 공간용)
 export const Container = styled.div`
   width: 100%;
-
-  /* remove extra horizontal padding so cards align with TopGrid panels */
-  padding: 0;
-  color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
+// 패널 카드
+export const Panel = styled.div`
+  background: ${({ theme }) => theme.colors.bg};
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  overflow: hidden;
+`;
+
+// 헤더
 export const Header = styled.div`
   width: 100%;
   padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
@@ -16,262 +23,197 @@ export const Header = styled.div`
   justify-content: space-between;
 `;
 
-export const Title = styled.h2`
-  margin: 0;
+export const Title = styled.h3`
   font-size: ${({ theme }) => theme.typography.fontSize.lg};
   font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
   color: ${({ theme }) => theme.colors.textPrimary};
-  text-align: center;
-  width: 100%;
-
-  /* scale down title on very small screens */
-  ${({ theme }) => theme.mq.sm`
-    font-size: calc(${({ theme }) => theme.typography.fontSize.md} - 1px);
-  `}
 `;
 
-export const ChipsRow = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-`;
-
-export const ChipButton = styled.button`
-  padding: 0.4rem 0.75rem;
-  border-radius: 0.5rem;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  background: transparent;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.12s ease;
-
-  &:hover {
-    background: ${({ theme }) =>
-      theme.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'};
-  }
-
-  &.active {
-    background: ${({ theme }) =>
-      theme.mode === 'dark' ? '#1f2937' : '#edf2f7'};
-    color: ${({ theme }) => theme.colors.textPrimary};
-    border-color: ${({ theme }) => theme.colors.border};
-  }
-
-  /* slightly smaller chips on small screens */
-  ${({ theme }) => theme.mq.sm`
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-  `}
-`;
-
-export const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: ${({ theme }) => theme.spacing.lg};
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
-
-  ${({ theme }) => theme.mq.md`
-    grid-template-columns: repeat(3, 1fr);
-  `}
-`;
-
-export const ChartsRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: ${({ theme }) => theme.spacing.lg};
-
-  /* match the dashboard TopGrid breakpoint: side-by-side at large screens */
-  ${({ theme }) => theme.mq.lg`
-    grid-template-columns: repeat(2, 1fr);
-  `}
-
-  /* at medium screens keep stacked but reduce gaps/padding slightly */
-  ${({ theme }) => theme.mq.md`
-    gap: calc(${({ theme }) => theme.spacing.md} / 2);
-  `}
-`;
-
-export const Card = styled.section`
-  /* match PanelContainer look to align widths/spacing with other dashboard cards */
-  background: ${({ theme }) => theme.colors.bg};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  padding: 20px ${({ theme }) => theme.spacing.lg}
-    calc(${({ theme }) => theme.spacing.lg} + 30px);
-  display: flex;
-  flex-direction: column;
-`;
-
-export const Panel = styled.section`
-  /* outer panel that groups the two charts with a title */
-  background: ${({ theme }) => theme.colors.bg};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  padding: 0; /* inner header/content will provide padding */
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-
-  /* keep outer container responsive, inner spacing is handled by PanelContent */
-  ${({ theme }) => theme.mq.sm`
-    gap: 0;
-  `}
-`;
-
+// 본문
 export const PanelContent = styled.div`
   padding: 20px ${({ theme }) => theme.spacing.lg}
     calc(${({ theme }) => theme.spacing.lg} + 30px);
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+/* ============ Filter (DeploymentPeriodStats와 동일 패턴) ============ */
+
+export const FilterRow = styled.div`
+  display: flex;
+  align-items: center;
+  ${({ spaceBetween }) =>
+    spaceBetween
+      ? 'justify-content: space-between;'
+      : 'justify-content: flex-start;'}
+
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-top: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ marginBottom, theme }) =>
+    marginBottom || theme.spacing.md};
+  flex-wrap: wrap;
+`;
+
+export const FilterGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+export const FilterLabel = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  white-space: nowrap;
+`;
+
+export const Select = styled.select`
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.sm};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  background: ${({ theme }) => theme.colors.bg};
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.brand};
+    opacity: 0.8;
+  }
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.brand};
+    ${({ noShadow, theme }) =>
+      !noShadow &&
+      `box-shadow: 0 0 0 3px ${
+        theme.mode === 'light'
+          ? 'rgba(37, 99, 235, 0.1)'
+          : 'rgba(59, 130, 246, 0.2)'
+      };`}
+  }
+`;
+
+/* ============ 차트 레이아웃 ============ */
+
+export const ChartsRow = styled.div`
+  display: flex;
+  align-items: stretch;
+  gap: ${({ theme }) => theme.spacing.lg};
+  margin-top: ${({ theme }) => theme.spacing.md};
+  flex-wrap: wrap;
+
+  @media (width <= 960px) {
+    flex-direction: column;
+  }
+`;
+
+export const ChartCard = styled.section`
+  flex: 1 1 0;
+  min-width: 0;
+  background: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  padding: ${({ theme }) => theme.spacing.md};
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
-
-  /* reduce panel padding on small screens so inner elements scale down */
-  ${({ theme }) => theme.mq.sm`
-    padding: 12px ${theme.spacing.md} calc(${theme.spacing.md} + 16px);
-    gap: calc(${theme.spacing.sm} / 2);
-  `}
 `;
 
-export const CardTitle = styled.div`
-  font-size: 0.95rem;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  margin-bottom: 0.75rem;
+export const CardTitle = styled.h4`
+  font-size: ${({ theme }) => theme.typography.fontSize.md};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+  color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
-/* slightly smaller card title on small screens */
-export const CardTitleSmall = styled(CardTitle)`
-  ${({ theme }) => theme.mq.sm`
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
-  `}
-`;
-
-export const ChartWrapper = styled.div`
+/* 도넛 차트 영역 */
+export const DoughnutWrapper = styled.div`
+  position: relative;
   width: 100%;
+  height: 260px;
 
-  /* use a modest fixed min-height to align with other dashboard charts */
-
-  /* responsive height: shrinks on small screens, grows on larger viewports */
-
-  /* responsive height: shrinks on small screens, grows on larger viewports */
-  height: clamp(120px, 22vw, 220px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem;
-
-  /* slightly taller on medium screens */
-  ${({ theme }) => theme.mq.md`
-      height: clamp(150px, 20vw, 260px);
-  `}
-
-  /* ensure the Chart.js canvas always fills the wrapper */
-  & canvas {
+  canvas {
     width: 100% !important;
     height: 100% !important;
   }
 `;
 
-export const DoughnutWrapper = styled(ChartWrapper)`
-  /* smaller, centered doughnut for the left card */
-  height: clamp(120px, 18vw, 220px);
-  max-width: 360px;
-  margin: 0 auto;
+/* 라인 차트 영역 */
+export const ChartWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  height: 260px;
 
-  ${({ theme }) => theme.mq.md`
-    height: clamp(140px, 16vw, 240px);
-    max-width: 420px;
-  `}
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
 `;
 
-export const ChartCard = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.md};
-  padding: 0; /* inner card uses panel padding, so keep inner minimal */
-  background: transparent;
-  border: none;
-
-  /* allow cards to shrink/grow evenly and prevent overflow in grid */
-  flex: 1 1 0;
-  min-width: 0;
-`;
+/* ============ 도넛 범례 ============ */
 
 export const LegendList = styled.div`
-  margin-top: 0.75rem;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.5rem;
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 
-  & .legend-item {
-    /* use grid so numeric columns align vertically across rows */
-    display: grid;
+  .legend-item {
+    display: flex;
     align-items: center;
-    gap: 0.5rem;
-    color: ${({ theme }) => theme.colors.text};
-    font-size: 0.88rem;
-
-    /* mobile-first: let numeric columns size automatically */
-    grid-template-columns: 12px 1fr auto auto;
+    gap: 8px;
+    font-size: ${({ theme }) => theme.typography.fontSize.xs};
+    color: ${({ theme }) => theme.colors.textSecondary};
   }
 
-  /* at medium screens tighten font and numeric widths */
-  ${({ theme }) => theme.mq.md`
-    & .legend-item {
-      font-size: 0.88rem;
-      grid-template-columns: 12px 1fr 56px 48px;
-    }
-  `}
-
-  /* at large screens use the full fixed widths for perfect alignment */
-  ${({ theme }) => theme.mq.lg`
-    & .legend-item {
-      font-size: 0.9rem;
-      grid-template-columns: 12px 1fr 72px 60px;
-    }
-  `}
-
-  & .legend-color {
+  .legend-color {
     width: 12px;
     height: 12px;
-    border-radius: 6px;
+    border-radius: 999px;
     flex-shrink: 0;
   }
 
-  & .legend-label {
+  .legend-label {
+    flex: 1 1 auto;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  & .legend-value {
-    /* right-align and use tabular numbers so digits line up */
-    justify-self: end;
-    text-align: right;
+  .legend-value,
+  .legend-pct {
     font-variant-numeric: tabular-nums;
-    width: auto;
-  }
-
-  & .legend-pct {
-    justify-self: end;
-    text-align: right;
-    width: auto;
-    color: var(--text-secondary, #6b7280);
   }
 `;
 
-export default {
-  Container,
-  Header,
-  Title,
-  ChipsRow,
-  ChipButton,
-  StatsGrid,
-  ChartsRow,
-  Card,
-  CardTitle,
-  ChartWrapper,
-  LegendList,
-};
+/* ============ 유형 선택 Chips ============ */
+
+export const ChipsRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing.xs};
+`;
+
+export const ChipButton = styled.button`
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+
+  &.active {
+    background: ${({ theme }) => theme.colors.brand};
+    color: ${({ theme }) => theme.colors.onPrimary};
+    border-color: ${({ theme }) => theme.colors.brand};
+  }
+
+  &:hover {
+    background: ${({ theme }) =>
+      theme.mode === 'light'
+        ? 'rgba(37, 99, 235, 0.06)'
+        : 'rgba(37, 99, 235, 0.24)'};
+  }
+`;
