@@ -700,20 +700,23 @@ export const getStyles = (theme) => {
     statusBadge: (status) => {
       let bgColor, textColor;
 
-      if (status.includes('승인') || status.includes('완료')) {
+      // status가 undefined이거나 null인 경우 기본값 처리
+      const statusStr = status || '대기';
+
+      if (statusStr.includes('승인') || statusStr.includes('완료')) {
         bgColor = isDark ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9';
         textColor = isDark ? '#81c784' : '#388e3c';
-      } else if (status.includes('종료')) {
+      } else if (statusStr.includes('종료')) {
         // 배포 종료 상태 - 중립적인 회색 계열
         bgColor = isDark ? 'rgba(158, 158, 158, 0.2)' : '#f5f5f5';
         textColor = isDark ? '#bdbdbd' : '#616161';
-      } else if (status.includes('대기')) {
+      } else if (statusStr.includes('대기')) {
         bgColor = isDark ? 'rgba(255, 152, 0, 0.2)' : '#fff3e0';
         textColor = isDark ? '#ffb74d' : '#f57c00';
-      } else if (status.includes('반려') || status.includes('취소')) {
+      } else if (statusStr.includes('반려') || statusStr.includes('취소')) {
         bgColor = isDark ? 'rgba(244, 67, 54, 0.2)' : '#ffebee';
         textColor = isDark ? '#ef5350' : '#d32f2f';
-      } else if (status.includes('진행중')) {
+      } else if (statusStr.includes('진행중')) {
         bgColor = isDark ? 'rgba(33, 150, 243, 0.2)' : '#e3f2fd';
         textColor = isDark ? '#90caf9' : '#1976d2';
       } else {
