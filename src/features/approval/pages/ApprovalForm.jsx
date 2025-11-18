@@ -4,200 +4,127 @@ import Underline from '@tiptap/extension-underline';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { userAPI } from '@/api/user';
+import { useAccountProjectsByAccountQuery } from '@/hooks/useProjectQueries';
+import { useMyPullRequestsQueryByGithubId } from '@/hooks/usePullRequestQueries.js';
+
+import {
+  useSaveDraftApprovalMutation,
+  useCreateAndSubmitApprovalMutation,
+} from '../../../hooks/useApprovalQueries';
+import { DOC_TYPES, TEMPLATES } from '../../../mock/approvalTemplates';
+import { useAuthStore } from '../../../stores/authStore';
 
 import * as S from './ApprovalForm.styles';
-
 import LeftSort from '/icons/left-sort.svg';
 import CenterSort from '/icons/center-sort.svg';
 import RightSort from '/icons/right-sort.svg';
 
-const DOC_TYPES = ['작업 계획서', '결과 보고서'];
-
-const STEP_TYPES = [
-  { value: 'draft', label: '기안' },
-  { value: 'approve', label: '결재' },
-  { value: 'consent', label: '합의' },
-  { value: 'cc', label: '참조' },
-];
-
-const TEMPLATES = {
-  '작업 계획서': {
-    design: `
-      <h2>작업 계획서</h2>
-      <h3>1. 개요</h3>
-      <p>프로젝트(작업) 개요를 간단히 작성합니다.</p>
-      <h3>2. 목표</h3>
-      <ul>
-        <li>핵심 목표 1</li>
-        <li>핵심 목표 2</li>
-      </ul>
-      <h3>3. 일정</h3>
-      <p>YYYY-MM-DD ~ YYYY-MM-DD</p>
-      <h3>4. 담당자</h3>
-      <p>담당/협업 부서 및 인원</p>
-      <h3>5. 수행 내용</h3>
-      <ul>
-        <li> 수행 항목 1</li>
-      </ul>
-      <h3>6. 리스크</h3>
-      <ul>
-        <li>리스크 항목 1 – 방안</li>
-      </ul>
-      <h3>7. 백업</h3>
-      <ul>
-        <li>백업 항목 1 – 백업 방안</li>
-      </ul>
-      <h3>8. 실패 시 복구 방안</h3>
-      <ul>
-        <li>복구 항목 1 – 복구 방안</li>
-      </ul>
-    `,
-    html: `
-    <h2>작업 계획서</h2>
-    <h3>1. 개요</h3>
-    <p>프로젝트(작업) 개요를 간단히 작성합니다.</p>
-    <h3>2. 목표</h3>
-    <ul>
-      <li>핵심 목표 1</li>
-      <li>핵심 목표 2</li>
-    </ul>
-    <h3>3. 일정</h3>
-    <p>YYYY-MM-DD ~ YYYY-MM-DD</p>
-    <h3>4. 담당자</h3>
-    <p>담당/협업 부서 및 인원</p>
-    <h3>5. 수행 내용</h3>
-    <ul>
-      <li> 수행 항목 1</li>
-    </ul>
-    <h3>6. 리스크</h3>
-    <ul>
-      <li>리스크 항목 1 – 방안</li>
-    </ul>
-    <h3>7. 백업</h3>
-    <ul>
-      <li>백업 항목 1 – 백업 방안</li>
-    </ul>
-    <h3>8. 실패 시 복구 방안</h3>
-    <ul>
-      <li>복구 항목 1 – 복구 방안</li>
-    </ul>
-    `,
-  },
-  '결과 보고서': {
-    design: `
-      <h2>결과 보고서</h2>
-      <h3>1. 요약</h3>
-      <p>진행 결과를 요약합니다.</p>
-      <h3>2. 상세 결과</h3>
-      <ul>
-        <li>성과 지표 1</li>
-        <li>성과 지표 2</li>
-      </ul>
-      <h3>3. 특이사항</h3>
-      <p>특이사항 내역</p>
-      <h3>4. 추후 계획</h3>
-      <p>추가 조치/개선 계획</p>
-      <h3>5. 실패 복구 사항</h3>
-      <p>복구 내용</p>
-    `,
-    html: `
-    <h2>결과 보고서</h2>
-    <h3>1. 요약</h3>
-    <p>진행 결과를 요약합니다.</p>
-    <h3>2. 상세 결과</h3>
-    <ul>
-      <li>성과 지표 1</li>
-      <li>성과 지표 2</li>
-    </ul>
-    <h3>3. 특이사항</h3>
-    <p>특이사항 내역</p>
-    <h3>4. 추후 계획</h3>
-    <p>추가 조치/개선 계획</p>
-    <h3>5. 실패 복구 사항</h3>
-    <p>복구 내용</p>
-    `,
-  },
+const mapDepartmentToLabel = (dept) => {
+  if (!dept) return '';
+  const key = typeof dept === 'string' ? dept : String(dept);
+  switch (key) {
+    case 'HR':
+      return '인사팀';
+    case 'FINANCE':
+      return '재무회계팀';
+    case 'IT':
+      return '개발1팀';
+    case 'PLANNING':
+      return '기획팀';
+    case 'LEGAL':
+      return '법무팀';
+    case 'SALES':
+      return '영업팀';
+    default:
+      return key;
+  }
 };
 
-const PEOPLE = [
+const mapPositionToLabel = (pos) => {
+  if (!pos) return '';
+  switch (pos) {
+    case 'INTERN':
+      return '인턴';
+    case 'STAFF':
+      return '사원';
+    case 'ASSISTANT_MANAGER':
+      return '대리';
+    case 'SENIOR_MANAGER':
+      return '과장';
+    case 'DEPUTY_GENERAL_MANAGER':
+      return '차장';
+    case 'GENERAL_MANAGER':
+      return '부장';
+    case 'EXECUTIVE':
+      return '임원';
+    default:
+      return pos;
+  }
+};
+
+const ORG_TREE = [
   {
-    id: 'S0001',
-    name: '김민호',
-    rank: '사원',
-    deptCode: 'DV1',
-    deptName: '개발1팀',
-  },
-  {
-    id: 'S0002',
-    name: '이원석',
-    rank: '과장',
-    deptCode: 'DES',
-    deptName: '디자인팀',
-  },
-  {
-    id: 'S0003',
-    name: '강지현',
-    rank: '부장',
-    deptCode: 'DV2',
-    deptName: '개발2팀',
-  },
-  {
-    id: 'S0004',
-    name: '박서윤',
-    rank: '사원',
-    deptCode: 'DV1',
-    deptName: '개발1팀',
-  },
-  {
-    id: 'S0005',
-    name: '최유나',
-    rank: '부장',
-    deptCode: 'MKT',
-    deptName: '마케팅팀',
-  },
-  {
-    id: 'S0006',
-    name: '최기명',
-    rank: '과장',
-    deptCode: 'HR',
-    deptName: '인사팀',
-  },
-  {
-    id: 'S0007',
-    name: '최기명',
-    rank: '사원',
-    deptCode: 'HR',
-    deptName: '인사팀',
-  },
-  {
-    id: 'S0008',
-    name: '최기명',
-    rank: '부장',
-    deptCode: 'HR',
-    deptName: '인사팀',
-  },
-  {
-    id: 'S0009',
-    name: '최기명',
-    rank: '임원',
-    deptCode: 'HR',
-    deptName: '인사팀',
+    code: 'HQ',
+    name: '본사',
+    children: [
+      { code: 'HR', name: '인사팀' },
+      { code: 'FINANCE', name: '재무회계팀' },
+      {
+        code: 'DEV',
+        name: '개발팀',
+        children: [
+          { code: 'IT', name: '개발1팀' },
+          { code: 'DEV2', name: '개발2팀' },
+        ],
+      },
+      { code: 'DESIGN', name: '디자인팀' },
+      { code: 'MKT', name: '마케팅팀' },
+    ],
   },
 ];
 
+const ORG_NODE_TO_DEPT = {
+  HR: 'HR',
+  FINANCE: 'FINANCE',
+  IT: 'IT',
+  DEV: 'IT',
+};
+
 export default function ApprovalForm({
+  mode = 'create',
   initial = {},
   onSubmit = (payload) => console.log('SUBMIT', payload),
   onSaveDraft = (payload) => console.log('DRAFT', payload),
   onCancel = () => window.history.back(),
 }) {
-  const [dept, setDept] = useState(initial.dept ?? '개발1팀');
-  const [position] = useState(initial.position ?? '사원');
-  const [drafter, setDrafter] = useState(initial.drafter ?? '김민호');
-  const [draftDate, setDraftDate] = useState(initial.draftDate ?? '2025-10-27');
+  const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  console.log(user);
+
+  const CURRENT_ACCOUNT_ID =
+    initial.drafterAccountId ?? user?.accountId ?? user?.id ?? null;
+
+  const initialDept =
+    initial.dept ??
+    mapDepartmentToLabel(user?.department ?? user?.departmentName);
+
+  const initialPosition =
+    initial.position ??
+    mapPositionToLabel(user?.position ?? user?.positionName);
+
+  const initialDrafter = initial.drafter ?? user?.name ?? '';
+
+  const [dept, setDept] = useState(initialDept ?? '');
+  const [position] = useState(initialPosition ?? '');
+  const [drafter, setDrafter] = useState(initialDrafter ?? '');
+  const [draftDate, setDraftDate] = useState(
+    initial.draftDate ?? new Date().toISOString().slice(0, 10),
+  );
   const [docType, setDocType] = useState(initial.docType ?? DOC_TYPES[0]);
   const [title, setTitle] = useState(initial.title ?? '');
-
   const [htmlText, setHtmlText] = useState(
     initial.htmlText ?? TEMPLATES[docType]?.html?.trim() ?? '',
   );
@@ -215,8 +142,16 @@ export default function ApprovalForm({
 
   const [confirmType, setConfirmType] = useState(null);
   const [pendingDocType, setPendingDocType] = useState(null);
+  const [submitComment, setSubmitComment] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const openConfirm = (t) => setConfirmType(t);
+  const openConfirm = (t) => {
+    if (t === 'submit') {
+      const first = steps[0];
+      setSubmitComment(first?.opinion || '');
+    }
+    setConfirmType(t);
+  };
   const closeConfirm = () => {
     setConfirmType(null);
     setPendingDocType(null);
@@ -244,14 +179,7 @@ export default function ApprovalForm({
         name: drafter,
         rank: position,
         opinion: '',
-      },
-      {
-        id: crypto.randomUUID(),
-        type: 'approve',
-        dept: '연구소',
-        name: '',
-        rank: '',
-        opinion: '',
+        accountId: CURRENT_ACCOUNT_ID,
       },
     ],
   );
@@ -266,19 +194,21 @@ export default function ApprovalForm({
         dept,
         name: drafter,
         rank: position,
+        accountId: CURRENT_ACCOUNT_ID,
       };
       if (
         first.type === next0.type &&
         first.dept === next0.dept &&
         first.name === next0.name &&
-        first.rank === next0.rank
+        first.rank === next0.rank &&
+        first.accountId === next0.accountId
       )
         return prev;
       const arr = [...prev];
       arr[0] = next0;
       return arr;
     });
-  }, [dept, drafter, position]);
+  }, [dept, drafter, position, CURRENT_ACCOUNT_ID]);
 
   const approverCount = useMemo(
     () =>
@@ -296,13 +226,17 @@ export default function ApprovalForm({
         name: '',
         rank: '',
         opinion: '',
+        accountId: null,
       },
     ]);
 
   const patchStep = (id, patch) =>
     setSteps((prev) =>
       prev.map((s, i) => {
-        if (i === 0) return { ...s, type: 'draft' };
+        if (i === 0)
+          return s.id === id
+            ? { ...s, ...patch, type: 'draft' }
+            : { ...s, type: 'draft' };
         return s.id === id ? { ...s, ...patch } : s;
       }),
     );
@@ -325,58 +259,184 @@ export default function ApprovalForm({
     });
   }, []);
 
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerStepId, setPickerStepId] = useState(null);
-  const [query, setQuery] = useState('');
-  const [expanded, setExpanded] = useState(new Set(['HQ', 'DV']));
-  const [selectedDept, setSelectedDept] = useState(null);
-  const [selectedPersonId, setSelectedPersonId] = useState(null);
+  const accountId = user?.accountId ?? user?.id;
+  const {
+    data: memberships = [],
+    isLoading: isLoadingProjects,
+    isError: isProjectsError,
+  } = useAccountProjectsByAccountQuery(accountId);
 
-  const ORG = useMemo(
-    () => [
-      {
-        code: 'HQ',
-        name: '본사',
-        children: [
-          { code: 'HR', name: '인사팀' },
-          { code: 'ACC', name: '재무회계팀' },
-          {
-            code: 'DV',
-            name: '개발팀',
-            children: [
-              { code: 'DV1', name: '개발1팀' },
-              { code: 'DV2', name: '개발2팀' },
-            ],
-          },
-          { code: 'DES', name: '디자인팀' },
-          { code: 'MKT', name: '마케팅팀' },
-        ],
-      },
-    ],
-    [],
+  const myProjectOptions = useMemo(() => {
+    if (!memberships?.length) return [];
+    return memberships
+      .map((m) => ({
+        id: m.projectId ?? m.project?.id ?? m.project_id,
+        name: m.projectName ?? m.project?.name ?? m.project_name,
+      }))
+      .filter((p) => p.id && p.name);
+  }, [memberships]);
+
+  const firstProjectId = myProjectOptions[0]?.id ?? null;
+
+  const [selectedProjectId, setSelectedProjectId] = useState(
+    initial.projectId ?? firstProjectId,
   );
 
-  const collectDeptCodes = useCallback((nodes, code) => {
-    const findNode = (arr, c) => {
-      for (const n of arr) {
-        if (n.code === c) return n;
-        if (n.children) {
-          const hit = findNode(n.children, c);
-          if (hit) return hit;
+  useEffect(() => {
+    if (selectedProjectId != null) return;
+    if (initial?.projectId != null) {
+      setSelectedProjectId(initial.projectId);
+    } else if (firstProjectId != null) {
+      setSelectedProjectId(firstProjectId);
+    }
+  }, [firstProjectId, initial?.projectId]);
+
+  const selectedProjectName = useMemo(() => {
+    const item = myProjectOptions.find((p) => p.id === selectedProjectId);
+    return item?.name ?? (initial?.service || '');
+  }, [myProjectOptions, selectedProjectId, initial?.service]);
+
+  const onChangeProject = (idStr) => {
+    const idNum = Number(idStr);
+    setSelectedProjectId(Number.isNaN(idNum) ? idStr : idNum);
+  };
+
+  const rawGithubId = user?.githubId ?? user?.github?.id ?? null;
+
+  const githubId =
+    typeof rawGithubId === 'number'
+      ? rawGithubId
+      : rawGithubId
+        ? Number(rawGithubId)
+        : null;
+
+  const {
+    data: myPRs = [],
+    isLoading: isLoadingPRs,
+    isError: isErrorPRs,
+  } = useMyPullRequestsQueryByGithubId(githubId);
+
+  const prOptions = useMemo(() => {
+    if (!myPRs?.length) return [];
+    return myPRs.map((pr) => ({
+      id: pr.id,
+      label: pr.branch ?? 'branch?',
+      branch: pr.branch,
+    }));
+  }, [myPRs]);
+
+  const [selectedPrId, setSelectedPrId] = useState(
+    initial.pullRequestId ?? prOptions[0]?.id ?? null,
+  );
+  const [selectedBranch, setSelectedBranch] = useState(
+    initial.pullRequestId
+      ? (myPRs.find((p) => p.id === initial.pullRequestId)?.branch ?? '')
+      : (prOptions[0]?.branch ?? ''),
+  );
+
+  useEffect(() => {
+    if (myPRs.length) {
+      const first = myPRs[0];
+      if (!initial.pullRequestId) {
+        setSelectedPrId((prev) => prev ?? first.id);
+        setSelectedBranch((prev) => prev || first.branch || '');
+      } else {
+        const found = myPRs.find((p) => p.id === initial.pullRequestId);
+        if (found) {
+          setSelectedPrId(found.id);
+          setSelectedBranch(found.branch ?? '');
         }
       }
-      return null;
+    }
+  }, [myPRs, initial.pullRequestId]);
+
+  const onChangePR = (prIdStr) => {
+    const prId = Number(prIdStr);
+    setSelectedPrId(prId);
+    const found = (myPRs || []).find((p) => p.id === prId);
+    setSelectedBranch(found?.branch ?? '');
+  };
+
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerStepId, setPickerStepId] = useState(null);
+
+  const [query, setQuery] = useState('');
+  const [debouncedQ, setDebouncedQ] = useState('');
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(query.trim()), 200);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const [expanded, setExpanded] = useState(() => new Set(['HQ', 'DEV']));
+  const [selectedDept, setSelectedDept] = useState(null);
+  const [selectedPerson, setSelectedPerson] = useState(null);
+
+  const [allPeople, setAllPeople] = useState([]);
+  const [peopleLoading, setPeopleLoading] = useState(false);
+
+  const openPicker = (stepId) => {
+    setPickerStepId(stepId);
+    const target = steps.find((s) => s.id === stepId);
+
+    setQuery('');
+    setDebouncedQ('');
+    setSelectedDept(null);
+
+    if (target) {
+      setSelectedPerson({
+        accountId: target.accountId ?? null,
+        name: target.name ?? '',
+        rank: target.rank ?? '',
+        deptName: target.dept ?? '',
+        deptCode: null,
+      });
+    } else {
+      setSelectedPerson(null);
+    }
+    setPickerOpen(true);
+  };
+  const closePicker = () => setPickerOpen(false);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    let alive = true;
+    (async () => {
+      try {
+        setPeopleLoading(true);
+        const rows = await userAPI.fetchApprovalLineCandidates();
+        if (!alive) return;
+        const list = Array.isArray(rows) ? rows : [];
+        const normalized = list
+          .map((r) => ({
+            accountId: r.accountId ?? r.id ?? r.account_id,
+            name: r.name ?? '',
+            rank: mapPositionToLabel(r.position),
+            deptCode: r.department ?? '',
+            deptName: mapDepartmentToLabel(r.department),
+          }))
+          .filter((x) => x.accountId && x.name);
+        setAllPeople(normalized);
+      } catch (e) {
+        console.error(e);
+        if (alive) setAllPeople([]);
+      } finally {
+        if (alive) setPeopleLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
     };
-    const start = findNode(nodes, code);
-    if (!start) return new Set([code]);
-    const set = new Set();
-    const dfs = (n) => {
-      set.add(n.code);
-      (n.children || []).forEach(dfs);
-    };
-    dfs(start);
-    return set;
-  }, []);
+  }, [pickerOpen]);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    if (!selectedPerson?.accountId) return;
+    if (!allPeople?.length) return;
+    const found = allPeople.find(
+      (p) => String(p.accountId) === String(selectedPerson.accountId),
+    );
+    if (found) setSelectedPerson(found);
+  }, [allPeople, pickerOpen, selectedPerson?.accountId]);
 
   const toggleNode = (code) => {
     setExpanded((prev) => {
@@ -386,66 +446,61 @@ export default function ApprovalForm({
     });
   };
 
-  const openPicker = (stepId) => {
-    setPickerStepId(stepId);
-    setQuery('');
-    setSelectedDept(null);
-    setSelectedPersonId(null);
-    setPickerOpen(true);
-  };
-  const closePicker = () => setPickerOpen(false);
-
-  const filteredPeople = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    let base = PEOPLE;
+  const visiblePeople = useMemo(() => {
+    let base = allPeople;
     if (selectedDept) {
-      const allowed = collectDeptCodes(ORG, selectedDept);
-      base = base.filter((p) => allowed.has(p.deptCode));
+      if (selectedDept === 'HQ') {
+        base = allPeople;
+      } else {
+        const deptFilter = ORG_NODE_TO_DEPT[selectedDept];
+        base = deptFilter
+          ? allPeople.filter(
+              (p) =>
+                p.deptCode &&
+                String(p.deptCode).toUpperCase() === deptFilter.toUpperCase(),
+            )
+          : [];
+      }
     }
-    if (!q) return base;
+    if (!debouncedQ) return base;
+    const q = debouncedQ.toLowerCase();
     return base.filter((p) =>
-      `${p.id} ${p.name} ${p.rank} ${p.deptName} ${p.deptCode}`
+      `${p.accountId} ${p.name} ${p.rank} ${p.deptName}`
         .toLowerCase()
         .includes(q),
     );
-  }, [query, selectedDept, collectDeptCodes, ORG]);
+  }, [allPeople, selectedDept, debouncedQ]);
 
-  const pickPerson = (p) => setSelectedPersonId(p.id);
+  const pickPerson = (p) => setSelectedPerson(p);
   const confirmPick = () => {
-    const p = PEOPLE.find((x) => x.id === selectedPersonId);
-    if (!p) return alert('사원을 선택하세요.');
+    if (!selectedPerson) return alert('결재 대상을 선택하세요.');
     setSteps((prev) =>
       prev.map((s) =>
         s.id === pickerStepId
-          ? { ...s, dept: p.deptName, name: p.name, rank: p.rank }
+          ? {
+              ...s,
+              dept: selectedPerson.deptName ?? '',
+              name: selectedPerson.name ?? '',
+              rank: selectedPerson.rank ?? '',
+              accountId: selectedPerson.accountId ?? null,
+            }
           : s,
       ),
     );
     setPickerOpen(false);
   };
 
-  useEffect(() => {
-    if (!pickerOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [pickerOpen]);
-
   const renderTree = (nodes) => (
     <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
       {nodes.map((n) => {
         const hasChildren = Array.isArray(n.children) && n.children.length > 0;
         const open = expanded.has(n.code);
-        const active = selectedDept === n.code || selectedDept === n.name;
+        const active = selectedDept === n.code;
         return (
           <li key={n.code}>
             <S.TreeRow
               data-active={active || undefined}
-              onClick={() => {
-                setSelectedDept(n.code);
-              }}
+              onClick={() => setSelectedDept(n.code)}
             >
               {hasChildren ? (
                 <S.TreeToggle
@@ -472,8 +527,28 @@ export default function ApprovalForm({
     </ul>
   );
 
+  useEffect(() => {
+    if (!pickerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [pickerOpen]);
+
   const payload = () => ({
-    meta: { dept, position, drafter, draftDate, docType, title },
+    meta: {
+      dept,
+      position,
+      drafter,
+      draftDate,
+      docType,
+      title,
+      projectId: selectedProjectId,
+      pullRequestId: selectedPrId,
+      branch: selectedBranch,
+      service: selectedProjectName,
+    },
     body: htmlText,
     bodyMode: 'design',
     approvalLine: steps.map((s) =>
@@ -481,10 +556,13 @@ export default function ApprovalForm({
     ),
   });
 
-  const attachCount = 0;
-
   const validateBeforeSubmit = () => {
-    if (!title.trim()) return '제목을 입력하세요.';
+    if (isLoadingProjects)
+      return '프로젝트 목록을 불러오는 중입니다. 잠시 후 다시 시도하세요.';
+    if (!selectedProjectId) return '기안 프로젝트를 선택하세요.';
+    if (isLoadingPRs)
+      return 'PR 목록을 불러오는 중입니다. 잠시 후 다시 시도하세요.';
+    if (!selectedPrId) return '기안 PR을 선택하세요.';
     if (approverCount < 1) return '결재/합의 단계가 1명 이상 필요합니다.';
     if (
       steps.some(
@@ -492,55 +570,190 @@ export default function ApprovalForm({
           (s.type === 'approve' || s.type === 'consent') &&
           !String(s.name || '').trim(),
       )
-    ) {
+    )
       return '결재/합의 대상자의 성명을 입력하세요.';
-    }
+    if (
+      steps.some(
+        (s) => (s.type === 'approve' || s.type === 'consent') && !s.accountId,
+      )
+    )
+      return '결재/합의 대상자의 계정을 선택하세요.';
     return null;
   };
 
-  const runConfirmAction = () => {
+  const draftMut = useSaveDraftApprovalMutation();
+  const submitMut = useCreateAndSubmitApprovalMutation();
+
+  const mapDocTypeToApprovalType = (t) => {
+    switch (t) {
+      case '작업 계획서':
+        return 'PLAN';
+      case '결과 보고서':
+        return 'REPORT';
+      case '재배포':
+        return 'RETRY';
+      case '복구':
+        return 'ROLLBACK';
+      default:
+        return 'PLAN';
+    }
+  };
+
+  const mapStepTypeToLineType = (t) => {
+    const v = (t || '').toString().toUpperCase();
+    if (v === 'CONSENT') return 'CONSENT';
+    if (v === 'CC') return 'CC';
+    return 'APPROVE';
+  };
+
+  const buildApprovalCreateRequest = ({ draftComment = '' } = {}) => {
+    const p = payload();
+    const docType = p.meta.docType;
+
+    return {
+      deploymentId: initial.deploymentId ?? null,
+      drafterAccountId: CURRENT_ACCOUNT_ID,
+      type: mapDocTypeToApprovalType(docType),
+      title: p.meta.title,
+      content: p.body,
+      service: p.meta.service,
+      projectId: p.meta.projectId,
+      pullRequestId: p.meta.pullRequestId,
+      relatedProjectIds: initial.relatedProjectIds ?? [],
+      lines: p.approvalLine
+        .map((l) => {
+          const lineType = mapStepTypeToLineType(l.type);
+          const accountId =
+            l.accountId ?? (lineType === 'APPROVE' ? CURRENT_ACCOUNT_ID : null);
+          if (!accountId) return null;
+          const isDraftLine =
+            (l.type || '').toString().toUpperCase() === 'DRAFT';
+          const comment =
+            isDraftLine && draftComment ? draftComment : l.opinion || '';
+          return { accountId, type: lineType, comment };
+        })
+        .filter(Boolean),
+    };
+  };
+
+  const runConfirmAction = async () => {
     if (confirmType === 'cancel') {
       closeConfirm();
       onCancel();
       return;
     }
+
     if (confirmType === 'draft') {
-      closeConfirm();
-      onSaveDraft(payload());
+      if (!CURRENT_ACCOUNT_ID) return alert('로그인 정보를 확인해주세요.');
+      if (busy) return;
+      setBusy(true);
+      try {
+        if (mode === 'edit') {
+          const formForParent = {
+            dept,
+            position,
+            drafter,
+            draftDate,
+            docType,
+            title,
+            htmlText,
+            service: selectedProjectName,
+            projectId: selectedProjectId,
+            pullRequestId: selectedPrId,
+            relatedProjectIds: initial.relatedProjectIds ?? [],
+            steps,
+          };
+          await onSaveDraft(formForParent);
+        } else {
+          const req = buildApprovalCreateRequest();
+          const id = await draftMut.mutateAsync(req);
+          onSaveDraft(req, id);
+        }
+        navigate('/approvals');
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setBusy(false);
+        closeConfirm();
+      }
       return;
     }
+
     if (confirmType === 'submit') {
       const msg = validateBeforeSubmit();
-      if (msg) {
-        alert(msg);
-        return;
+      if (msg) return alert(msg);
+      if (busy) return;
+      setBusy(true);
+      try {
+        if (mode === 'edit') {
+          const formForParent = {
+            dept,
+            position,
+            drafter,
+            draftDate,
+            docType,
+            title,
+            htmlText,
+            service: selectedProjectName,
+            projectId: selectedProjectId,
+            pullRequestId: selectedPrId,
+            relatedProjectIds: initial.relatedProjectIds ?? [],
+            steps,
+            submitComment,
+            drafterAccountId: CURRENT_ACCOUNT_ID,
+          };
+          await onSubmit(formForParent);
+        } else {
+          // 신규: 내부에서 create+submit
+          const req = buildApprovalCreateRequest({
+            draftComment: submitComment,
+          });
+          const id = await submitMut.mutateAsync(req);
+          onSubmit(req, id);
+        }
+        navigate('/approvals');
+      } catch (e) {
+        console.error(e);
+        alert('상신 중 오류가 발생했습니다.');
+      } finally {
+        setBusy(false);
+        closeConfirm();
       }
-      closeConfirm();
-      onSubmit(payload());
       return;
     }
+
     if (confirmType === 'template' && pendingDocType) {
       applyTemplate(pendingDocType);
       closeConfirm();
-      return;
     }
   };
-
-  const cmd = (fn) => editor && fn(editor);
 
   return (
     <S.Wrap>
       <S.Panel as="form" onSubmit={(e) => e.preventDefault()}>
         <S.DocTitle>보고서</S.DocTitle>
+
         <S.Toolbar>
           <S.ToolRight>
-            <S.ToolBtn type="button" onClick={() => openConfirm('cancel')}>
+            <S.ToolBtn
+              type="button"
+              onClick={() => openConfirm('cancel')}
+              disabled={busy}
+            >
               취소
             </S.ToolBtn>
-            <S.ToolBtn type="button" onClick={() => openConfirm('draft')}>
+            {/* <S.ToolBtn
+              type="button"
+              onClick={() => openConfirm('draft')}
+              disabled={busy}
+            >
               임시저장
-            </S.ToolBtn>
-            <S.PrimaryBtn type="button" onClick={() => openConfirm('submit')}>
+            </S.ToolBtn> */}
+            <S.PrimaryBtn
+              type="button"
+              onClick={() => openConfirm('submit')}
+              disabled={busy}
+            >
               상신
             </S.PrimaryBtn>
           </S.ToolRight>
@@ -569,6 +782,87 @@ export default function ApprovalForm({
           </S.MetaRow>
 
           <S.MetaRow>
+            <S.MetaTh>기안 프로젝트</S.MetaTh>
+            <S.MetaTd>
+              {isLoadingProjects ? (
+                <S.Input readOnly value="프로젝트 불러오는 중..." />
+              ) : isProjectsError ? (
+                <S.Input readOnly value="프로젝트 조회 실패" />
+              ) : myProjectOptions.length === 0 &&
+                initial?.projectId != null ? (
+                <S.Select
+                  value={selectedProjectId ?? initial.projectId}
+                  onChange={(e) => onChangeProject(e.target.value)}
+                >
+                  <option value={initial.projectId}>
+                    {initial.service || `프로젝트 #${initial.projectId}`}
+                  </option>
+                </S.Select>
+              ) : myProjectOptions.length === 0 ? (
+                <S.Input readOnly value="선택 가능한 프로젝트가 없습니다" />
+              ) : (
+                <S.Select
+                  value={selectedProjectId ?? ''}
+                  onChange={(e) => onChangeProject(e.target.value)}
+                >
+                  {myProjectOptions.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                  {initial?.projectId != null &&
+                    !myProjectOptions.some(
+                      (p) => String(p.id) === String(initial.projectId),
+                    ) && (
+                      <option value={initial.projectId}>
+                        {initial.service || `프로젝트 #${initial.projectId}`}
+                      </option>
+                    )}
+                </S.Select>
+              )}
+            </S.MetaTd>
+
+            <S.MetaTh>기안 PR</S.MetaTh>
+            <S.MetaTd>
+              {isLoadingPRs ? (
+                <S.Input readOnly value="PR 불러오는 중..." />
+              ) : isErrorPRs ? (
+                <S.Input readOnly value="PR 조회 실패" />
+              ) : prOptions.length === 0 && initial?.pullRequestId != null ? (
+                <S.Select
+                  value={selectedPrId ?? initial.pullRequestId}
+                  onChange={(e) => onChangePR(e.target.value)}
+                >
+                  <option value={initial.pullRequestId}>
+                    {initial.branch || `PR #${initial.pullRequestId}`}
+                  </option>
+                </S.Select>
+              ) : prOptions.length === 0 ? (
+                <S.Input readOnly value="PR 없음" />
+              ) : (
+                <S.Select
+                  value={selectedPrId ?? ''}
+                  onChange={(e) => onChangePR(e.target.value)}
+                >
+                  {prOptions.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.label}
+                    </option>
+                  ))}
+                  {initial?.pullRequestId != null &&
+                    !prOptions.some(
+                      (p) => String(p.id) === String(initial.pullRequestId),
+                    ) && (
+                      <option value={initial.pullRequestId}>
+                        {initial.branch || `PR #${initial.pullRequestId}`}
+                      </option>
+                    )}
+                </S.Select>
+              )}
+            </S.MetaTd>
+          </S.MetaRow>
+
+          <S.MetaRow>
             <S.MetaTh>기안일자</S.MetaTh>
             <S.MetaTd data-bb>
               <S.Input
@@ -577,6 +871,7 @@ export default function ApprovalForm({
                 onChange={(e) => setDraftDate(e.target.value)}
               />
             </S.MetaTd>
+
             <S.MetaTh data-bb>문서분류</S.MetaTh>
             <S.MetaTd data-bb>
               <S.Select
@@ -593,10 +888,10 @@ export default function ApprovalForm({
           </S.MetaRow>
 
           <S.MetaRow>
-            <S.MetaTh>제 목</S.MetaTh>
+            <S.MetaTh>제목</S.MetaTh>
             <S.MetaTd colSpan={3}>
               <S.Input
-                placeholder="제목을 입력하세요."
+                placeholder="보고서 제목을 입력하세요"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
@@ -643,13 +938,15 @@ export default function ApprovalForm({
                         patchStep(s.id, { type: e.target.value })
                       }
                     >
-                      {STEP_TYPES.filter((t) => t.value !== 'draft').map(
-                        (t) => (
-                          <option key={t.value} value={t.value}>
-                            {t.label}
-                          </option>
-                        ),
-                      )}
+                      {['approve', 'consent', 'cc'].map((t) => (
+                        <option key={t} value={t}>
+                          {t === 'approve'
+                            ? '결재'
+                            : t === 'consent'
+                              ? '합의'
+                              : '참조'}
+                        </option>
+                      ))}
                     </S.Select>
                   )}
                 </S.ALCell>
@@ -720,7 +1017,7 @@ export default function ApprovalForm({
                 type="button"
                 title="굵게"
                 onClick={() =>
-                  cmd((ed) => ed.chain().focus().toggleBold().run())
+                  editor && editor.chain().focus().toggleBold().run()
                 }
               >
                 B
@@ -729,7 +1026,7 @@ export default function ApprovalForm({
                 type="button"
                 title="기울임"
                 onClick={() =>
-                  cmd((ed) => ed.chain().focus().toggleItalic().run())
+                  editor && editor.chain().focus().toggleItalic().run()
                 }
               >
                 I
@@ -738,7 +1035,7 @@ export default function ApprovalForm({
                 type="button"
                 title="밑줄"
                 onClick={() =>
-                  cmd((ed) => ed.chain().focus().toggleUnderline().run())
+                  editor && editor.chain().focus().toggleUnderline().run()
                 }
               >
                 U
@@ -748,7 +1045,7 @@ export default function ApprovalForm({
                 type="button"
                 title="왼쪽 정렬"
                 onClick={() =>
-                  cmd((ed) => ed.chain().focus().setTextAlign('left').run())
+                  editor && editor.chain().focus().setTextAlign('left').run()
                 }
               >
                 <img src={LeftSort} alt="" aria-hidden />
@@ -757,7 +1054,7 @@ export default function ApprovalForm({
                 type="button"
                 title="가운데 정렬"
                 onClick={() =>
-                  cmd((ed) => ed.chain().focus().setTextAlign('center').run())
+                  editor && editor.chain().focus().setTextAlign('center').run()
                 }
               >
                 <img src={CenterSort} alt="" aria-hidden />
@@ -766,7 +1063,7 @@ export default function ApprovalForm({
                 type="button"
                 title="오른쪽 정렬"
                 onClick={() =>
-                  cmd((ed) => ed.chain().focus().setTextAlign('right').run())
+                  editor && editor.chain().focus().setTextAlign('right').run()
                 }
               >
                 <img src={RightSort} alt="" aria-hidden />
@@ -779,6 +1076,7 @@ export default function ApprovalForm({
           </div>
         </S.EditorCard>
 
+        {/* 결재라인 선택 모달 */}
         {pickerOpen && (
           <S.ModalScrim onClick={closePicker}>
             <S.ModalCard onClick={(e) => e.stopPropagation()}>
@@ -797,7 +1095,13 @@ export default function ApprovalForm({
               <S.ModalBody2>
                 <S.TreePanel aria-label="조직 트리">
                   <S.PanelHead>조직</S.PanelHead>
-                  <S.TreeScroll>{renderTree(ORG)}</S.TreeScroll>
+                  <S.TreeScroll>
+                    {ORG_TREE.length ? (
+                      renderTree(ORG_TREE)
+                    ) : (
+                      <div>조직 없음</div>
+                    )}
+                  </S.TreeScroll>
                 </S.TreePanel>
 
                 <S.ListPanel aria-label="사원 목록">
@@ -808,26 +1112,37 @@ export default function ApprovalForm({
                       <div>부서</div>
                     </S.TableHead>
                     <S.TableBody>
-                      {filteredPeople.map((p) => {
-                        const active = selectedPersonId === p.id;
-                        return (
-                          <S.TableRow
-                            key={p.id}
-                            data-active={active || undefined}
-                            onClick={() => pickPerson(p)}
-                            onDoubleClick={() => {
-                              pickPerson(p);
-                              confirmPick();
-                            }}
-                            role="button"
-                            tabIndex={0}
-                          >
-                            <div>{p.name}</div>
-                            <div>{p.rank}</div>
-                            <div>{p.deptName}</div>
-                          </S.TableRow>
-                        );
-                      })}
+                      {peopleLoading ? (
+                        <S.TableRow data-full="true">
+                          <div>로딩중…</div>
+                        </S.TableRow>
+                      ) : visiblePeople.length === 0 ? (
+                        <S.TableRow data-full="true">
+                          <div>결과 없음</div>
+                        </S.TableRow>
+                      ) : (
+                        visiblePeople.map((p) => {
+                          const active =
+                            selectedPerson?.accountId === p.accountId;
+                          return (
+                            <S.TableRow
+                              key={p.accountId}
+                              data-active={active || undefined}
+                              onClick={() => pickPerson(p)}
+                              onDoubleClick={() => {
+                                pickPerson(p);
+                                confirmPick();
+                              }}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              <div>{p.name}</div>
+                              <div>{p.rank || '-'}</div>
+                              <div>{p.deptName || '-'}</div>
+                            </S.TableRow>
+                          );
+                        })
+                      )}
                     </S.TableBody>
                   </S.TableLike>
                 </S.ListPanel>
@@ -873,47 +1188,39 @@ export default function ApprovalForm({
 
               <S.ConfirmBody>
                 {confirmType === 'cancel' && (
-                  <>
-                    <S.ConfirmMsg data-accent="warning">
-                      작성 중인 내용이 저장되지 않은 채 취소됩니다.
-                    </S.ConfirmMsg>
-                    <S.SummaryKV>
-                      <S.K>문서제목</S.K>
-                      <S.V>{title?.trim() || '—'}</S.V>
-                    </S.SummaryKV>
-                  </>
+                  <S.ConfirmMsg data-accent="warning">
+                    작성 중인 내용이 저장되지 않은 채 취소됩니다.
+                  </S.ConfirmMsg>
                 )}
-
                 {confirmType === 'draft' && (
-                  <>
-                    <S.ConfirmMsg>현재 내용을 임시저장합니다.</S.ConfirmMsg>
-                    <S.SummaryKV>
-                      <S.K>문서제목</S.K>
-                      <S.V>{title?.trim() || '—'}</S.V>
-                      <S.K>첨부</S.K>
-                      <S.V>{attachCount}개</S.V>
-                    </S.SummaryKV>
-                  </>
+                  <S.ConfirmMsg>현재 내용을 임시저장합니다.</S.ConfirmMsg>
                 )}
-
                 {confirmType === 'submit' && (
                   <>
                     <S.ConfirmMsg data-accent="primary">
                       본 문서를 상신하시겠습니까?
                     </S.ConfirmMsg>
-                    <S.SummaryKV>
-                      <S.K>문서제목</S.K>
-                      <S.V>{title?.trim() || '—'}</S.V>
-                      <S.K>결재/합의 단계</S.K>
-                      <S.V>{approverCount}건</S.V>
-                      <S.K>기안부서</S.K>
-                      <S.V>{dept}</S.V>
-                      <S.K>기안자</S.K>
-                      <S.V>{drafter}</S.V>
-                    </S.SummaryKV>
+                    <div style={{ marginTop: 12 }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: 13,
+                          marginBottom: 4,
+                          color: '#6b7280',
+                        }}
+                      >
+                        상신 코멘트 (선택)
+                      </label>
+                      <S.Input
+                        as="textarea"
+                        rows={3}
+                        placeholder="결재자에게 남길 코멘트를 입력하세요."
+                        value={submitComment}
+                        onChange={(e) => setSubmitComment(e.target.value)}
+                      />
+                    </div>
                   </>
                 )}
-
                 {confirmType === 'template' && (
                   <S.ConfirmMsg>
                     <strong>문서 분류</strong>를 변경하면 본문이 초기화 됩니다.
@@ -925,7 +1232,11 @@ export default function ApprovalForm({
                 <S.SecondaryBtn type="button" onClick={closeConfirm}>
                   닫기
                 </S.SecondaryBtn>
-                <S.PrimaryBtn type="button" onClick={runConfirmAction}>
+                <S.PrimaryBtn
+                  type="button"
+                  onClick={runConfirmAction}
+                  disabled={busy}
+                >
                   확인
                 </S.PrimaryBtn>
               </S.ConfirmFoot>

@@ -19,6 +19,9 @@ const ApprovalFormPage = lazy(
 const ApprovalDetailPage = lazy(
   () => import('@/features/approval/pages/ApprovalDetail'),
 );
+const ApprovalEditPage = lazy(
+  () => import('@/features/approval/pages/ApprovalEdit'),
+);
 
 const LogManagement = lazy(() => import('@/features/log/pages/LogManagement'));
 const ScheduleManagement = lazy(
@@ -93,6 +96,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageSkeleton />}>
             <ApprovalDetailPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: PATHS.APPROVAL_EDIT,
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <ApprovalEditPage />
           </Suspense>
         ),
       },

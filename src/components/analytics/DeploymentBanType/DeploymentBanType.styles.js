@@ -6,6 +6,13 @@ export const PanelContainer = styled.div`
   border-radius: ${({ theme }) => theme.radius.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
   overflow: hidden;
+  ${({ hasHeight }) =>
+    hasHeight &&
+    `
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  `}
 `;
 
 export const PanelHeader = styled.div`
@@ -30,33 +37,26 @@ export const PanelTitle = styled.h3`
 
 export const PanelContent = styled.div`
   padding: 20px ${({ theme }) => theme.spacing.lg}
-    calc(${({ theme }) => theme.spacing.lg} + 30px);
+    ${({ theme }) => theme.spacing.lg};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
-  --chart-grid-color: ${({ theme }) =>
-    theme.mode === 'light' ? '#F3F4F6' : '#374151'};
-  --chart-text-color: ${({ theme }) => theme.colors.textSecondary};
+  ${({ flex }) =>
+    flex &&
+    `
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  `}
 `;
 
-// Filter Components
+// Filter
 export const FilterRow = styled.div`
   display: flex;
   align-items: center;
-  ${({ spaceBetween }) =>
-    spaceBetween
-      ? 'justify-content: space-between;'
-      : 'justify-content: flex-start;'}
-
+  justify-content: flex-start;
   gap: ${({ theme }) => theme.spacing.md};
   margin-top: ${({ theme }) => theme.spacing.md};
-  margin-bottom: ${({ marginBottom, theme }) =>
-    marginBottom || theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
   flex-wrap: wrap;
-`;
-
-export const FilterGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 export const FilterLabel = styled.div`
@@ -84,55 +84,61 @@ export const Select = styled.select`
 
   &:focus {
     border-color: ${({ theme }) => theme.colors.brand};
-    ${({ noShadow, theme }) =>
-      !noShadow &&
-      `box-shadow: 0 0 0 3px ${theme.mode === 'light' ? 'rgba(37, 99, 235, 0.1)' : 'rgba(59, 130, 246, 0.2)'};`}
-  }
-`;
-
-export const ToggleContainer = styled.div`
-  display: flex;
-  gap: ${({ theme }) => theme.spacing.sm};
-  background: ${({ theme }) =>
-    theme.mode === 'light' ? '#F3F4F6' : '#1F2937'};
-  padding: 4px;
-  border-radius: ${({ theme }) => theme.radius.sm};
-`;
-
-export const ToggleButton = styled.button`
-  padding: 6px ${({ theme }) => theme.spacing.md};
-  border: none;
-  border-radius: 6px;
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: ${({ theme, active }) =>
-    active ? theme.colors.brand : 'transparent'};
-  color: ${({ theme, active }) =>
-    active ? theme.colors.onPrimary : theme.colors.textSecondary};
-
-  &:hover {
-    background: ${({ theme, active }) =>
-      active ? theme.colors.brand : theme.colors.interactiveHover};
-    opacity: ${({ active }) => (active ? 0.9 : 1)};
+    box-shadow: 0 0 0 3px
+      ${({ theme }) =>
+        theme.mode === 'light'
+          ? 'rgba(37, 99, 235, 0.1)'
+          : 'rgba(59, 130, 246, 0.2)'};
   }
 `;
 
 // Chart
-export const ChartWrapper = styled.div`
+export const ChartContainer = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.md} 0;
+  flex-direction: column;
+
+  ${({ theme }) => theme.mq.md`
+    flex-direction: row;
+  `}
+`;
+
+export const DonutWrapper = styled.div`
   position: relative;
-  width: 100%;
-  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const CenterText = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+`;
+
+export const TotalValue = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+export const RateLabel = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin-top: ${({ theme }) => theme.spacing.xs};
 `;
 
 // Legend
 export const LegendContainer = styled.div`
   display: flex;
-  justify-content: center;
-  gap: ${({ theme }) => theme.spacing.lg};
-  margin-top: ${({ theme }) => theme.spacing.md};
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 export const LegendItem = styled.div`
@@ -140,14 +146,29 @@ export const LegendItem = styled.div`
   align-items: center;
   gap: ${({ theme }) => theme.spacing.sm};
   font-size: ${({ theme }) => theme.typography.fontSize.xs};
-  color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
 export const LegendColor = styled.div`
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 2px;
   background: ${({ color }) => color};
-  opacity: 0.8;
   flex-shrink: 0;
+`;
+
+export const LegendText = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+export const LegendLabelText = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+export const LegendValue = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
 `;

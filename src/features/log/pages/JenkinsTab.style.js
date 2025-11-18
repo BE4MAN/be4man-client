@@ -43,29 +43,38 @@ export const buildJenkinsGlobalStyles = () => css`
     }
   }
 
-  /* ───────── Stats Grid (반응형) ───────── */
+  /* ───────── Stats Grid (2-row layout, responsive) ───────── */
   .jt-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
   }
 
-  @media (width >= 1200px) {
-    .jt-stats-grid {
-      grid-template-columns: repeat(5, 1fr);
-    }
+  /* Each row can use a grid so top row can be 3 cols and bottom row 2 cols */
+  .jt-stats-row {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, 1fr); /* default top row layout */
+  }
+
+  /* bottom row will use .jt-stats-row.bottom to become 2 columns */
+  .jt-stats-row.bottom {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   @media (width <= 1200px) {
-    .jt-stats-grid {
+    .jt-stats-row {
       grid-template-columns: repeat(3, 1fr);
       gap: 0.75rem;
+    }
+    .jt-stats-row.bottom {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 
   @media (width <= 768px) {
-    .jt-stats-grid {
-      grid-template-columns: 1fr;
+    .jt-stats-row {
+      grid-template-columns: 1fr; /* collapse to single column on small screens */
       gap: 0.5rem;
     }
     .jt-stats-item {
@@ -122,8 +131,8 @@ export const getJenkinsInlineStyles = (theme) => {
       zIndex: 1,
     },
     pipelineStageIcon: {
-      width: '3rem',
-      height: '3rem',
+      width: 'clamp(2rem, 6vw, 3rem)',
+      height: 'clamp(2rem, 6vw, 3rem)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -138,14 +147,19 @@ export const getJenkinsInlineStyles = (theme) => {
       zIndex: 2,
     },
     pipelineStageName: {
-      fontSize: '0.8125rem',
+      fontSize: 'clamp(0.75rem, 1.2vw, 0.95rem)',
       fontWeight: 600,
       color: theme.colors.text,
       textAlign: 'center',
       maxWidth: '7.5rem',
-      whiteSpace: 'nowrap',
+      // 최대 2줄까지 허용하고 넘치면 말줄임
+      display: '-webkit-box',
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: 'vertical',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
+      lineHeight: 1.2,
+      maxHeight: '2.4em',
     },
     pipelineLine: {
       flex: 1,
@@ -183,11 +197,15 @@ export const getJenkinsInlineStyles = (theme) => {
       flexDirection: 'column',
       gap: '4px',
       flex: 1,
+      minWidth: 0,
     },
     statsLabel: {
-      fontSize: '0.875rem',
+      fontSize: 'clamp(0.8rem, 1.1vw, 0.95rem)',
       fontWeight: 600,
       color: theme.colors.textSecondary,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
     },
     statsValue: (status) => {
       let color = theme.colors.text;
@@ -200,7 +218,7 @@ export const getJenkinsInlineStyles = (theme) => {
       } else if (status === 'ABORTED') {
         color = isDark ? '#ffb74d' : '#f57c00';
       }
-      return { fontSize: '0.875rem', fontWeight: 700, color };
+      return { fontSize: 'clamp(0.9rem, 1.2vw, 1rem)', fontWeight: 700, color };
     },
 
     /* ───────────────────────── Console ───────────────────────── */
@@ -208,7 +226,7 @@ export const getJenkinsInlineStyles = (theme) => {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '0.75rem 1rem',
+      padding: 'clamp(0.5rem, 1.2vw, 0.85rem) clamp(0.75rem, 2vw, 1rem)',
       backgroundColor: isDark ? '#0d0d0d' : '#f5f5f5',
       borderBottom: `1px solid ${theme.colors.border}`,
       marginBottom: '1rem',
@@ -216,7 +234,7 @@ export const getJenkinsInlineStyles = (theme) => {
       gap: '0.5rem',
     },
     consoleTitle: {
-      fontSize: '0.875rem',
+      fontSize: 'clamp(0.85rem, 1.1vw, 1rem)',
       fontWeight: 600,
       color: theme.colors.text,
     },
@@ -226,8 +244,8 @@ export const getJenkinsInlineStyles = (theme) => {
       flexWrap: 'wrap',
     },
     consoleButton: {
-      padding: '0.5rem 1rem',
-      fontSize: '0.8125rem',
+      padding: 'clamp(0.375rem, 0.9vw, 0.6rem) clamp(0.75rem, 1.6vw, 1rem)',
+      fontSize: 'clamp(0.78rem, 1vw, 0.95rem)',
       fontWeight: 500,
       color: theme.colors.textPrimary,
       backgroundColor: isDark
@@ -244,12 +262,12 @@ export const getJenkinsInlineStyles = (theme) => {
     },
     consoleOutput: {
       backgroundColor: isDark ? '#0d0d0d' : '#fafafa',
-      padding: '1rem',
+      padding: 'clamp(0.75rem, 1.6vw, 1rem)',
       borderRadius: '0.5rem',
       maxHeight: '37.5rem',
       overflowY: 'auto',
       fontFamily: 'monospace',
-      fontSize: '0.8125rem',
+      fontSize: 'clamp(0.78rem, 1vw, 0.95rem)',
       lineHeight: 1.6,
       border: `1px solid ${theme.colors.border}`,
       ...noScrollbarBox,
@@ -263,7 +281,7 @@ export const getJenkinsInlineStyles = (theme) => {
     consoleTime: {
       color: theme.colors.textSecondary,
       minWidth: '90px',
-      fontSize: '0.875rem',
+      fontSize: 'clamp(0.78rem, 1vw, 0.95rem)',
     },
     consoleLevel: (level) => {
       let color;
@@ -272,12 +290,17 @@ export const getJenkinsInlineStyles = (theme) => {
       else if (level === 'INFO') color = isDark ? '#90caf9' : '#1976d2';
       else color = theme.colors.textSecondary;
 
-      return { color, fontWeight: 700, minWidth: '70px', fontSize: '0.875rem' };
+      return {
+        color,
+        fontWeight: 700,
+        minWidth: '70px',
+        fontSize: 'clamp(0.78rem, 1vw, 0.95rem)',
+      };
     },
     consoleMessage: {
       color: theme.colors.text,
       flex: 1,
-      fontSize: '0.875rem',
+      fontSize: 'clamp(0.85rem, 1.1vw, 1rem)',
     },
 
     /* ───────────────────── Issues ───────────────────── */

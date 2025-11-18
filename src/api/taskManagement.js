@@ -60,13 +60,13 @@ export const getTasks = async (params = {}) => {
 };
 
 /**
- * 작업 상세 조회
+ * 작업 상세 조회 (전체 정보 포함 - 타임라인, 승인 정보 등)
  * @param {number} id - 작업 ID
  * @returns {Promise} API 응답
  */
 export const getTaskById = async (id) => {
   try {
-    const response = await axiosInstance.get(`/api/tasks/${id}`);
+    const response = await axiosInstance.get(`/api/tasks/${id}/full`);
     return response.data;
   } catch (error) {
     console.error('작업 상세 조회 실패:', error);

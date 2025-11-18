@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
-  generateMonthlyDeploymentData,
-  generateYearlyDeploymentData,
+  fetchMonthlyDeploymentData,
+  fetchYearlyDeploymentData,
 } from '@/utils/analyticsDataGenerators';
 
 import * as S from './DeploymentPeriodStats.styles';
@@ -10,11 +10,40 @@ import * as S from './DeploymentPeriodStats.styles';
 export default function DeploymentPeriodStats() {
   const [period, setPeriod] = useState('month');
   const [selectedService, setSelectedService] = useState('all');
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const data =
-    period === 'month'
-      ? generateMonthlyDeploymentData()
-      : generateYearlyDeploymentData();
+  const projectId = useMemo(() => {
+    // 1) 이미 select의 value를 projectId로 바꾸면 아래는 그냥 return selectedService;
+    // 2) 당장은 'all'만 처리하고, 실제 projectId 매핑은 추후 프로젝트 목록 API 연결 시 채우기
+    if (selectedService === 'all') return 'all';
+    // 예시 매핑(실서비스에선 프로젝트 목록 API로 대체)
+    const map = { hr: 1, payment: 2, resource: 3, aiwacs: 4 };
+    return map[selectedService] ?? 'all';
+  }, [selectedService]);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const rows =
+          period === 'month'
+            ? await fetchMonthlyDeploymentData(projectId)
+            : await fetchYearlyDeploymentData(projectId);
+        if (isMounted) setData(rows);
+      } catch (e) {
+        if (isMounted) setError(e);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [period, projectId]);
 
   const width = 800;
   const height = 247;
@@ -23,13 +52,34 @@ export default function DeploymentPeriodStats() {
   const chartHeight = height - padding.top - padding.bottom;
   const firstBarOffset = 15;
 
-  const maxValue = Math.max(...data.map((d) => d.deployments));
-  const xScale = (index) =>
-    padding.left + firstBarOffset + (index / (data.length - 1)) * chartWidth;
+  const maxValue = useMemo(() => {
+    const m = Math.max(0, ...data.map((d) => d.deployments || 0));
+    return m > 0 ? m : 1; // 0 나눗셈 방지
+  }, [data]);
+
+  const xScale = (index) => {
+    // 데이터가 1개일 땐 가운데 배치
+    if (data.length <= 1) {
+      return padding.left + firstBarOffset + chartWidth / 2;
+    }
+
+    const n = data.length;
+    return padding.left + firstBarOffset + (index / (n - 1)) * chartWidth;
+  };
+
   const yScale = (value) =>
     padding.top + chartHeight - (value / maxValue) * chartHeight;
 
-  const barWidth = (chartWidth / data.length) * 0.5;
+  // 막대 폭을 일정 범위 안으로 제한
+  const barWidth = useMemo(() => {
+    if (!data.length) return 0;
+
+    const base = (chartWidth / data.length) * 0.6; // 기본은 전체 폭의 60%
+    const maxWidth = 40; // 너무 넓어지지 않게 상한선
+    const minWidth = 12; // 너무 얇아지지 않게 하한선
+
+    return Math.max(minWidth, Math.min(base, maxWidth));
+  }, [chartWidth, data.length]);
 
   return (
     <S.PanelContainer>
@@ -77,6 +127,13 @@ export default function DeploymentPeriodStats() {
             </S.ToggleButton>
           </S.ToggleContainer>
         </S.FilterRow>
+
+        {loading && <div style={{ padding: '8px 0' }}>로딩 중…</div>}
+        {error && (
+          <div style={{ padding: '8px 0', color: 'tomato' }}>
+            불러오기 실패: {String(error.message || error)}
+          </div>
+        )}
 
         <S.ChartWrapper height="247px">
           <svg

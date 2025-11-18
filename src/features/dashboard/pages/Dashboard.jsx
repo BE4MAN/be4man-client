@@ -12,9 +12,13 @@ import {
 
 import * as S from './Dashboard.styles';
 
+const CURRENT_USER = '김민호';
+
+// ---------------- 공통 날짜 유틸 ----------------
+
 function mondayOf(date) {
   const d = new Date(date);
-  const day = (d.getDay() + 6) % 7;
+  const day = d.getDay();
   d.setDate(d.getDate() - day);
   d.setHours(0, 0, 0, 0);
   return d;
@@ -39,10 +43,91 @@ function isDateInRangeByDay(date, startIso, endIso) {
   return day.getTime() >= start.getTime() && day.getTime() <= end.getTime();
 }
 
+// ---------------- 결재 도메인 유틸 ----------------
+
+// status/approval 정규화
+function normalizeStatus(doc) {
+  const cur = Number(doc?.approval?.current ?? 0);
+  const totRaw = Number(doc?.approval?.total ?? 1);
+  const tot = Number.isFinite(totRaw) && totRaw > 0 ? totRaw : 1;
+
+  let status = doc.status;
+  if (!status) {
+    if (doc.rejectedAt) status = '반려';
+    else if (doc.canceledAt) status = '승인취소';
+    else if (doc.approvedAt || cur >= tot) status = '완료';
+    else if (doc.draftedAt) status = '승인요청';
+    else status = '승인요청';
+  }
+
+  return {
+    ...doc,
+    status,
+    approval: { current: Math.min(cur, tot), total: tot },
+  };
+}
+
+// 내가 승인해야 할 차례인지 (승인대기)
+function isMyTurnToApprove(doc, currentUser = CURRENT_USER) {
+  const d = normalizeStatus(doc);
+  if (d.status !== '승인요청') return false;
+  return d.currentApprover === currentUser;
+}
+
+// 내가 이미 승인/합의한 문서인지
+function hasApprovedByMe(doc, currentUser = CURRENT_USER) {
+  if (!Array.isArray(doc.approvalLine)) return false;
+
+  return doc.approvalLine.some(
+    (step) =>
+      (step.type === 'approve' || step.type === 'consent') &&
+      step.name === currentUser &&
+      step.status === '완료',
+  );
+}
+
+// 최종 상태(완료/반려/승인취소) 여부
+function isFinalStatus(doc) {
+  const d = normalizeStatus(doc);
+  return ['완료', '반려', '승인취소'].includes(d.status);
+}
+
+// ✅ 승인 대기 목록: "내가 승인/반려할 차례"인 문서들만
+function getPendingApprovalsForMe(docs, currentUser = CURRENT_USER) {
+  return (docs ?? [])
+    .map(normalizeStatus)
+    .filter((doc) => isMyTurnToApprove(doc, currentUser));
+}
+
+// ✅ 진행중인 업무: "내가 이미 승인했지만 결과처리(완료/반려/취소)까지 안 끝난 문서"
+function getInProgressTasksForMe(docs, currentUser = CURRENT_USER) {
+  return (docs ?? [])
+    .map(normalizeStatus)
+    .filter(
+      (doc) =>
+        hasApprovedByMe(doc, currentUser) &&
+        !isFinalStatus(doc) &&
+        doc.status !== '임시저장',
+    );
+}
+
+// ✅ 알림: "내가 승인한 이후에 반려나 취소로 끝난 문서"
+function getNotificationsForMe(docs, currentUser = CURRENT_USER) {
+  return (docs ?? [])
+    .map(normalizeStatus)
+    .filter(
+      (doc) =>
+        hasApprovedByMe(doc, currentUser) &&
+        (doc.status === '반려' || doc.status === '승인취소'),
+    );
+}
+
+// ---------------- 대시보드 컴포넌트 ----------------
+
 export default function Dashboard() {
   const [offset, setOffset] = useState(0);
-
   const [now, setNow] = useState(new Date());
+
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(id);
@@ -54,9 +139,10 @@ export default function Dashboard() {
   const formatDate = (d) => `${d.getMonth() + 1}월 ${d.getDate()}일`;
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
+  // 모달/패널 상태
   const [panelOpen, setPanelOpen] = useState(false);
-  const [panelMode, setPanelMode] = useState(null);
-  const [viewMode, setViewMode] = useState('list');
+  const [panelMode, setPanelMode] = useState(null); // 'pending' | 'tasks' | 'notifications' | 'day' | 'recovery'
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'detail'
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedDayDetail, setSelectedDayDetail] = useState(null);
@@ -92,6 +178,13 @@ export default function Dashboard() {
       setSelectedRecovery(options.item);
       setViewMode('detail');
     }
+  };
+
+  const getStatValue = (id) => {
+    if (id === 'pending') return pendingForMe.length;
+    if (id === 'tasks') return inProgressForMe.length;
+    if (id === 'notifications') return notificationsForMe.length;
+    return 0;
   };
 
   useEffect(() => {
@@ -137,9 +230,39 @@ export default function Dashboard() {
       panelMode === 'notifications' ||
       panelMode === 'day');
 
+  // ---------- 여기서부터 "내 기준으로" 목록 계산 ----------
+
+  // mock 세 개를 한 덩어리로 본다는 가정 (실제에선 서버에서 전체 문서 리스트를 내려주면 거기서 필터)
+  const ALL_DOCS = useMemo(
+    () => [
+      ...(PENDING_APPROVALS || []),
+      ...(IN_PROGRESS_TASKS || []),
+      ...(NOTIFICATIONS || []),
+    ],
+    [],
+  );
+
+  const pendingForMe = useMemo(
+    () => getPendingApprovalsForMe(ALL_DOCS, CURRENT_USER),
+    [ALL_DOCS],
+  );
+
+  const inProgressForMe = useMemo(
+    () => getInProgressTasksForMe(ALL_DOCS, CURRENT_USER),
+    [ALL_DOCS],
+  );
+
+  const notificationsForMe = useMemo(
+    () => getNotificationsForMe(ALL_DOCS, CURRENT_USER),
+    [ALL_DOCS],
+  );
+
+  // -------------------------------------------------------
+
   return (
     <>
       <S.Wrap>
+        {/* 상단 카드 (통계) */}
         <S.StatGrid>
           {STATS.map((s) => (
             <S.StatCard key={s.id} onClick={() => openPanel(s.id)}>
@@ -148,13 +271,14 @@ export default function Dashboard() {
                   <S.IconBox style={{ color: s.color }}>●</S.IconBox>
                   <S.StatLabel>{s.label}</S.StatLabel>
                 </S.CardTopLeft>
-                <S.StatValue>{s.value}</S.StatValue>
+                <S.StatValue>{getStatValue(s.id)}</S.StatValue>
               </S.CardTop>
               <S.StatDesc>{s.desc}</S.StatDesc>
             </S.StatCard>
           ))}
         </S.StatGrid>
 
+        {/* 주간 일정 */}
         <S.WeekBlock>
           <S.WeekHeader>
             <S.SectionTitle>주간 일정</S.SectionTitle>
@@ -218,7 +342,7 @@ export default function Dashboard() {
                   <S.DayHead>
                     <S.DayHeadLeft>
                       <span>
-                        {['월', '화', '수', '목', '금', '토', '일'][i]}
+                        {['일', '월', '화', '수', '목', '금', '토'][i]}
                       </span>
                       {showMoreCount > 0 && (
                         <S.MoreBadge>+{showMoreCount}</S.MoreBadge>
@@ -256,6 +380,7 @@ export default function Dashboard() {
           </S.WeekGrid>
         </S.WeekBlock>
 
+        {/* 복구 현황 테이블 */}
         <S.RecoveryBlock>
           <S.SectionTitle>복구 현황</S.SectionTitle>
           <S.Table>
@@ -294,6 +419,7 @@ export default function Dashboard() {
 
       {panelOpen && panelMode && (
         <S.SidePanel>
+          {/* 상단 헤더 */}
           {isDetailHeader ? (
             <S.PanelHeader $dark>
               <S.PanelTitleWrap>
@@ -322,11 +448,11 @@ export default function Dashboard() {
                 </S.PanelTitle>
                 <S.PanelSub>
                   {panelMode === 'pending' &&
-                    `총 ${PENDING_APPROVALS.length}건의 승인 대기 문서`}
+                    `총 ${pendingForMe.length}건의 승인 대기 문서`}
                   {panelMode === 'tasks' &&
-                    `총 ${IN_PROGRESS_TASKS.length}건의 업무`}
+                    `총 ${inProgressForMe.length}건의 업무`}
                   {panelMode === 'notifications' &&
-                    `총 ${NOTIFICATIONS.length}건의 알림`}
+                    `총 ${notificationsForMe.length}건의 알림`}
                   {panelMode === 'day' &&
                     selectedDay &&
                     `날짜: ${selectedDay.dateKey}`}
@@ -339,11 +465,12 @@ export default function Dashboard() {
             </S.PanelHeader>
           )}
 
+          {/* ✅ 승인 대기: 내가 승인/반려할 차례인 문서만 */}
           {panelMode === 'pending' && (
             <>
               {viewMode === 'list' && (
                 <S.TaskList>
-                  {PENDING_APPROVALS.map((p) => (
+                  {pendingForMe.map((p) => (
                     <S.TaskItem
                       key={p.id}
                       onClick={() => {
@@ -363,6 +490,11 @@ export default function Dashboard() {
                       <S.TaskBadge $variant="pending">승인 대기</S.TaskBadge>
                     </S.TaskItem>
                   ))}
+                  {pendingForMe.length === 0 && (
+                    <S.Empty>
+                      현재 내가 처리할 승인 대기 문서가 없습니다.
+                    </S.Empty>
+                  )}
                 </S.TaskList>
               )}
 
@@ -403,11 +535,12 @@ export default function Dashboard() {
             </>
           )}
 
+          {/* ✅ 알림: 내가 승인한 이후 반려/취소된 문서만 */}
           {panelMode === 'notifications' && (
             <>
               {viewMode === 'list' && (
                 <S.TaskList>
-                  {NOTIFICATIONS.map((n) => (
+                  {notificationsForMe.map((n) => (
                     <S.TaskItem
                       key={n.id}
                       onClick={() => {
@@ -417,25 +550,34 @@ export default function Dashboard() {
                     >
                       <div>
                         <S.TaskTitle>
-                          [{n.kind}] {n.serviceName}
+                          [{n.kind ?? n.status}] {n.serviceName}
                         </S.TaskTitle>
                         <S.TaskMeta>
                           <div>{n.reason}</div>
                           {n.rejectedBy && <div>반려자: {n.rejectedBy}</div>}
-                          <div>발생 시각: {n.when}</div>
+                          <div>발생 시각: {n.when ?? n.updatedAt}</div>
                         </S.TaskMeta>
                       </div>
-                      <S.TaskBadge $variant="alert">{n.kind}</S.TaskBadge>
+                      <S.TaskBadge $variant="alert">
+                        {n.kind ?? n.status}
+                      </S.TaskBadge>
                     </S.TaskItem>
                   ))}
+                  {notificationsForMe.length === 0 && (
+                    <S.Empty>
+                      내가 승인했던 문서 중 반려/취소된 알림이 없습니다.
+                    </S.Empty>
+                  )}
                 </S.TaskList>
               )}
 
               {viewMode === 'detail' && selectedNotification && (
                 <S.DetailContent>
-                  <S.TaskStatus>{selectedNotification.kind}</S.TaskStatus>
+                  <S.TaskStatus>
+                    {selectedNotification.kind ?? selectedNotification.status}
+                  </S.TaskStatus>
                   <S.DetailTitle>
-                    [{selectedNotification.kind}]{' '}
+                    [{selectedNotification.kind ?? selectedNotification.status}]{' '}
                     {selectedNotification.serviceName}
                   </S.DetailTitle>
                   <S.DetailMeta>
@@ -457,11 +599,12 @@ export default function Dashboard() {
             </>
           )}
 
+          {/* ✅ 진행중인 업무: 내가 승인했지만 아직 최종완료 안된 문서 */}
           {panelMode === 'tasks' && (
             <>
               {viewMode === 'list' && (
                 <S.TaskList>
-                  {IN_PROGRESS_TASKS.map((t) => (
+                  {inProgressForMe.map((t) => (
                     <S.TaskItem
                       key={t.id}
                       onClick={() => {
@@ -476,9 +619,24 @@ export default function Dashboard() {
                           <div>배포일: {t.due}</div>
                         </S.TaskMeta>
                       </div>
-                      <S.TaskBadge>{t.status}</S.TaskBadge>
+                      <S.TaskBadge
+                        $variant={
+                          t.status === '배포 대기'
+                            ? 'pending'
+                            : t.status === '배포 준비'
+                              ? 'inprogress'
+                              : 'inprogress'
+                        }
+                      >
+                        {t.status}
+                      </S.TaskBadge>
                     </S.TaskItem>
                   ))}
+                  {inProgressForMe.length === 0 && (
+                    <S.Empty>
+                      내가 승인했지만 아직 완료되지 않은 업무가 없습니다.
+                    </S.Empty>
+                  )}
                 </S.TaskList>
               )}
 
@@ -492,7 +650,9 @@ export default function Dashboard() {
                   </S.DetailMeta>
                   <S.Divider />
                   <S.DetailDesc>{selectedTask.desc}</S.DetailDesc>
-                  <S.FileLink href="#">{selectedTask.file}</S.FileLink>
+                  {selectedTask.file && (
+                    <S.FileLink href="#">{selectedTask.file}</S.FileLink>
+                  )}
                   <S.ButtonRow>
                     <S.DangerButton
                       onClick={() =>
@@ -501,7 +661,7 @@ export default function Dashboard() {
                         )
                       }
                     >
-                      작업 취소
+                      취소
                     </S.DangerButton>
                   </S.ButtonRow>
                 </S.DetailContent>
@@ -509,6 +669,7 @@ export default function Dashboard() {
             </>
           )}
 
+          {/* 주간 일정 상세 */}
           {panelMode === 'day' && selectedDay && (
             <>
               {viewMode === 'list' && (
@@ -556,7 +717,15 @@ export default function Dashboard() {
                           <div>날짜: {selectedDay.dateKey} 00:00</div>
                         </S.TaskMeta>
                       </div>
-                      <S.TaskBadge>
+                      <S.TaskBadge
+                        $variant={
+                          ev.type === '대기'
+                            ? 'pending'
+                            : ev.type === '성공'
+                              ? 'approved'
+                              : 'rejected'
+                        }
+                      >
                         {ev.type === '대기'
                           ? '대기'
                           : ev.type === '성공'
@@ -620,6 +789,7 @@ export default function Dashboard() {
             </>
           )}
 
+          {/* 복구 상세 */}
           {panelMode === 'recovery' &&
             viewMode === 'detail' &&
             selectedRecovery && (
