@@ -1,38 +1,42 @@
-import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import Button from '@/components/auth/Button';
+import { PATHS } from '@/app/routes/paths';
+import { PrimaryBtn } from '@/styles/modalButtons';
 
+import { ProblemCaseDetailModal } from '../components/ProblemCaseDetailModal';
 import { ProblemCaseList } from '../components/ProblemCaseList';
+import { ProblemTypeModal } from '../components/ProblemTypeModal';
 import { ProblemTypeTree } from '../components/ProblemTypeTree';
 
 import * as S from './ProblemManagement.styles';
 
 export default function ProblemManagement() {
+  const navigate = useNavigate();
   const [selectedProblemType, setSelectedProblemType] = useState(null);
   const [selectedProblemCase, setSelectedProblemCase] = useState(null);
-  // eslint-disable-next-line no-unused-vars
   const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
 
   const handleCreateProblem = () => {
-    // TODO: Step 5에서 구현
-    console.log('문제 생성');
+    navigate(PATHS.PROBLEM_NEW);
+  };
+
+  const handleAddType = (categoryData) => {
+    // TODO: 실제 API 연동 시 problemAPI.createProblemCategory() 사용
+    console.log('문제 카테고리 생성:', categoryData);
+    // 성공 시 목록 새로고침 또는 상태 업데이트
   };
 
   return (
     <S.Container>
       <S.MainContent>
         <S.ActionBar>
-          <Button variant="primary" onClick={handleCreateProblem}>
-            <Plus size={16} />
-            문제 생성
-          </Button>
+          <PrimaryBtn onClick={handleCreateProblem}>문제 생성</PrimaryBtn>
         </S.ActionBar>
 
         <S.ContentArea>
           <S.ListContainer>
             <ProblemCaseList
-              filterByType={selectedProblemType}
               selectedCaseId={selectedProblemCase}
               onSelectCase={setSelectedProblemCase}
             />
@@ -50,7 +54,17 @@ export default function ProblemManagement() {
         onAddType={() => setIsTypeModalOpen(true)}
       />
 
-      {/* TODO: Step 5에서 ProblemTypeModal 추가 */}
+      <ProblemTypeModal
+        isOpen={isTypeModalOpen}
+        onClose={() => setIsTypeModalOpen(false)}
+        onSave={handleAddType}
+      />
+
+      <ProblemCaseDetailModal
+        isOpen={!!selectedProblemCase}
+        onClose={() => setSelectedProblemCase(null)}
+        problemId={selectedProblemCase}
+      />
     </S.Container>
   );
 }

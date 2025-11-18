@@ -30,7 +30,7 @@ export const SelectButton = styled.button`
   width: 100%;
   height: 2.5rem;
   border-radius: ${({ theme }) => theme.radius.md};
-  background-color: ${({ theme }) => theme.colors.inputBg};
+  background-color: ${({ theme }) => theme.colors.surface};
   border: 1px solid
     ${({ $hasError, theme }) =>
       $hasError ? theme.colors.error : theme.colors.border};

@@ -15,14 +15,14 @@ export const Label = styled.label`
 
 export const Textarea = styled.textarea`
   width: 100%;
-  min-height: 80px;
+  min-height: 280px;
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
-  background: ${({ theme }) => theme.colors.bg};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  border: none;
   border-radius: ${({ theme }) => theme.radius.md};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  font-family: inherit;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 14px;
+  font-family: Arial, sans-serif;
   resize: vertical;
   transition: all 0.2s ease;
   outline: none;
@@ -33,8 +33,7 @@ export const Textarea = styled.textarea`
   }
 
   &:focus {
-    border-color: ${({ theme }) => theme.colors.brand};
-    box-shadow: 0 0 0 3px rgb(37 99 235 / 10%);
+    outline: none;
   }
 
   &:disabled {

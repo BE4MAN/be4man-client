@@ -100,4 +100,39 @@ export const problemAPI = {
     const { data } = await axiosInstance.get('/api/deployments');
     return data;
   },
+
+  /**
+   * 문제 수정
+   * @param {number} problemId - 문제 ID
+   * @param {Object} problemData - 수정할 문제 데이터
+   * @param {number} [problemData.categoryId] - 카테고리 ID
+   * @param {string} [problemData.title] - 제목
+   * @param {string} [problemData.description] - 설명
+   * @param {string} [problemData.importance] - 중요도 (LOW, MEDIUM, HIGH)
+   * @param {number[]} [problemData.deploymentIds] - 관련 배포 ID 목록
+   * @returns {Promise<{
+   *   id: number,
+   *   categoryId: number,
+   *   accountId: number,
+   *   title: string,
+   *   description: string,
+   *   importance: string
+   * }>}
+   */
+  updateProblem: async (problemId, problemData) => {
+    const { data } = await axiosInstance.put(
+      `/api/problems/${problemId}`,
+      problemData,
+    );
+    return data;
+  },
+
+  /**
+   * 문제 삭제
+   * @param {number} problemId - 문제 ID
+   * @returns {Promise<void>}
+   */
+  deleteProblem: async (problemId) => {
+    await axiosInstance.delete(`/api/problems/${problemId}`);
+  },
 };

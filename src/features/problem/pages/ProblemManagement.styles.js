@@ -13,11 +13,11 @@ export const MainContent = styled.div`
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
+  padding: 1.5rem;
 `;
 
 export const ActionBar = styled.div`
   height: 64px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   display: flex;
   align-items: center;
   justify-content: flex-end;
