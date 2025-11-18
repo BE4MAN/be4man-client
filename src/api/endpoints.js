@@ -19,6 +19,14 @@ export const API_ENDPOINTS = {
   BUILD_RESULT: '/api/build-result',
   ALL_STAGES: '/api/console-log',
 
+  // Statistics
+  DEPLOY_SUCCESS_RATE: '/api/statistics/deploy-success-rate',
+  DEPLOY_DURATION_SUMMARY: '/api/statistics/deploy-duration',
+  DEPLOY_PERIOD_STATS: '/api/statistics/period',
+  BAN_TYPE_STATS: '/api/statistics/ban-type',
+
+  TIME_TO_NEXT_SUCCESS: '/api/statistics/follow-up/next-success',
+
   PROJECTS: '/api/projects',
   PROJECT_BY_ID: (id) => `/api/projects/${id}`,
   PROJECT_MEMBERSHIPS_BY_ACCOUNT: (accountId) =>
