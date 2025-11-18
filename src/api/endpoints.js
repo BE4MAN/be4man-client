@@ -45,4 +45,9 @@ export const API_ENDPOINTS = {
   APPROVAL_CANCEL: (id) => `/api/approvals/${id}/cancel`,
   APPROVAL_APPROVE: (id) => `/api/approvals/${id}/approve`,
   APPROVAL_REJECT: (id) => `/api/approvals/${id}/reject`,
+
+  // Problem
+  PROBLEM_CATEGORIES: '/api/problems/categories',
+  PROBLEMS: '/api/problems',
+  DEPLOYMENTS: '/api/deployments',
 };

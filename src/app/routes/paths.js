@@ -12,4 +12,6 @@ export const PATHS = {
   TASKS: '/tasks',
   TASK_DETAIL: '/tasks/:id',
   ANALYTICS: '/analytics',
+  PROBLEMS: '/problems',
+  PROBLEM_NEW: '/problems/new',
 };
