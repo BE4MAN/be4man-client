@@ -58,14 +58,28 @@ export default function DeploymentPeriodStats() {
   }, [data]);
 
   const xScale = (index) => {
-    const n = Math.max(2, data.length);
+    // 데이터가 1개일 땐 가운데 배치
+    if (data.length <= 1) {
+      return padding.left + firstBarOffset + chartWidth / 2;
+    }
+
+    const n = data.length;
     return padding.left + firstBarOffset + (index / (n - 1)) * chartWidth;
   };
 
   const yScale = (value) =>
     padding.top + chartHeight - (value / maxValue) * chartHeight;
 
-  const barWidth = (chartWidth / Math.max(1, data.length)) * 0.5;
+  // 막대 폭을 일정 범위 안으로 제한
+  const barWidth = useMemo(() => {
+    if (!data.length) return 0;
+
+    const base = (chartWidth / data.length) * 0.6; // 기본은 전체 폭의 60%
+    const maxWidth = 40; // 너무 넓어지지 않게 상한선
+    const minWidth = 12; // 너무 얇아지지 않게 하한선
+
+    return Math.max(minWidth, Math.min(base, maxWidth));
+  }, [chartWidth, data.length]);
 
   return (
     <S.PanelContainer>
