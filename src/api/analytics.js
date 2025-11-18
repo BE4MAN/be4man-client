@@ -31,9 +31,34 @@ export async function getDeploymentPeriodStats({ period, projectId } = {}) {
   return data;
 }
 
+export async function getBanTypeStats(projectId = 'all') {
+  const params =
+    projectId != null && projectId !== 'all' ? { projectId } : undefined;
+  const { data } = await axiosInstance.get(API_ENDPOINTS.BAN_TYPE_STATS, {
+    params,
+  });
+  return data;
+}
+
+export async function getTimeToNextSuccess({
+  projectId = 'all',
+  thresholdMins,
+} = {}) {
+  const params = {};
+  if (projectId != null && projectId !== 'all') params.projectId = projectId;
+  if (typeof thresholdMins === 'number') params.thresholdMins = thresholdMins;
+
+  const { data } = await axiosInstance.get(API_ENDPOINTS.TIME_TO_NEXT_SUCCESS, {
+    params,
+  });
+  return data;
+}
+
 export default {
   DEPLOY_FAILURE_STATS,
   getDeploySuccessRate,
   getDeployDurationSummary,
   getDeploymentPeriodStats,
+  getBanTypeStats,
+  getTimeToNextSuccess,
 };

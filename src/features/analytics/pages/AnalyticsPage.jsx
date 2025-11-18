@@ -1,8 +1,10 @@
-import DeploymentBanStatistics from '@/components/analytics/DeploymentBanStatistics/DeploymentBanStatistics';
 import DeploymentDurationStats from '@/components/analytics/DeploymentDurationStats/DeploymentDurationStats';
 import DeploymentPeriodStats from '@/components/analytics/DeploymentPeriodStats/DeploymentPeriodStats';
 import DeploymentSuccessRate from '@/components/analytics/DeploymentSuccessRate/DeploymentSuccessRate';
 import DeploymentFailureCharts from '@/features/analytics/pages/DeploymentFailureChart';
+
+import DeploymentBanType from '../../../components/analytics/DeploymentBanType/DeploymentBanType';
+import FailureFollowupCharts from '../../../components/analytics/FailureFollowUpChart/FailureFollowUpChart';
 
 import * as S from './AnalyticsPage.styles';
 
@@ -10,7 +12,6 @@ export default function AnalyticsPage() {
   return (
     <S.AppContainer>
       <S.ContentWrapper>
-        {/* Section 1: 배포 실패 결과 통계 */}
         <S.Section>
           {/*
             NOTE: DeploymentFailureCharts fetches real data from
@@ -25,12 +26,15 @@ export default function AnalyticsPage() {
         <S.Section>
           <S.TopGrid>
             <DeploymentPeriodStats />
-            <DeploymentBanStatistics />
+            <DeploymentBanType />
           </S.TopGrid>
           <S.TopGrid>
             <DeploymentDurationStats />
             <DeploymentSuccessRate />
           </S.TopGrid>
+        </S.Section>
+        <S.Section>
+          <FailureFollowupCharts />
         </S.Section>
       </S.ContentWrapper>
     </S.AppContainer>

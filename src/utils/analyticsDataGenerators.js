@@ -1,55 +1,10 @@
-import { getDeployDurationSummary } from '@/api/analytics';
-import { getDeploymentPeriodStats } from '@/api/analytics';
-
-import { getDeploySuccessRate } from '../api/analytics';
-
-// Constants
-export const errorTypes = [
-  { name: '서버 긴급 점검', count: 18, color: '#3B82F6' },
-  { name: '리소스 제약', count: 42, color: '#FB923C' },
-  { name: '배포 스크립트 오류', count: 25, color: '#EF4444' },
-  { name: '의존성 충돌', count: 38, color: '#9CA3AF' },
-  { name: '기타 헬스체크 실패', count: 12, color: '#10B981' },
-];
-
-export const filterOptions = [
-  '서버 긴급 점검',
-  '리소스 제약',
-  '배포 스크립트 오류',
-  '의존성 충돌',
-  '기타 헬스체크 실패',
-];
-
-export const servers = [
-  {
-    name: '인사 서비스',
-    status: 'online',
-    cpu: 45,
-    memory: 62,
-    uptime: '99.8%',
-  },
-  {
-    name: '결제 서비스',
-    status: 'online',
-    cpu: 38,
-    memory: 58,
-    uptime: '99.9%',
-  },
-  {
-    name: '자원 관리 서비스',
-    status: 'online',
-    cpu: 72,
-    memory: 84,
-    uptime: '99.7%',
-  },
-  {
-    name: 'AiWacs 서비스',
-    status: 'online',
-    cpu: 54,
-    memory: 71,
-    uptime: '99.5%',
-  },
-];
+import {
+  getDeployDurationSummary,
+  getDeploymentPeriodStats,
+  getBanTypeStats,
+  getDeploySuccessRate,
+  getTimeToNextSuccess,
+} from '@/api/analytics';
 
 // services 배열은 icon이 JSX 요소이므로 컴포넌트에서 처리
 // 여기서는 데이터 구조만 정의
@@ -323,4 +278,89 @@ export async function generateSuccessData(serviceId) {
   return found
     ? { success: found.success || 0, failed: found.failed || 0 }
     : _successCache.all;
+}
+
+// Ban Type(작업 금지 유형) 색상 매핑 (필요시 취향대로 변경 가능)
+const BAN_TYPE_COLORS = {
+  DB_MIGRATION: '#3B82F6', // 파랑
+  MAINTENANCE: '#FB923C', // 주황
+  ACCIDENT: '#EF4444', // 빨강
+  EXTERNAL_SCHEDULE: '#10B981', // 초록
+};
+
+// 라벨 변환(서버 enum → 한글 표기). 필요 없으면 그대로 type 사용해도 됨.
+const BAN_TYPE_LABELS = {
+  DB_MIGRATION: 'DB 마이그레이션',
+  MAINTENANCE: '유지보수',
+  ACCIDENT: '사고/장애',
+  EXTERNAL_SCHEDULE: '외부 일정',
+};
+
+/**
+ * 작업 금지 유형 통계 불러오기
+ * @param {string|number} projectId 'all' | number
+ * @returns Promise<{ total:number, reasons: {label:string,count:number,color:string}[] }>
+ */
+export async function fetchBanTypeData(projectId = 'all') {
+  const json = await getBanTypeStats(projectId);
+  const items = Array.isArray(json?.items) ? json.items : [];
+
+  const reasons = items.map((it) => {
+    const type = String(it.type ?? '');
+    return {
+      label: BAN_TYPE_LABELS[type] ?? type, // 라벨 한글화
+      count: Number(it.count || 0),
+      color: BAN_TYPE_COLORS[type] ?? '#9CA3AF', // 기본 회색
+    };
+  });
+  const total =
+    typeof json?.total === 'number'
+      ? json.total
+      : reasons.reduce((a, r) => a + r.count, 0);
+
+  return { total, reasons };
+}
+
+/**
+ * 실패 → 다음 성공까지 걸린 시간(프로젝트별) 데이터
+ *
+ * 백엔드 응답:
+ * {
+ *   thresholdMins: 120,
+ *   items: [
+ *     { projectId, projectName, avgMins, sampleCount, withinMinutes, overMinutes },
+ *     ...
+ *   ]
+ * }
+ *
+ * 반환 형태:
+ * {
+ *   thresholdMins: number,
+ *   projects: [
+ *     { id, name, avgSuccessMins, sampleCount, withinMinutes, overMinutes },
+ *     ...
+ *   ]
+ * }
+ *
+ * → FailureFollowupCharts의 StackedBarChart에 그대로 물릴 수 있게 구성
+ */
+export async function fetchFailureFollowupSuccessData({
+  projectId = 'all',
+  thresholdMins = 120,
+} = {}) {
+  const json = await getTimeToNextSuccess({ projectId, thresholdMins });
+
+  const effectiveThreshold = Number(json?.thresholdMins ?? thresholdMins);
+  const items = Array.isArray(json?.items) ? json.items : [];
+
+  const projects = items.map((it) => ({
+    id: it.projectId,
+    name: it.projectName,
+    avgSuccessMins: Number(it.avgMins ?? 0),
+    sampleCount: Number(it.sampleCount ?? 0),
+    withinMinutes: Number(it.withinMinutes ?? 0),
+    overMinutes: Number(it.overMinutes ?? 0),
+  }));
+
+  return { thresholdMins: effectiveThreshold, projects };
 }
