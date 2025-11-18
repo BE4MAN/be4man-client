@@ -241,13 +241,10 @@ export const getStyles = (theme) => {
       borderBottom: `1px solid ${theme.colors.border}`,
     },
 
-    tr: (hovered) => ({
-      backgroundColor: hovered
-        ? theme.colors.backgroundHover || (isDark ? '#2a2a2a' : '#f8f9fa')
-        : 'transparent',
+    tr: {
+      borderBottom: `1px solid ${theme.colors.border}`,
       transition: 'background-color 0.2s',
-      cursor: 'pointer',
-    }),
+    },
 
     td: {
       padding: '16px',
@@ -256,14 +253,63 @@ export const getStyles = (theme) => {
       borderBottom: `1px solid ${theme.colors.border}`,
     },
 
+    // 로딩 및 에러 상태
+    loadingContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '60px 20px',
+      minHeight: '300px',
+    },
+
+    loadingSpinner: {
+      fontSize: '16px',
+      color: theme.colors.textSecondary,
+      fontWeight: '500',
+    },
+
+    errorContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '60px 20px',
+      minHeight: '300px',
+    },
+
+    errorMessage: {
+      fontSize: '16px',
+      color: theme.colors.danger || '#f44336',
+      fontWeight: '500',
+    },
+
+    emptyMessage: {
+      padding: '60px 20px',
+      textAlign: 'center',
+      fontSize: '15px',
+      color: theme.colors.textSecondary,
+      fontWeight: '500',
+    },
+
     // 배지 스타일
     badge: (type, value) => {
-      let backgroundColor, color;
+      let backgroundColor, color, padding, borderRadius;
 
-      if (type === 'status') {
-        // 처리 상태
+      if (type === 'stage') {
+        // 작업 단계 - 배경 및 border 제거
+        backgroundColor = 'transparent';
+        color = theme.colors.text;
+        padding = '0';
+        borderRadius = '0';
+      } else if (type === 'status') {
+        // 작업 상태 - 배경 및 border 제거
+        backgroundColor = 'transparent';
+        color = theme.colors.text;
+        padding = '0';
+        borderRadius = '0';
       } else if (type === 'result') {
         // 결과
+        padding = '4px 12px';
+        borderRadius = '12px';
         switch (value) {
           case '성공':
             backgroundColor = isDark ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9';
@@ -282,8 +328,8 @@ export const getStyles = (theme) => {
 
       return {
         display: 'inline-block',
-        padding: '4px 12px',
-        borderRadius: '12px',
+        padding,
+        borderRadius,
         fontSize: '13px',
         fontWeight: '500',
         backgroundColor,

@@ -3,13 +3,7 @@ import { useTheme } from '@emotion/react';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// ========== [IMPORT 전환] 백엔드 사용 시 아래 주석 해제 ==========
-// import { getTasks } from '../../../api/taskManagement';
-// ========== [IMPORT 전환 끝] ==========
-
-// ========== [IMPORT 전환] 목 데이터 사용 시 아래 주석 해제 ==========
-import mockData from '../../../mock/taskManage';
-// ========== [IMPORT 전환 끝] ==========
+import { getTasks } from '../../../api/taskManagement';
 
 import DateRangePicker from './DateRangePicker';
 import { getStyles } from './LogManagement.style';
@@ -132,13 +126,10 @@ export default function LogManagement() {
 
   const PAGE_SIZE = 8;
 
-  // ========== [상태 변수 전환] 백엔드 사용 시 아래 주석 해제 ==========
-  // const [tasks, setTasks] = useState([]);
-  // const [totalPages, setTotalPages] = useState(0);
-  // const [totalElements, setTotalElements] = useState(0);
-  // const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState(null);
-  // ========== [상태 변수 전환 끝] ==========
+  const [tasks, setTasks] = useState([]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
@@ -149,7 +140,6 @@ export default function LogManagement() {
     종료일: '',
     순서: '최신순',
   });
-  const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchFocused, setSearchFocused] = useState(false);
   const [clearBtnHovered, setClearBtnHovered] = useState(false);
@@ -178,100 +168,48 @@ export default function LogManagement() {
       종료일: '',
       순서: '최신순',
     });
-    setSortOrder('desc');
     setSearchQuery('');
     setCurrentPage(1);
   };
 
-  // ========== [데이터 로직 전환] 백엔드 사용 시 아래 주석 해제 ==========
-  // const fetchTasks = async () => {
-  //   try {
-  //     setLoading(true);
-  //     setError(null);
-  //
-  //     const params = {
-  //       page: currentPage - 1, // 백엔드는 0부터 시작
-  //       size: PAGE_SIZE,
-  //       searchQuery: searchQuery,
-  //       stage: filters.작업단계,
-  //       status: filters.작업상태,
-  //       result: filters.결과,
-  //       sortBy: filters.순서,
-  //     };
-  //
-  //     const response = await getTasks(params);
-  //
-  //     setTasks(response.content);
-  //     setTotalPages(response.totalPages);
-  //     setTotalElements(response.totalElements);
-  //   } catch (err) {
-  //     console.error('작업 목록 조회 실패:', err);
-  //     setError('작업 목록을 불러오는데 실패했습니다.');
-  //     setTasks([]);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  //
-  // // 필터 또는 검색어 변경 시 페이지를 1로 리셋
-  // useEffect(() => {
-  //   setCurrentPage(1);
-  // }, [searchQuery, filters]);
-  //
-  // // 필터, 검색어, 페이지 변경 시 API 호출
-  // useEffect(() => {
-  //   fetchTasks();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [currentPage, searchQuery, filters]);
-  // ========== [데이터 로직 전환 끝] ==========
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  // ========== [데이터 로직 전환] 목 데이터 사용 시 아래 주석 해제 ==========
-  const filteredData = mockData
-    .filter((item) => {
-      const matchesSearch =
-        searchQuery === '' ||
-        item.id.toString().includes(searchQuery) ||
-        item.drafter.includes(searchQuery) ||
-        item.serviceName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.taskTitle.toLowerCase().includes(searchQuery.toLowerCase());
+      const params = {
+        page: currentPage - 1, // 백엔드는 0부터 시작
+        size: PAGE_SIZE,
+        searchQuery: searchQuery,
+        stage: filters.작업단계,
+        status: filters.작업상태,
+        result: filters.결과,
+        sortBy: filters.순서,
+      };
 
-      const matchesStage =
-        filters.작업단계 === '전체' || item.stage === filters.작업단계;
-      const matchesStatus =
-        filters.작업상태 === '전체' || item.status === filters.작업상태;
-      const matchesResult =
-        filters.결과 === '전체' ||
-        (item.result && item.result === filters.결과);
+      const response = await getTasks(params);
 
-      let matchesDateRange = true;
-      if (filters.시작일 && filters.종료일 && item.completionTime) {
-        const itemDate = new Date(item.completionTime.replace(/\./g, '-'));
-        const startDate = new Date(filters.시작일);
-        const endDate = new Date(filters.종료일 + ' 23:59:59');
-        matchesDateRange = itemDate >= startDate && itemDate <= endDate;
-      }
-
-      return (
-        matchesSearch &&
-        matchesStage &&
-        matchesStatus &&
-        matchesResult &&
-        matchesDateRange
-      );
-    })
-    .sort((a, b) => {
-      return sortOrder === 'desc' ? b.id - a.id : a.id - b.id;
-    });
-
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const pageData = filteredData.slice(start, start + PAGE_SIZE);
-  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+      setTasks(response.content);
+      setTotalPages(response.totalPages);
+    } catch (err) {
+      console.error('작업 목록 조회 실패:', err);
+      setError('작업 목록을 불러오는데 실패했습니다.');
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 필터 또는 검색어 변경 시 페이지를 1로 리셋
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, filters]);
-  // ========== [데이터 로직 전환 끝] ==========
+
+  // 필터, 검색어, 페이지 변경 시 API 호출
+  useEffect(() => {
+    fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, searchQuery, filters]);
 
   const renderBadge = (text, type) => {
     return <span style={styles.badge(type, text)}>{text}</span>;
@@ -410,10 +348,7 @@ export default function LogManagement() {
                 label=""
                 options={['최신순', '오래된순']}
                 value={filters.순서}
-                onChange={(val) => {
-                  handleFilter('순서', val);
-                  setSortOrder(val === '최신순' ? 'desc' : 'asc');
-                }}
+                onChange={(val) => handleFilter('순서', val)}
               />
             </div>
             <div style={styles.filterRowItem}>
@@ -430,97 +365,86 @@ export default function LogManagement() {
 
       {/* 테이블 */}
       <div style={styles.tableWrapper}>
-        <table style={styles.table}>
-          <thead style={styles.thead}>
-            <tr>
-              <th style={styles.th}>작업 번호</th>
-              <th style={styles.th}>기안자</th>
-              <th style={styles.th}>부서</th>
-              <th style={styles.th}>서비스명</th>
-              <th style={styles.th}>작업 제목</th>
-              <th style={styles.th}>작업 단계</th>
-              <th style={styles.th}>작업 상태</th>
-              <th style={{ ...styles.th, textAlign: 'center' }}>완료 시각</th>
-              <th style={{ ...styles.th, textAlign: 'center' }}>배포 결과</th>
-              <th style={{ ...styles.th, textAlign: 'center' }}>상세</th>
-            </tr>
-          </thead>
-          {/* ========== [테이블 렌더링 전환] 목 데이터 사용 시 아래 영역 유지 ========== */}
-          <tbody>
-            {pageData.length > 0 ? (
-              pageData.map((item) => (
-                <tr key={item.id}>
-                  <td
-                    style={{
-                      ...styles.td,
-                      color: theme.colors.text,
-                      fontWeight: '500',
-                    }}
-                  >
-                    {item.id}
-                  </td>
-                  <td style={styles.td}>{item.drafter}</td>
-                  <td style={styles.td}>{item.department}</td>
-                  <td style={styles.td}>{item.serviceName}</td>
-                  <td style={styles.td}>{item.taskTitle}</td>
-                  <td style={styles.td}>{renderBadge(item.stage, 'stage')}</td>
-                  <td style={styles.td}>
-                    {renderBadge(item.status, 'status')}
-                  </td>
-                  <td style={{ ...styles.td, textAlign: 'center' }}>
-                    {item.completionTime || (
-                      <span style={{ color: theme.colors.textsecondary }}>
-                        -
-                      </span>
-                    )}
-                  </td>
-                  <td style={{ ...styles.td, textAlign: 'center' }}>
-                    {renderResult(item.result)}
-                  </td>
-                  <td style={{ ...styles.td, textAlign: 'center' }}>
-                    <button
-                      style={detailButtonStyle(hoveredDetailBtn === item.id)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDetailClick(item.id);
-                      }}
-                      onMouseEnter={() => setHoveredDetailBtn(item.id)}
-                      onMouseLeave={() => setHoveredDetailBtn(null)}
-                    >
-                      상세
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                      </svg>
-                    </button>
+        {loading && (
+          <div style={styles.loadingContainer}>
+            <div style={styles.loadingSpinner}>로딩 중...</div>
+          </div>
+        )}
+        {error && (
+          <div style={styles.errorContainer}>
+            <p style={styles.errorMessage}>{error}</p>
+          </div>
+        )}
+        {!loading && !error && (
+          <table style={styles.table}>
+            <thead style={styles.thead}>
+              <tr>
+                <th style={styles.th}>작업 번호</th>
+                <th style={styles.th}>기안자</th>
+                <th style={styles.th}>부서</th>
+                <th style={styles.th}>서비스명</th>
+                <th style={styles.th}>작업 제목</th>
+                <th style={styles.th}>작업 단계</th>
+                <th style={styles.th}>작업 상태</th>
+                <th style={{ ...styles.th, textAlign: 'center' }}>완료 시각</th>
+                <th style={{ ...styles.th, textAlign: 'center' }}>배포 결과</th>
+                <th style={{ ...styles.th, textAlign: 'center' }}>상세</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tasks.length === 0 ? (
+                <tr>
+                  <td colSpan="10" style={styles.emptyMessage}>
+                    작업 데이터가 없습니다.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="10"
-                  style={{
-                    ...styles.td,
-                    padding: '40px',
-                    textAlign: 'center',
-                  }}
-                >
-                  검색 결과가 없습니다.
-                </td>
-              </tr>
-            )}
-          </tbody>
-          {/* ========== [테이블 렌더링 전환 끝] ========== */}
-        </table>
+              ) : (
+                tasks.map((task) => (
+                  <tr key={task.id} style={styles.tr}>
+                    <td style={styles.td}>{task.id || '-'}</td>
+                    <td style={styles.td}>
+                      {task.drafter || task.drafterName || '-'}
+                    </td>
+                    <td style={styles.td}>
+                      {task.department || task.drafterDepartment || '-'}
+                    </td>
+                    <td style={styles.td}>
+                      {task.serviceName || task.service || '-'}
+                    </td>
+                    <td style={styles.td}>
+                      {task.taskTitle || task.title || '-'}
+                    </td>
+                    <td style={styles.td}>
+                      {task.stage ? renderBadge(task.stage, 'stage') : '-'}
+                    </td>
+                    <td style={styles.td}>
+                      {task.status ? renderBadge(task.status, 'status') : '-'}
+                    </td>
+                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                      {task.completionTime ||
+                        task.approvedAt ||
+                        task.completedAt ||
+                        '-'}
+                    </td>
+                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                      {renderResult(task.result || task.deploymentResult)}
+                    </td>
+                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                      <button
+                        style={detailButtonStyle(hoveredDetailBtn === task.id)}
+                        onClick={() => handleDetailClick(task.id)}
+                        onMouseEnter={() => setHoveredDetailBtn(task.id)}
+                        onMouseLeave={() => setHoveredDetailBtn(null)}
+                      >
+                        보기
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* 페이지네이션 */}
