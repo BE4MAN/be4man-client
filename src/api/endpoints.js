@@ -13,6 +13,12 @@ export const API_ENDPOINTS = {
   // Account
   ME: '/api/accounts/me',
 
+  // Dashboard
+  DASHBOARD_PENDING_APPROVALS: '/api/dashboard/pending-approvals',
+  DASHBOARD_IN_PROGRESS_TASKS: '/api/dashboard/in-progress-tasks',
+  DASHBOARD_NOTIFICATIONS: '/api/dashboard/notifications',
+  DASHBOARD_RECOVERY: '/api/dashboard/recovery',
+
   // Task
   CONSOLE_LOG: '/api/console-log',
   BUILD_RESULT: '/api/build-result',
