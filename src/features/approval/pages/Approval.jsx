@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 
-// 🔹 TanStack Query 훅
 import { useApprovalsQuery } from '../../../hooks/useApprovalQueries';
 import { useAuthStore } from '../../../stores/authStore';
+import { useUIStore } from '../../../stores/uiStore';
 
 import * as S from './Approval.styles';
-
-// ----- 유틸 & 매핑 -----
 
 function toArray(x) {
   if (Array.isArray(x)) return x;
@@ -30,7 +28,6 @@ function formatYmdHm(iso) {
   return `${y}.${m}.${day} ${hh}:${mm}`;
 }
 
-// 백엔드 ApprovalStatus → 한글
 function mapStatusEnumToLabel(status) {
   switch (status) {
     case 'DRAFT':
@@ -48,7 +45,6 @@ function mapStatusEnumToLabel(status) {
   }
 }
 
-// 화면 필터용 한글 → 백엔드 ApprovalStatus
 function mapStatusLabelToEnum(label) {
   switch (label) {
     case '임시저장':
@@ -67,7 +63,6 @@ function mapStatusLabelToEnum(label) {
   }
 }
 
-// 백엔드 ApprovalType(enum) → 화면 유형 라벨
 function mapTypeEnumToLabel(type) {
   switch (type) {
     case 'PLAN':
@@ -86,7 +81,6 @@ function mapTypeEnumToLabel(type) {
   }
 }
 
-// 🔥🔥 Summary → Row 변환 (결재일/상태 정상)
 function mapSummaryToRow(item) {
   const statusLabel = mapStatusEnumToLabel(item.status);
 
@@ -102,7 +96,6 @@ function mapSummaryToRow(item) {
 
     nextApprover: item.nextApproverName || item.nextApprover || '—',
 
-    // 🔥 결재일: updatedAt 절대 사용 금지
     updatedAt: item.approvedAt || item.rejectedAt || item.canceledAt || null,
 
     approvedAt: item.approvedAt || null,
@@ -159,9 +152,13 @@ export default function Approval({
   onClickDetail,
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const user = useAuthStore((state) => state.user);
   const accountId = user?.accountId || user?.id;
+
+  const headerService = useUIStore((s) => s.service);
 
   const [decisionRow, setDecisionRow] = useState(null);
   const closeDecision = useCallback(() => setDecisionRow(null), []);
@@ -170,17 +167,58 @@ export default function Approval({
     setDecisionRow(row);
   }, []);
 
-  // ----- 필터/검색/페이지 state -----
   const [statusFilter, setStatusFilter] = useState('전체');
   const [typeFilter, setTypeFilter] = useState('전체');
   const [drafterFilter, setDrafterFilter] = useState('전체');
   const [serviceFilter, setServiceFilter] = useState('전체');
 
+  const ALL_PROJECTS_LABEL = '전체 프로젝트';
+
+  const didMountRef = useRef(false);
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    if (!headerService || headerService === ALL_PROJECTS_LABEL) {
+      setServiceFilter('전체');
+    } else {
+      setServiceFilter(headerService);
+    }
+    if (didMountRef.current) setPage(1);
+  }, [headerService]);
+
   const [searchField, setSearchField] = useState('ALL');
   const [q, setQ] = useState('');
 
+  const LAST_PAGE_KEY = 'approvals:lastPage';
+
   const [pageSize] = useState(defaultPageSize);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => {
+    const v = Number(searchParams.get('page') || 1);
+    return Number.isFinite(v) && v > 0 ? v : 1;
+  });
+
+  useEffect(() => {
+    const sp = new URLSearchParams(searchParams);
+    if (sp.get('page') !== String(page)) {
+      sp.set('page', String(page));
+      setSearchParams(sp, { replace: true });
+    }
+    try {
+      sessionStorage.setItem(LAST_PAGE_KEY, String(page));
+    } catch {
+      //
+    }
+  }, [page]);
+
+  useEffect(() => {
+    const hasPage = !!searchParams.get('page');
+    if (!hasPage) {
+      const saved = Number(sessionStorage.getItem(LAST_PAGE_KEY) || '0');
+      if (Number.isFinite(saved) && saved > 0 && saved !== page) {
+        setPage(saved);
+      }
+    }
+  }, []);
 
   const [openType, setOpenType] = useState(false);
   const [openStatus, setOpenStatus] = useState(false);
@@ -188,20 +226,17 @@ export default function Approval({
 
   const dropdownRef = useRef(null);
 
-  // ----- 백엔드 상태 필터 값 변환 -----
   const backendStatus = useMemo(
     () => mapStatusLabelToEnum(statusFilter),
     [statusFilter],
   );
 
-  // ----- TanStack Query로 결재 목록 가져오기 -----
   const {
     data: approvalsData,
     isLoading,
     isError,
   } = useApprovalsQuery(accountId, backendStatus);
 
-  // ----- 데이터 소스 결정: API → itemsProp -----
   const itemsArr = useMemo(() => {
     if (Array.isArray(approvalsData) && approvalsData.length > 0) {
       return approvalsData.map(mapSummaryToRow);
@@ -220,13 +255,22 @@ export default function Approval({
 
   const handleRowClick = useCallback(
     (row) => {
+      try {
+        sessionStorage.setItem(LAST_PAGE_KEY, String(page));
+      } catch {
+        //
+      }
       if (onClickDetail) return onClickDetail(row);
-      navigate(`/approval/${row.id}`, { state: row });
+      navigate(`/approval/${row.id}`, {
+        state: {
+          ...row,
+          backTo: { pathname: '/approvals', search: location.search },
+        },
+      });
     },
-    [navigate, onClickDetail],
+    [navigate, onClickDetail, location.search, page],
   );
 
-  // 🔥🔥🔥 여기 수정됨 — status 재계산 제거
   const rows = useMemo(
     () =>
       itemsArr.map((r) => {
@@ -234,7 +278,6 @@ export default function Approval({
         const totRaw = Number(r?.approval?.total ?? 1);
         const tot = Number.isFinite(totRaw) && totRaw > 0 ? totRaw : 1;
 
-        // 백엔드 status 그대로 사용
         return {
           ...r,
           status: r.status,
@@ -244,7 +287,6 @@ export default function Approval({
     [itemsArr],
   );
 
-  // ----- 드롭다운 닫기 이벤트 -----
   useEffect(() => {
     function handleClickOutside(e) {
       const el = e.target;
@@ -258,9 +300,13 @@ export default function Approval({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // ----- 필터/검색/페이지 계산 -----
   const filtered = useMemo(() => {
     const text = q.trim().toLowerCase();
+
+    const serviceKey =
+      headerService && headerService !== ALL_PROJECTS_LABEL
+        ? headerService
+        : serviceFilter;
 
     const passStatus = (row) =>
       statusFilter === '전체' ? true : row.status === statusFilter;
@@ -269,7 +315,7 @@ export default function Approval({
     const passDrafter = (row) =>
       drafterFilter === '전체' ? true : row.drafter === drafterFilter;
     const passService = (row) =>
-      serviceFilter === '전체' ? true : row.serviceName === serviceFilter;
+      serviceKey === '전체' ? true : row.serviceName === serviceKey;
     const passSearch = (row) => {
       if (!text) return true;
       if (searchField === 'ALL') {
@@ -308,26 +354,34 @@ export default function Approval({
     drafterFilter,
     serviceFilter,
     searchField,
+    headerService,
     q,
   ]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const safePage = Math.min(page, totalPages);
+  const safePage = isLoading ? page : Math.min(page, totalPages);
   const start = (safePage - 1) * pageSize;
   const pageItems = filtered.slice(start, start + pageSize);
 
+  const hasFetchedOnceRef = useRef(false);
   useEffect(() => {
-    setPage(1);
-  }, [
-    statusFilter,
-    typeFilter,
-    drafterFilter,
-    serviceFilter,
-    searchField,
-    q,
-    pageSize,
-  ]);
+    if (!isLoading) {
+      hasFetchedOnceRef.current = true;
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (!isLoading && hasFetchedOnceRef.current) {
+      if (page > totalPages) {
+        setPage(totalPages);
+      }
+    }
+  }, [isLoading, totalPages, page]);
+
+  useEffect(() => {
+    didMountRef.current = true;
+  }, []);
 
   const pageWindow = useMemo(() => {
     if (totalPages <= 9)
@@ -352,6 +406,13 @@ export default function Approval({
     return out;
   }, [safePage, totalPages]);
 
+  useEffect(() => {
+    const v = Number(searchParams.get('page') || 1);
+    if (Number.isFinite(v) && v > 0 && v !== page) {
+      setPage(v);
+    }
+  }, [searchParams]);
+
   const resetFilter = () => {
     setStatusFilter('전체');
     setTypeFilter('전체');
@@ -359,14 +420,13 @@ export default function Approval({
     setServiceFilter('전체');
     setSearchField('ALL');
     setQ('');
+    setPage(1);
   };
 
-  // 🔹 모달에서 보여줄 라벨/값 계산
   const decisionLabels = decisionRow
     ? (() => {
         const status = decisionRow.status;
 
-        // ⭐ 공통으로 쓸 값들: 백엔드가 어디에 넣어주든 최대한 다 받아보자
         const actor =
           decisionRow.rejectedBy ||
           decisionRow.canceledBy ||
@@ -389,10 +449,9 @@ export default function Approval({
           decisionRow.approvedReason ||
           '';
 
-        // 상태별로 타이틀/라벨만 바꿔주고, comment 는 공통으로 사용
         if (status === '반려') {
           return {
-            title: '반려 사유',
+            title: '반려',
             actorLabel: '반려자',
             dateLabel: '반려일',
             actor,
@@ -403,7 +462,7 @@ export default function Approval({
 
         if (status === '승인취소') {
           return {
-            title: '취소 사유',
+            title: '취소',
             actorLabel: '취소자',
             dateLabel: '취소일',
             actor,
@@ -412,9 +471,8 @@ export default function Approval({
           };
         }
 
-        // 🔹 완료(승인)
         return {
-          title: '승인 사유',
+          title: '승인',
           actorLabel: '승인자',
           dateLabel: '승인일',
           actor,
@@ -423,6 +481,18 @@ export default function Approval({
         };
       })()
     : null;
+
+  useEffect(() => {
+    return () => {
+      try {
+        window.scrollTo(0, 0);
+        document.scrollingElement?.scrollTo(0, 0);
+        if (panelRef.current) panelRef.current.scrollTop = 0;
+      } catch {
+        //
+      }
+    };
+  }, []);
 
   return (
     <S.Wrap>
@@ -449,6 +519,7 @@ export default function Approval({
                       key={o}
                       onClick={() => {
                         setTypeFilter(o);
+                        setPage(1);
                         setOpenType(false);
                       }}
                     >
@@ -471,6 +542,7 @@ export default function Approval({
                       key={o}
                       onClick={() => {
                         setStatusFilter(o);
+                        setPage(1);
                         setOpenStatus(false);
                       }}
                     >
@@ -502,6 +574,7 @@ export default function Approval({
                       key={f.key}
                       onClick={() => {
                         setSearchField(f.key);
+                        setPage(1);
                         setOpenSearch(false);
                       }}
                     >
@@ -523,7 +596,7 @@ export default function Approval({
         </S.FilterRow>
       </S.FilterCard>
 
-      <S.Panel>
+      <S.Panel ref={panelRef}>
         {isError && (
           <div style={{ padding: 16, color: 'red' }}>
             결재 목록을 불러오는 중 오류가 발생했습니다.
@@ -593,7 +666,6 @@ export default function Approval({
                     <S.Td role="cell">{r.serviceName}</S.Td>
                     <S.Td role="cell">{r.drafter}</S.Td>
 
-                    {/* 🔹 기안일: type 이 임시저장이면 텍스트, 아니면 날짜 */}
                     <S.Td role="cell">
                       {isDraftType
                         ? '임시저장'
@@ -602,7 +674,6 @@ export default function Approval({
                           : '-'}
                     </S.Td>
 
-                    {/* 🔹 승인 상태 버튼: 임시저장은 '-' */}
                     <S.Td
                       role="cell"
                       data-nopointer
@@ -645,7 +716,6 @@ export default function Approval({
                       )}
                     </S.Td>
 
-                    {/* 🔹 승인 예정자: 임시저장은 '-' */}
                     <S.Td role="cell">
                       {isDraftType
                         ? '-'
@@ -654,7 +724,6 @@ export default function Approval({
                           : r.nextApprover}
                     </S.Td>
 
-                    {/* 🔹 결재일: 임시저장은 '-', 나머지는 updatedAt */}
                     <S.Td role="cell">
                       {isDraftType
                         ? '-'

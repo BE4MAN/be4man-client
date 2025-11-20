@@ -14,8 +14,6 @@ import * as S from './Dashboard.styles';
 
 const CURRENT_USER = '김민호';
 
-// ---------------- 공통 날짜 유틸 ----------------
-
 function mondayOf(date) {
   const d = new Date(date);
   const day = d.getDay();
@@ -43,9 +41,6 @@ function isDateInRangeByDay(date, startIso, endIso) {
   return day.getTime() >= start.getTime() && day.getTime() <= end.getTime();
 }
 
-// ---------------- 결재 도메인 유틸 ----------------
-
-// status/approval 정규화
 function normalizeStatus(doc) {
   const cur = Number(doc?.approval?.current ?? 0);
   const totRaw = Number(doc?.approval?.total ?? 1);
@@ -67,14 +62,12 @@ function normalizeStatus(doc) {
   };
 }
 
-// 내가 승인해야 할 차례인지 (승인대기)
 function isMyTurnToApprove(doc, currentUser = CURRENT_USER) {
   const d = normalizeStatus(doc);
   if (d.status !== '승인요청') return false;
   return d.currentApprover === currentUser;
 }
 
-// 내가 이미 승인/합의한 문서인지
 function hasApprovedByMe(doc, currentUser = CURRENT_USER) {
   if (!Array.isArray(doc.approvalLine)) return false;
 
@@ -86,20 +79,17 @@ function hasApprovedByMe(doc, currentUser = CURRENT_USER) {
   );
 }
 
-// 최종 상태(완료/반려/승인취소) 여부
 function isFinalStatus(doc) {
   const d = normalizeStatus(doc);
   return ['완료', '반려', '승인취소'].includes(d.status);
 }
 
-// ✅ 승인 대기 목록: "내가 승인/반려할 차례"인 문서들만
 function getPendingApprovalsForMe(docs, currentUser = CURRENT_USER) {
   return (docs ?? [])
     .map(normalizeStatus)
     .filter((doc) => isMyTurnToApprove(doc, currentUser));
 }
 
-// ✅ 진행중인 업무: "내가 이미 승인했지만 결과처리(완료/반려/취소)까지 안 끝난 문서"
 function getInProgressTasksForMe(docs, currentUser = CURRENT_USER) {
   return (docs ?? [])
     .map(normalizeStatus)
@@ -122,8 +112,6 @@ function getNotificationsForMe(docs, currentUser = CURRENT_USER) {
     );
 }
 
-// ---------------- 대시보드 컴포넌트 ----------------
-
 export default function Dashboard() {
   const [offset, setOffset] = useState(0);
   const [now, setNow] = useState(new Date());
@@ -139,10 +127,9 @@ export default function Dashboard() {
   const formatDate = (d) => `${d.getMonth() + 1}월 ${d.getDate()}일`;
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-  // 모달/패널 상태
   const [panelOpen, setPanelOpen] = useState(false);
-  const [panelMode, setPanelMode] = useState(null); // 'pending' | 'tasks' | 'notifications' | 'day' | 'recovery'
-  const [viewMode, setViewMode] = useState('list'); // 'list' | 'detail'
+  const [panelMode, setPanelMode] = useState(null);
+  const [viewMode, setViewMode] = useState('list');
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedDayDetail, setSelectedDayDetail] = useState(null);
@@ -230,9 +217,6 @@ export default function Dashboard() {
       panelMode === 'notifications' ||
       panelMode === 'day');
 
-  // ---------- 여기서부터 "내 기준으로" 목록 계산 ----------
-
-  // mock 세 개를 한 덩어리로 본다는 가정 (실제에선 서버에서 전체 문서 리스트를 내려주면 거기서 필터)
   const ALL_DOCS = useMemo(
     () => [
       ...(PENDING_APPROVALS || []),
@@ -257,12 +241,9 @@ export default function Dashboard() {
     [ALL_DOCS],
   );
 
-  // -------------------------------------------------------
-
   return (
     <>
       <S.Wrap>
-        {/* 상단 카드 (통계) */}
         <S.StatGrid>
           {STATS.map((s) => (
             <S.StatCard key={s.id} onClick={() => openPanel(s.id)}>
@@ -278,7 +259,6 @@ export default function Dashboard() {
           ))}
         </S.StatGrid>
 
-        {/* 주간 일정 */}
         <S.WeekBlock>
           <S.WeekHeader>
             <S.SectionTitle>주간 일정</S.SectionTitle>
@@ -380,7 +360,6 @@ export default function Dashboard() {
           </S.WeekGrid>
         </S.WeekBlock>
 
-        {/* 복구 현황 테이블 */}
         <S.RecoveryBlock>
           <S.SectionTitle>복구 현황</S.SectionTitle>
           <S.Table>
@@ -419,7 +398,6 @@ export default function Dashboard() {
 
       {panelOpen && panelMode && (
         <S.SidePanel>
-          {/* 상단 헤더 */}
           {isDetailHeader ? (
             <S.PanelHeader $dark>
               <S.PanelTitleWrap>
@@ -599,7 +577,6 @@ export default function Dashboard() {
             </>
           )}
 
-          {/* ✅ 진행중인 업무: 내가 승인했지만 아직 최종완료 안된 문서 */}
           {panelMode === 'tasks' && (
             <>
               {viewMode === 'list' && (
@@ -669,7 +646,6 @@ export default function Dashboard() {
             </>
           )}
 
-          {/* 주간 일정 상세 */}
           {panelMode === 'day' && selectedDay && (
             <>
               {viewMode === 'list' && (
@@ -789,7 +765,6 @@ export default function Dashboard() {
             </>
           )}
 
-          {/* 복구 상세 */}
           {panelMode === 'recovery' &&
             viewMode === 'detail' &&
             selectedRecovery && (

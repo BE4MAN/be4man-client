@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { PATHS } from '../../../app/routes/paths';
@@ -12,8 +12,6 @@ import {
 import { useAuthStore } from '../../../stores/authStore';
 
 import * as S from './ApprovalDetail.styles';
-
-const APPROVAL_LIST_PATH = '/approvals';
 
 const TYPE_LABEL = {
   draft: '기안',
@@ -60,6 +58,7 @@ function mapDetailToUi(detail) {
     drafterName,
     drafterDept,
     drafterRank,
+    drafterAccountId,
     lines,
   } = detail;
 
@@ -67,9 +66,17 @@ function mapDetailToUi(detail) {
     status === 'APPROVED' || status === 'REJECTED' || status === 'CANCELED';
 
   const approvalLine = (lines || []).map((line, idx) => {
-    const lineType = (line.type || '').toLowerCase();
+    const isDrafterLine =
+      drafterAccountId != null && line.accountId === drafterAccountId;
+
+    const rawType = (line.type || '').toLowerCase();
+
+    const effectiveType = isDrafterLine
+      ? 'draft'
+      : rawType || (idx === 0 ? 'draft' : 'approve');
+
     return {
-      type: lineType || (idx === 0 ? 'draft' : 'approve'),
+      type: effectiveType,
       dept: line.deptName || line.dept || drafterDept || '',
       name:
         line.accountName ||
@@ -109,6 +116,20 @@ export default function ApprovalDetail() {
   const [actionModal, setActionModal] = useState(null);
   const [actionComment, setActionComment] = useState('');
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.scrollingElement?.scrollTo(0, 0);
+    try {
+      const params = new URLSearchParams(state?.backTo?.search || '');
+      const p = Number(params.get('page') || '0');
+      if (Number.isFinite(p) && p > 0) {
+        sessionStorage.setItem('approvals:lastPage', String(p));
+      }
+    } catch {
+      //
+    }
+  }, []);
+
   const user = useAuthStore((s) => s.user);
   let currentUserId = user?.accountId || user?.id;
   let currentUserName = user?.name || user?.username || user?.displayName || '';
@@ -147,7 +168,7 @@ export default function ApprovalDetail() {
       <S.Wrap>
         <S.Panel>
           <div style={{ padding: 16 }}>데이터가 없습니다.</div>
-          <S.SubtleBtn onClick={() => navigate(-1)}>뒤로가기</S.SubtleBtn>
+          <S.SubtleBtn onClick={goBackToList}>뒤로가기</S.SubtleBtn>
         </S.Panel>
       </S.Wrap>
     );
@@ -181,6 +202,31 @@ export default function ApprovalDetail() {
     setActionComment('');
   };
 
+  const LAST_PAGE_KEY = 'approvals:lastPage';
+  const goBackToList = () => {
+    const back = state?.backTo;
+    if (back?.pathname) {
+      let search = back.search || '';
+      if (typeof search !== 'string') {
+        const sp = new URLSearchParams(search || '');
+        search = sp.toString() ? `?${sp.toString()}` : '';
+      } else if (search && !search.startsWith('?')) {
+        search = `?${search}`;
+      }
+      if (!search) {
+        const saved = Number(sessionStorage.getItem(LAST_PAGE_KEY) || '1');
+        if (Number.isFinite(saved) && saved > 0) {
+          search = `?page=${saved}`;
+        }
+      }
+      navigate({ pathname: back.pathname, search }, { replace: true });
+    } else {
+      const saved = Number(sessionStorage.getItem(LAST_PAGE_KEY) || '1');
+      const search =
+        Number.isFinite(saved) && saved > 0 ? `?page=${saved}` : '';
+      navigate({ pathname: '/approvals', search }, { replace: true });
+    }
+  };
   const closeActionModal = () => {
     setActionModal(null);
     setActionComment('');
@@ -192,14 +238,12 @@ export default function ApprovalDetail() {
     try {
       if (actionModal.type === 'delete') {
         await deleteMut.mutateAsync({ approvalId: id });
-        navigate(APPROVAL_LIST_PATH);
-        return;
+        return goBackToList();
       }
 
       if (actionModal.type === 'cancel') {
         await cancelMut.mutateAsync({ approvalId: id });
-        navigate(APPROVAL_LIST_PATH);
-        return;
+        return goBackToList();
       }
 
       if (actionModal.type === 'approve') {
@@ -208,8 +252,7 @@ export default function ApprovalDetail() {
           approverAccountId: currentUserId,
           comment: actionComment,
         });
-        navigate(APPROVAL_LIST_PATH);
-        return;
+        return goBackToList();
       }
 
       if (actionModal.type === 'reject') {
@@ -218,8 +261,7 @@ export default function ApprovalDetail() {
           approverAccountId: currentUserId,
           comment: actionComment,
         });
-        navigate(APPROVAL_LIST_PATH);
-        return;
+        return goBackToList();
       }
 
       closeActionModal();
@@ -239,14 +281,18 @@ export default function ApprovalDetail() {
                 삭제
               </S.DangerBtn>
               <S.PrimaryBtn
-                onClick={() => navigate(PATHS.APPROVAL_EDIT.replace(':id', id))}
+                onClick={() =>
+                  navigate(PATHS.APPROVAL_EDIT.replace(':id', id), {
+                    state: { backTo: state?.backTo },
+                  })
+                }
               >
                 수정
               </S.PrimaryBtn>
               <S.PrimaryBtn onClick={() => setShowLine(true)}>
                 결재라인
               </S.PrimaryBtn>
-              <S.SubtleBtn onClick={() => navigate(-1)}>뒤로가기</S.SubtleBtn>
+              <S.SubtleBtn onClick={goBackToList}>뒤로가기</S.SubtleBtn>
             </>
           ) : (
             <>
@@ -270,7 +316,7 @@ export default function ApprovalDetail() {
               <S.PrimaryBtn onClick={() => setShowLine(true)}>
                 결재라인
               </S.PrimaryBtn>
-              <S.SubtleBtn onClick={() => navigate(-1)}>뒤로가기</S.SubtleBtn>
+              <S.SubtleBtn onClick={goBackToList}>뒤로가기</S.SubtleBtn>
             </>
           )}
         </S.HeaderRow>
@@ -376,25 +422,15 @@ export default function ApprovalDetail() {
               <S.ModalTitle>
                 {actionModal.type === 'delete' && '문서를 삭제하시겠습니까?'}
                 {actionModal.type === 'cancel' && '문서를 취소하시겠습니까?'}
-                {actionModal.type === 'approve' && '승인 사유'}
-                {actionModal.type === 'reject' && '반려 사유'}
+                {actionModal.type === 'approve' && '승인'}
+                {actionModal.type === 'reject' && '반려'}
               </S.ModalTitle>
             </S.ModalHeader>
 
             <S.ModalBody>
-              {(actionModal.type === 'delete' ||
-                actionModal.type === 'cancel') && (
-                <div style={{ padding: '12px 0' }}>
-                  {actionModal.type === 'delete'
-                    ? '정말 삭제하시겠습니까?'
-                    : '정말 문서를 취소하시겠습니까?'}
-                </div>
-              )}
-
               {(actionModal.type === 'approve' ||
                 actionModal.type === 'reject') && (
                 <>
-                  <S.ReasonLabel>사유를 입력해 주세요.</S.ReasonLabel>
                   <S.ReasonTextarea
                     value={actionComment}
                     onChange={(e) => setActionComment(e.target.value)}

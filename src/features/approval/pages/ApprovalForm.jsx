@@ -3,10 +3,17 @@ import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { ChevronRight, ChevronDown } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { userAPI } from '@/api/user';
+import { ProblemCaseDetailModal } from '@/features/problem/components/ProblemCaseDetailModal';
+import * as PT from '@/features/problem/components/ProblemTypeTree.styles';
+import {
+  useAllProblemCategoriesQuery,
+  useAllProblemsQuery,
+} from '@/hooks/useProblemQueries';
 import { useAccountProjectsByAccountQuery } from '@/hooks/useProjectQueries';
 import { useMyPullRequestsQueryByGithubId } from '@/hooks/usePullRequestQueries.js';
 
@@ -18,6 +25,7 @@ import { DOC_TYPES, TEMPLATES } from '../../../mock/approvalTemplates';
 import { useAuthStore } from '../../../stores/authStore';
 
 import * as S from './ApprovalForm.styles';
+
 import LeftSort from '/icons/left-sort.svg';
 import CenterSort from '/icons/center-sort.svg';
 import RightSort from '/icons/right-sort.svg';
@@ -102,7 +110,6 @@ export default function ApprovalForm({
 }) {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-  console.log(user);
 
   const CURRENT_ACCOUNT_ID =
     initial.drafterAccountId ?? user?.accountId ?? user?.id ?? null;
@@ -124,10 +131,10 @@ export default function ApprovalForm({
     initial.draftDate ?? new Date().toISOString().slice(0, 10),
   );
   const [docType, setDocType] = useState(initial.docType ?? DOC_TYPES[0]);
-  const [title, setTitle] = useState(initial.title ?? '');
   const [htmlText, setHtmlText] = useState(
     initial.htmlText ?? TEMPLATES[docType]?.html?.trim() ?? '',
   );
+  const [title, setTitle] = useState(initial.title ?? '');
 
   const editor = useEditor({
     extensions: [
@@ -144,6 +151,20 @@ export default function ApprovalForm({
   const [pendingDocType, setPendingDocType] = useState(null);
   const [submitComment, setSubmitComment] = useState('');
   const [busy, setBusy] = useState(false);
+
+  const [steps, setSteps] = useState(
+    initial.steps ?? [
+      {
+        id: crypto.randomUUID(),
+        type: 'draft',
+        dept: dept,
+        name: drafter,
+        rank: position,
+        opinion: '',
+        accountId: CURRENT_ACCOUNT_ID,
+      },
+    ],
+  );
 
   const openConfirm = (t) => {
     if (t === 'submit') {
@@ -169,20 +190,6 @@ export default function ApprovalForm({
     setHtmlText(t.html.trim());
     setDocType(type);
   };
-
-  const [steps, setSteps] = useState(
-    initial.steps ?? [
-      {
-        id: crypto.randomUUID(),
-        type: 'draft',
-        dept: dept,
-        name: drafter,
-        rank: position,
-        opinion: '',
-        accountId: CURRENT_ACCOUNT_ID,
-      },
-    ],
-  );
 
   useEffect(() => {
     setSteps((prev) => {
@@ -289,7 +296,7 @@ export default function ApprovalForm({
     } else if (firstProjectId != null) {
       setSelectedProjectId(firstProjectId);
     }
-  }, [firstProjectId, initial?.projectId]);
+  }, [firstProjectId, initial?.projectId, selectedProjectId]);
 
   const selectedProjectName = useMemo(() => {
     const item = myProjectOptions.find((p) => p.id === selectedProjectId);
@@ -318,12 +325,30 @@ export default function ApprovalForm({
 
   const prOptions = useMemo(() => {
     if (!myPRs?.length) return [];
-    return myPRs.map((pr) => ({
+
+    const hasApprovedFlag = myPRs.some(
+      (pr) =>
+        Object.prototype.hasOwnProperty.call(pr, 'isApproved') ||
+        Object.prototype.hasOwnProperty.call(pr, 'approved') ||
+        Object.prototype.hasOwnProperty.call(pr, 'is_approved'),
+    );
+
+    const list =
+      docType === '결과 보고서' && hasApprovedFlag
+        ? myPRs.filter(
+            (pr) =>
+              pr?.isApproved === true ||
+              pr?.approved === true ||
+              pr?.is_approved === true,
+          )
+        : myPRs;
+
+    return list.map((pr) => ({
       id: pr.id,
       label: pr.branch ?? 'branch?',
       branch: pr.branch,
     }));
-  }, [myPRs]);
+  }, [myPRs, docType]);
 
   const [selectedPrId, setSelectedPrId] = useState(
     initial.pullRequestId ?? prOptions[0]?.id ?? null,
@@ -335,20 +360,16 @@ export default function ApprovalForm({
   );
 
   useEffect(() => {
-    if (myPRs.length) {
-      const first = myPRs[0];
-      if (!initial.pullRequestId) {
-        setSelectedPrId((prev) => prev ?? first.id);
-        setSelectedBranch((prev) => prev || first.branch || '');
-      } else {
-        const found = myPRs.find((p) => p.id === initial.pullRequestId);
-        if (found) {
-          setSelectedPrId(found.id);
-          setSelectedBranch(found.branch ?? '');
-        }
-      }
+    if (!prOptions.length) {
+      setSelectedPrId(null);
+      setSelectedBranch('');
+      return;
     }
-  }, [myPRs, initial.pullRequestId]);
+    if (!prOptions.some((p) => String(p.id) === String(selectedPrId))) {
+      setSelectedPrId(prOptions[0].id);
+      setSelectedBranch(prOptions[0].branch ?? '');
+    }
+  }, [prOptions, selectedPrId]);
 
   const onChangePR = (prIdStr) => {
     const prId = Number(prIdStr);
@@ -527,15 +548,6 @@ export default function ApprovalForm({
     </ul>
   );
 
-  useEffect(() => {
-    if (!pickerOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [pickerOpen]);
-
   const payload = () => ({
     meta: {
       dept,
@@ -608,12 +620,12 @@ export default function ApprovalForm({
 
   const buildApprovalCreateRequest = ({ draftComment = '' } = {}) => {
     const p = payload();
-    const docType = p.meta.docType;
+    const t = p.meta.docType;
 
     return {
       deploymentId: initial.deploymentId ?? null,
       drafterAccountId: CURRENT_ACCOUNT_ID,
-      type: mapDocTypeToApprovalType(docType),
+      type: mapDocTypeToApprovalType(t),
       title: p.meta.title,
       content: p.body,
       service: p.meta.service,
@@ -704,7 +716,6 @@ export default function ApprovalForm({
           };
           await onSubmit(formForParent);
         } else {
-          // 신규: 내부에서 create+submit
           const req = buildApprovalCreateRequest({
             draftComment: submitComment,
           });
@@ -728,12 +739,82 @@ export default function ApprovalForm({
     }
   };
 
+  const [problemModalOpen, setProblemModalOpen] = useState(false);
+  const [expandedProblemTypes, setExpandedProblemTypes] = useState(
+    () => new Set(),
+  );
+  const [selectedProblemId, setSelectedProblemId] = useState(null);
+
+  useEffect(() => {
+    const hasModalOpen =
+      pickerOpen || !!confirmType || problemModalOpen || !!selectedProblemId;
+
+    if (hasModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [pickerOpen, confirmType, problemModalOpen, selectedProblemId]);
+
+  const handleOpenProblemList = () => {
+    setProblemModalOpen(true);
+    setSelectedProblemId(null);
+  };
+
+  const handleOpenProblemDetail = (id) => {
+    setProblemModalOpen(false);
+    setSelectedProblemId(id);
+  };
+
+  const handleCloseProblemDetail = () => {
+    setSelectedProblemId(null);
+    setProblemModalOpen(true);
+  };
+
+  const toggleProblemCategory = (categoryId) => {
+    setExpandedProblemTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) next.delete(categoryId);
+      else next.add(categoryId);
+      return next;
+    });
+  };
+
+  const {
+    data: problemCategories = [],
+    isLoading: isLoadingProblemCategories,
+  } = useAllProblemCategoriesQuery();
+  const { data: problemList = [], isLoading: isLoadingProblems } =
+    useAllProblemsQuery();
+
+  const categoryProblemsMap = useMemo(() => {
+    const map = new Map();
+    problemList.forEach((problem) => {
+      const cid = problem.categoryId;
+      if (!cid) return;
+      if (!map.has(cid)) map.set(cid, []);
+      map.get(cid).push(problem);
+    });
+    return map;
+  }, [problemList]);
+
   return (
     <S.Wrap>
       <S.Panel as="form" onSubmit={(e) => e.preventDefault()}>
         <S.DocTitle>보고서</S.DocTitle>
 
         <S.Toolbar>
+          <S.ToolBtn
+            type="button"
+            onClick={handleOpenProblemList}
+            disabled={busy}
+          >
+            문제 사례 보기
+          </S.ToolBtn>
           <S.ToolRight>
             <S.ToolBtn
               type="button"
@@ -742,13 +823,6 @@ export default function ApprovalForm({
             >
               취소
             </S.ToolBtn>
-            {/* <S.ToolBtn
-              type="button"
-              onClick={() => openConfirm('draft')}
-              disabled={busy}
-            >
-              임시저장
-            </S.ToolBtn> */}
             <S.PrimaryBtn
               type="button"
               onClick={() => openConfirm('submit')}
@@ -1076,7 +1150,6 @@ export default function ApprovalForm({
           </div>
         </S.EditorCard>
 
-        {/* 결재라인 선택 모달 */}
         {pickerOpen && (
           <S.ModalScrim onClick={closePicker}>
             <S.ModalCard onClick={(e) => e.stopPropagation()}>
@@ -1201,16 +1274,6 @@ export default function ApprovalForm({
                       본 문서를 상신하시겠습니까?
                     </S.ConfirmMsg>
                     <div style={{ marginTop: 12 }}>
-                      <label
-                        style={{
-                          display: 'block',
-                          fontSize: 13,
-                          marginBottom: 4,
-                          color: '#6b7280',
-                        }}
-                      >
-                        상신 코멘트 (선택)
-                      </label>
                       <S.Input
                         as="textarea"
                         rows={3}
@@ -1243,6 +1306,97 @@ export default function ApprovalForm({
             </S.ConfirmCard>
           </S.ConfirmScrim>
         )}
+
+        {/* 🔹 문제 사례 리스트 모달 (z-index: 900) */}
+        {problemModalOpen && (
+          <S.ProblemScrim onClick={() => setProblemModalOpen(false)}>
+            <S.ConfirmCard
+              onClick={(e) => e.stopPropagation()}
+              data-variant="neutral"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="problem-modal-title"
+              style={{ maxWidth: 720, width: '90%', maxHeight: '80vh' }}
+            >
+              <S.ConfirmHead>
+                <S.ConfirmTitle id="problem-modal-title">
+                  문제 사례 목록
+                </S.ConfirmTitle>
+              </S.ConfirmHead>
+
+              <S.ConfirmBody>
+                {isLoadingProblemCategories || isLoadingProblems ? (
+                  <S.ConfirmMsg>문제 사례를 불러오는 중입니다…</S.ConfirmMsg>
+                ) : problemCategories.length === 0 ? (
+                  <S.ConfirmMsg>등록된 문제 유형이 없습니다.</S.ConfirmMsg>
+                ) : (
+                  <PT.TreeContainer
+                    style={{
+                      maxHeight: '55vh',
+                      overflowY: 'auto',
+                    }}
+                  >
+                    {problemCategories.map((category) => {
+                      const isExpanded = expandedProblemTypes.has(category.id);
+                      const problemsInCategory =
+                        categoryProblemsMap.get(category.id) || [];
+
+                      return (
+                        <div key={category.id}>
+                          <PT.TreeItem
+                            $selected={false}
+                            onClick={() => toggleProblemCategory(category.id)}
+                          >
+                            {isExpanded ? (
+                              <ChevronDown size={16} />
+                            ) : (
+                              <ChevronRight size={16} />
+                            )}
+                            <PT.TreeItemText>{category.title}</PT.TreeItemText>
+                            <PT.TreeItemCount>
+                              {problemsInCategory.length}
+                            </PT.TreeItemCount>
+                          </PT.TreeItem>
+
+                          {isExpanded && (
+                            <PT.ChildrenContainer>
+                              {problemsInCategory.map((problem) => (
+                                <PT.ChildItem
+                                  key={problem.id}
+                                  onClick={() =>
+                                    handleOpenProblemDetail(problem.id)
+                                  }
+                                >
+                                  {problem.title}
+                                </PT.ChildItem>
+                              ))}
+                            </PT.ChildrenContainer>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </PT.TreeContainer>
+                )}
+              </S.ConfirmBody>
+
+              <S.ConfirmFoot>
+                <S.SecondaryBtn
+                  type="button"
+                  onClick={() => setProblemModalOpen(false)}
+                >
+                  닫기
+                </S.SecondaryBtn>
+              </S.ConfirmFoot>
+            </S.ConfirmCard>
+          </S.ProblemScrim>
+        )}
+
+        <ProblemCaseDetailModal
+          isOpen={!!selectedProblemId}
+          onClose={handleCloseProblemDetail}
+          problemId={selectedProblemId}
+          showActions={false}
+        />
       </S.Panel>
     </S.Wrap>
   );

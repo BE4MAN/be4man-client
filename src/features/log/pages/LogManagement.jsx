@@ -1,22 +1,19 @@
-// src/features/log/pages/LogManagement.jsx
 import { useTheme } from '@emotion/react';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getTasks } from '../../../api/taskManagement';
 
 import DateRangePicker from './DateRangePicker';
-import { getStyles } from './LogManagement.style';
+import * as S from './LogManagement.style';
 
-// 드롭다운 컴포넌트 (이전 코드 동일)
 const CustomDropdown = ({ label, options, value, onChange }) => {
-  const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const wrapperRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
@@ -24,110 +21,46 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const dropdownStyles = {
-    container: {
-      position: 'relative',
-      minWidth: '140px',
-    },
-    button: {
-      width: '100%',
-      padding: '8px 12px',
-      backgroundColor: theme.mode === 'dark' ? '#2a2a2a' : '#ffffff',
-      border: `1px solid ${theme.colors.border}`,
-      borderRadius: '6px',
-      cursor: 'pointer',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      fontSize: '14px',
-      color: theme.mode === 'dark' ? '#e0e0e0' : '#333333',
-    },
-    menu: {
-      position: 'absolute',
-      top: '100%',
-      left: 0,
-      right: 0,
-      marginTop: '4px',
-      backgroundColor: theme.mode === 'dark' ? '#2a2a2a' : '#ffffff',
-      border: `1px solid ${theme.colors.border}`,
-      borderRadius: '6px',
-      boxShadow:
-        theme.mode === 'dark'
-          ? '0 4px 12px rgba(0,0,0,0.5)'
-          : '0 4px 12px rgba(0,0,0,0.1)',
-      zIndex: 1000,
-      maxHeight: '200px',
-      overflowY: 'auto',
-    },
-    option: (isSelected) => ({
-      padding: '8px 12px',
-      cursor: 'pointer',
-      fontSize: '14px',
-      backgroundColor: isSelected
-        ? theme.mode === 'dark'
-          ? 'rgba(33, 150, 243, 0.3)'
-          : theme.colors.brandLight || 'rgba(33, 150, 243, 0.1)'
-        : 'transparent',
-      color: isSelected
-        ? theme.colors.brand
-        : theme.mode === 'dark'
-          ? '#e0e0e0'
-          : '#333333',
-    }),
-  };
+  const displayLabel = value || label || '전체';
 
   return (
-    <div ref={dropdownRef} style={dropdownStyles.container}>
-      <button
+    <S.CustomSelect ref={wrapperRef}>
+      <S.CustomSelectBtn
         type="button"
-        style={dropdownStyles.button}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen((prev) => !prev)}
       >
-        <span>{value || label}</span>
-        <span style={{ fontSize: '12px' }}>{isOpen ? '▲' : '▼'}</span>
-      </button>
+        {displayLabel}
+        <span>{isOpen ? '▲' : '▼'}</span>
+      </S.CustomSelectBtn>
       {isOpen && (
-        <div style={dropdownStyles.menu}>
+        <S.CustomSelectList>
           {options.map((option) => (
-            <div
+            <S.CustomSelectItem
               key={option}
-              style={dropdownStyles.option(value === option)}
               onClick={() => {
                 onChange(option);
                 setIsOpen(false);
               }}
-              onMouseEnter={(e) => {
-                if (value !== option) {
-                  e.currentTarget.style.backgroundColor =
-                    theme.mode === 'dark'
-                      ? '#3a3a3a'
-                      : theme.colors.backgroundHover || '#f5f5f5';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (value !== option) {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }
-              }}
             >
               {option}
-            </div>
+            </S.CustomSelectItem>
           ))}
-        </div>
+        </S.CustomSelectList>
       )}
-    </div>
+    </S.CustomSelect>
   );
 };
 
 export default function LogManagement() {
   const theme = useTheme();
-  const styles = getStyles(theme);
   const navigate = useNavigate();
 
   const PAGE_SIZE = 8;
 
   const [tasks, setTasks] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -141,10 +74,6 @@ export default function LogManagement() {
     순서: '최신순',
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [clearBtnHovered, setClearBtnHovered] = useState(false);
-  const [resetBtnHovered, setResetBtnHovered] = useState(false);
-  const [hoveredPaginationBtn, setHoveredPaginationBtn] = useState(null);
   const [hoveredDetailBtn, setHoveredDetailBtn] = useState(null);
 
   const handleFilter = (key, value) => {
@@ -178,9 +107,9 @@ export default function LogManagement() {
       setError(null);
 
       const params = {
-        page: currentPage - 1, // 백엔드는 0부터 시작
+        page: currentPage - 1,
         size: PAGE_SIZE,
-        searchQuery: searchQuery,
+        searchQuery,
         stage: filters.작업단계,
         status: filters.작업상태,
         result: filters.결과,
@@ -188,31 +117,61 @@ export default function LogManagement() {
       };
 
       const response = await getTasks(params);
-
-      setTasks(response.content);
-      setTotalPages(response.totalPages);
+      setTasks(response.content || []);
+      setTotalPages(response.totalPages || 0);
+      setTotalCount(response.totalElements || 0);
     } catch (err) {
       console.error('작업 목록 조회 실패:', err);
       setError('작업 목록을 불러오는데 실패했습니다.');
       setTasks([]);
+      setTotalPages(0);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
   };
 
-  // 필터 또는 검색어 변경 시 페이지를 1로 리셋
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, filters]);
 
-  // 필터, 검색어, 페이지 변경 시 API 호출
   useEffect(() => {
     fetchTasks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchQuery, filters]);
 
   const renderBadge = (text, type) => {
-    return <span style={styles.badge(type, text)}>{text}</span>;
+    let style = {
+      display: 'inline-block',
+      fontSize: 13,
+      fontWeight: 500,
+    };
+
+    if (type === 'result') {
+      style = {
+        ...style,
+        padding: '4px 12px',
+        borderRadius: 12,
+      };
+
+      if (text === '성공') {
+        style.backgroundColor =
+          theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9';
+        style.color = theme.mode === 'dark' ? '#81c784' : '#388e3c';
+      } else if (text === '실패') {
+        style.backgroundColor =
+          theme.mode === 'dark' ? 'rgba(244, 67, 54, 0.2)' : '#ffebee';
+        style.color = theme.mode === 'dark' ? '#ef5350' : '#d32f2f';
+      } else {
+        style.backgroundColor =
+          theme.colors.backgroundHover ||
+          (theme.mode === 'dark' ? '#333333' : '#f5f5f5');
+        style.color = theme.colors.textSecondary;
+      }
+    } else {
+      style.color = theme.colors.textPrimary;
+    }
+
+    return <span style={style}>{text}</span>;
   };
 
   const renderResult = (result) => {
@@ -222,12 +181,10 @@ export default function LogManagement() {
     return <span style={{ color: theme.colors.textsecondary }}>-</span>;
   };
 
-  // 상세보기 페이지로 이동
   const handleDetailClick = (itemId) => {
     navigate(`/tasks/${itemId}`);
   };
 
-  // 상세보기 버튼 스타일 (개선된 UI)
   const detailButtonStyle = (isHovered) => ({
     padding: '6px 14px',
     backgroundColor: isHovered
@@ -256,181 +213,225 @@ export default function LogManagement() {
       : 'none',
   });
 
-  return (
-    <div style={styles.container}>
-      {/* 검색 및 필터 영역 */}
-      <div style={styles.searchFilterSection}>
-        <div style={styles.topControls}>
-          <div style={styles.searchBar}>
-            <svg
-              style={styles.searchIcon}
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-            >
-              <path
-                d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM18 18l-4.35-4.35"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="작업번호, 기안자, 서비스명 검색"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-              style={styles.searchInput(searchFocused)}
-            />
-            {searchQuery && (
-              <button
-                style={styles.clearButton(clearBtnHovered)}
-                onClick={() => setSearchQuery('')}
-                onMouseEnter={() => setClearBtnHovered(true)}
-                onMouseLeave={() => setClearBtnHovered(false)}
-              >
-                ✕
-              </button>
-            )}
-          </div>
-          <button
-            style={styles.resetButton(resetBtnHovered)}
-            onClick={resetFilters}
-            onMouseEnter={() => setResetBtnHovered(true)}
-            onMouseLeave={() => setResetBtnHovered(false)}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M13.65 2.35A8 8 0 1 0 16 8h-2a6 6 0 1 1-1.76-4.24L10 6h6V0l-2.35 2.35z"
-                fill="currentColor"
-              />
-            </svg>
-            필터 초기화
-          </button>
-        </div>
+  const safeTotalPages = useMemo(
+    () => Math.max(1, totalPages || 0),
+    [totalPages],
+  );
 
-        <div style={styles.filtersPanel}>
-          <div style={styles.filtersRow}>
-            <div style={styles.filterRowItem}>
-              <label style={styles.filterLabel}>작업 단계</label>
-              <CustomDropdown
-                label=""
-                options={['전체', '계획서', '배포', '결과보고']}
-                value={filters.작업단계}
-                onChange={(val) => handleFilter('작업단계', val)}
-              />
-            </div>
-            <div style={styles.filterRowItem}>
-              <label style={styles.filterLabel}>작업 상태</label>
-              <CustomDropdown
-                label=""
-                options={['전체', '대기', '진행중', '취소', '반려', '완료']}
-                value={filters.작업상태}
-                onChange={(val) => handleFilter('작업상태', val)}
-              />
-            </div>
-            <div style={styles.filterRowItem}>
-              <label style={styles.filterLabel}>결과</label>
-              <CustomDropdown
-                label=""
-                options={['전체', '성공', '실패']}
-                value={filters.결과}
-                onChange={(val) => handleFilter('결과', val)}
-              />
-            </div>
-            <div style={styles.filterRowItem}>
-              <label style={styles.filterLabel}>정렬</label>
-              <CustomDropdown
-                label=""
-                options={['최신순', '오래된순']}
-                value={filters.순서}
-                onChange={(val) => handleFilter('순서', val)}
-              />
-            </div>
-            <div style={styles.filterRowItem}>
-              <label style={styles.filterLabel}>기간</label>
+  const safePage = useMemo(
+    () => Math.min(currentPage, safeTotalPages),
+    [currentPage, safeTotalPages],
+  );
+
+  const PAGE_GROUP_SIZE = 5;
+  const pageList = useMemo(() => {
+    if (safeTotalPages <= 0) return [];
+
+    const currentGroup = Math.floor((safePage - 1) / PAGE_GROUP_SIZE);
+    const startPage = currentGroup * PAGE_GROUP_SIZE + 1;
+    const endPage = Math.min(startPage + PAGE_GROUP_SIZE - 1, safeTotalPages);
+
+    const list = [];
+    for (let p = startPage; p <= endPage; p += 1) {
+      list.push(p);
+    }
+    return list;
+  }, [safePage, safeTotalPages]);
+
+  return (
+    <S.Wrap>
+      <S.FilterCard>
+        <S.FilterRow>
+          <S.FilterLabel>필터</S.FilterLabel>
+          <S.FilterSelectWrap>
+            <CustomDropdown
+              label="작업 단계"
+              options={['전체', '계획서', '배포', '결과보고']}
+              value={filters.작업단계}
+              onChange={(val) => handleFilter('작업단계', val)}
+            />
+            <CustomDropdown
+              label="작업 상태"
+              options={['전체', '대기', '진행중', '취소', '반려', '완료']}
+              value={filters.작업상태}
+              onChange={(val) => handleFilter('작업상태', val)}
+            />
+            <CustomDropdown
+              label="결과"
+              options={['전체', '성공', '실패']}
+              value={filters.결과}
+              onChange={(val) => handleFilter('결과', val)}
+            />
+            <CustomDropdown
+              label="정렬"
+              options={['최신순', '오래된순']}
+              value={filters.순서}
+              onChange={(val) => handleFilter('순서', val)}
+            />
+            <div style={{ minWidth: 200 }}>
               <DateRangePicker
                 startDate={filters.시작일}
                 endDate={filters.종료일}
                 onChange={handleDateRangeChange}
               />
             </div>
-          </div>
-        </div>
-      </div>
+            <S.ResetBtn type="button" onClick={resetFilters}>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 16 16"
+                fill="none"
+                style={{ marginRight: 4 }}
+              >
+                <path
+                  d="M13.65 2.35A8 8 0 1 0 16 8h-2a6 6 0 1 1-1.76-4.24L10 6h6V0l-2.35 2.35z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span>필터 초기화</span>
+            </S.ResetBtn>
+          </S.FilterSelectWrap>
+        </S.FilterRow>
 
-      {/* 테이블 */}
-      <div style={styles.tableWrapper}>
-        {loading && (
-          <div style={styles.loadingContainer}>
-            <div style={styles.loadingSpinner}>로딩 중...</div>
+        <S.FilterRow>
+          <S.FilterLabel>검색</S.FilterLabel>
+          <S.SearchRow>
+            <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 20 20"
+                fill="none"
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  opacity: 0.6,
+                }}
+              >
+                <path
+                  d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM18 18l-4.35-4.35"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <S.Input
+                type="text"
+                placeholder="작업번호, 기안자, 서비스명 검색"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ paddingLeft: 30 }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    position: 'absolute',
+                    right: 8,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    fontSize: 14,
+                    color: theme.colors.textsecondary,
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <S.SearchBtn
+              type="button"
+              onClick={() => {
+                setCurrentPage(1);
+              }}
+            >
+              검색
+            </S.SearchBtn>
+          </S.SearchRow>
+        </S.FilterRow>
+      </S.FilterCard>
+
+      <S.Panel>
+        {loading ? (
+          <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+            로딩 중...
           </div>
-        )}
-        {error && (
-          <div style={styles.errorContainer}>
-            <p style={styles.errorMessage}>{error}</p>
+        ) : error ? (
+          <div
+            style={{
+              padding: '60px 20px',
+              textAlign: 'center',
+              color: theme.colors.danger,
+            }}
+          >
+            {error}
           </div>
-        )}
-        {!loading && !error && (
-          <table style={styles.table}>
-            <thead style={styles.thead}>
-              <tr>
-                <th style={styles.th}>작업 번호</th>
-                <th style={styles.th}>기안자</th>
-                <th style={styles.th}>부서</th>
-                <th style={styles.th}>서비스명</th>
-                <th style={styles.th}>작업 제목</th>
-                <th style={styles.th}>작업 단계</th>
-                <th style={styles.th}>작업 상태</th>
-                <th style={{ ...styles.th, textAlign: 'center' }}>완료 시각</th>
-                <th style={{ ...styles.th, textAlign: 'center' }}>배포 결과</th>
-                <th style={{ ...styles.th, textAlign: 'center' }}>상세</th>
-              </tr>
-            </thead>
-            <tbody>
+        ) : (
+          <S.Table>
+            <S.Head>
+              <S.Tr>
+                <S.Th style={{ width: 80 }}>작업 번호</S.Th>
+                <S.Th style={{ width: 100 }}>기안자</S.Th>
+                <S.Th style={{ width: 90 }}>부서</S.Th>
+                <S.Th style={{ width: 150 }}>서비스명</S.Th>
+                <S.Th>작업 제목</S.Th>
+                <S.Th style={{ width: 110 }}>작업 단계</S.Th>
+                <S.Th style={{ width: 110 }}>작업 상태</S.Th>
+                <S.Th style={{ width: 160 }}>완료 시각</S.Th>
+                <S.Th style={{ width: 90 }}>배포 결과</S.Th>
+                <S.Th style={{ width: 90 }}>상세</S.Th>
+              </S.Tr>
+            </S.Head>
+            <S.Body>
               {tasks.length === 0 ? (
-                <tr>
-                  <td colSpan="10" style={styles.emptyMessage}>
+                <S.Tr>
+                  <S.Td colSpan={10} data-no-ellipsis>
                     작업 데이터가 없습니다.
-                  </td>
-                </tr>
+                  </S.Td>
+                </S.Tr>
               ) : (
                 tasks.map((task) => (
-                  <tr key={task.id} style={styles.tr}>
-                    <td style={styles.td}>{task.id || '-'}</td>
-                    <td style={styles.td}>
-                      {task.drafter || task.drafterName || '-'}
-                    </td>
-                    <td style={styles.td}>
+                  <S.Tr
+                    key={task.id}
+                    onClick={() => handleDetailClick(task.id)}
+                  >
+                    <S.Td>{task.id || '-'}</S.Td>
+                    <S.Td>{task.drafter || task.drafterName || '-'}</S.Td>
+                    <S.Td>
                       {task.department || task.drafterDepartment || '-'}
-                    </td>
-                    <td style={styles.td}>
-                      {task.serviceName || task.service || '-'}
-                    </td>
-                    <td style={styles.td}>
+                    </S.Td>
+                    <S.Td>{task.serviceName || task.service || '-'}</S.Td>
+                    <S.Td data-no-ellipsis>
                       {task.taskTitle || task.title || '-'}
-                    </td>
-                    <td style={styles.td}>
+                    </S.Td>
+                    <S.Td>
                       {task.stage ? renderBadge(task.stage, 'stage') : '-'}
-                    </td>
-                    <td style={styles.td}>
+                    </S.Td>
+                    <S.Td>
                       {task.status ? renderBadge(task.status, 'status') : '-'}
-                    </td>
-                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                    </S.Td>
+                    <S.Td>
                       {task.completionTime ||
                         task.approvedAt ||
                         task.completedAt ||
                         '-'}
-                    </td>
-                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                    </S.Td>
+                    <S.Td>
                       {renderResult(task.result || task.deploymentResult)}
-                    </td>
-                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                    </S.Td>
+                    <S.Td
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
                       <button
+                        type="button"
                         style={detailButtonStyle(hoveredDetailBtn === task.id)}
                         onClick={() => handleDetailClick(task.id)}
                         onMouseEnter={() => setHoveredDetailBtn(task.id)}
@@ -438,95 +439,65 @@ export default function LogManagement() {
                       >
                         보기
                       </button>
-                    </td>
-                  </tr>
+                    </S.Td>
+                  </S.Tr>
                 ))
               )}
-            </tbody>
-          </table>
+            </S.Body>
+          </S.Table>
         )}
-      </div>
+      </S.Panel>
 
-      {/* 페이지네이션 */}
-      <div style={styles.pagination}>
-        <button
-          style={{
-            ...styles.paginationArrow(
-              currentPage === 1,
-              hoveredPaginationBtn === 'prev',
-            ),
-            /* stylelint-disable-next-line value-keyword-case */
-            pointerEvents: currentPage === 1 ? 'none' : 'auto',
-          }}
-          onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-          disabled={currentPage === 1}
-          onMouseEnter={() => {
-            if (currentPage !== 1) {
-              setHoveredPaginationBtn('prev');
-            }
-          }}
-          onMouseLeave={() => {
-            if (currentPage !== 1) {
-              setHoveredPaginationBtn(null);
-            }
-          }}
-        >
-          &lt;
-        </button>
+      <S.Pagination role="navigation" aria-label="페이지네이션">
+        <S.PageInfo>
+          총 {totalCount}개 · {safePage}/{safeTotalPages}페이지
+        </S.PageInfo>
+        <S.PageBtns>
+          <S.PageBtn
+            type="button"
+            onClick={() => setCurrentPage(1)}
+            disabled={safePage === 1}
+          >
+            «
+          </S.PageBtn>
+          <S.PageBtn
+            type="button"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={safePage === 1}
+          >
+            ‹
+          </S.PageBtn>
 
-        {(() => {
-          const pageSize = 5;
-          const currentGroup = Math.floor((currentPage - 1) / pageSize);
-          const startPage = currentGroup * pageSize + 1;
-          const endPage = Math.min(startPage + pageSize - 1, totalPages);
-
-          const pages = [];
-          for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-          }
-
-          return pages.map((page) => (
-            <button
-              key={page}
-              style={styles.paginationButton(
-                page === currentPage,
-                false,
-                hoveredPaginationBtn === page,
-              )}
-              onClick={() => setCurrentPage(page)}
-              onMouseEnter={() => setHoveredPaginationBtn(page)}
-              onMouseLeave={() => setHoveredPaginationBtn(null)}
+          {pageList.map((n) => (
+            <S.PageBtn
+              key={n}
+              type="button"
+              onClick={() => setCurrentPage(n)}
+              data-active={safePage === n || undefined}
+              aria-current={safePage === n ? 'page' : undefined}
             >
-              {page}
-            </button>
-          ));
-        })()}
+              {n}
+            </S.PageBtn>
+          ))}
 
-        <button
-          style={{
-            ...styles.paginationArrow(
-              currentPage === totalPages,
-              hoveredPaginationBtn === 'next',
-            ),
-            /* stylelint-disable-next-line value-keyword-case */
-            pointerEvents: currentPage === totalPages ? 'none' : 'auto',
-          }}
-          onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          onMouseEnter={() => {
-            if (currentPage !== totalPages) {
-              setHoveredPaginationBtn('next');
+          <S.PageBtn
+            type="button"
+            onClick={() =>
+              setCurrentPage((p) => Math.min(safeTotalPages, p + 1))
             }
-          }}
-          onMouseLeave={() => {
-            if (currentPage !== totalPages) {
-              setHoveredPaginationBtn(null);
-            }
-          }}
-        >
-          &gt;
-        </button>
-      </div>
-    </div>
+            disabled={safePage === safeTotalPages}
+          >
+            ›
+          </S.PageBtn>
+          <S.PageBtn
+            type="button"
+            onClick={() => setCurrentPage(safeTotalPages)}
+            disabled={safePage === safeTotalPages}
+          >
+            »
+          </S.PageBtn>
+        </S.PageBtns>
+      </S.Pagination>
+    </S.Wrap>
   );
 }

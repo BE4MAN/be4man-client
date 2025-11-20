@@ -1,12 +1,18 @@
 import { Trash2, Edit } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { PATHS } from '@/app/routes/paths';
 import Modal from '@/components/auth/Modal';
 import Badge from '@/components/common/Badge';
 import ServiceTag from '@/components/common/ServiceTag';
-import { mockProblems, mockRegistrants } from '@/mock/problem';
+import { useAccountByIdQuery } from '@/hooks/useAccountQueries';
+import {
+  useProblemQuery,
+  useAllProblemCategoriesQuery,
+  useDeleteProblemMutation,
+} from '@/hooks/useProblemQueries';
+import { useProjectDetailQuery } from '@/hooks/useProjectQueries';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
 
 import * as S from './ProblemCaseDetailModal.styles';
@@ -48,19 +54,81 @@ const formatDate = (dateString) => {
   return `${year}.${month}.${day} ${hours}:${minutes}`;
 };
 
-export function ProblemCaseDetailModal({ isOpen, onClose, problemId }) {
+const getSolvedLabel = (isSolved) => {
+  if (isSolved == null) return '-';
+  return isSolved ? '해결' : '미해결';
+};
+
+export function ProblemCaseDetailModal({
+  isOpen,
+  onClose,
+  problemId,
+  showActions = true,
+}) {
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  if (!problemId) return null;
+  const { data: problem } = useProblemQuery(problemId, {
+    enabled: isOpen && !!problemId,
+  });
 
-  const problem = mockProblems.find((p) => p.id === problemId);
+  const { data: categories = [] } = useAllProblemCategoriesQuery();
+
+  const categoryMap = useMemo(() => {
+    const map = new Map();
+    categories.forEach((cat) => {
+      map.set(cat.id, cat);
+    });
+    return map;
+  }, [categories]);
+
+  const category = problem ? categoryMap.get(problem.categoryId) : null;
+
+  const { data: account } = useAccountByIdQuery(problem?.accountId, {
+    enabled: isOpen && !!problemId && !!problem?.accountId,
+  });
+
+  const projectId = category?.projectId ?? null;
+
+  const { data: project } = useProjectDetailQuery(projectId, {
+    enabled: !!projectId,
+  });
+
+  const projectServices = useMemo(() => {
+    if (!project) return [];
+
+    if (Array.isArray(project.services) && project.services.length > 0) {
+      return project.services
+        .map((s) => {
+          if (typeof s === 'string') return s;
+          return s.name || s.serviceName || s.service || '';
+        })
+        .filter(Boolean);
+    }
+
+    const singleService =
+      project.serviceName || project.service || project.name;
+
+    if (singleService) {
+      return [singleService];
+    }
+
+    return [];
+  }, [project]);
+
+  const problemServices = Array.isArray(problem?.services)
+    ? problem.services
+    : [];
+
+  const finalServices =
+    projectServices.length > 0 ? projectServices : problemServices;
+
+  const deleteProblemMutation = useDeleteProblemMutation();
+
+  if (!isOpen || !problemId) return null;
   if (!problem) return null;
 
-  const registrant = mockRegistrants[problem.accountId];
-
   const handleEdit = () => {
-    // TODO: 수정 페이지로 이동 (현재는 생성 페이지로 이동)
     navigate(PATHS.PROBLEM_NEW, { state: { problemId: problem.id } });
     onClose();
   };
@@ -71,14 +139,10 @@ export function ProblemCaseDetailModal({ isOpen, onClose, problemId }) {
 
   const handleConfirmDelete = async () => {
     try {
-      // TODO: 실제 API 연동 시 주석 해제
-      // await problemAPI.deleteProblem(problem.id);
-      console.log('문제 삭제:', problem.id);
+      await deleteProblemMutation.mutateAsync(problem.id);
       setShowDeleteConfirm(false);
       onClose();
-      // 성공 시 목록 새로고침 또는 상태 업데이트
-    } catch (error) {
-      console.error('문제 삭제 실패:', error);
+    } catch {
       alert('문제 삭제에 실패했습니다. 다시 시도해주세요.');
     }
   };
@@ -87,6 +151,9 @@ export function ProblemCaseDetailModal({ isOpen, onClose, problemId }) {
     setShowDeleteConfirm(false);
   };
 
+  const registrantName =
+    account?.name || account?.accountName || problem.accountId || '-';
+
   return (
     <>
       <Modal
@@ -94,6 +161,7 @@ export function ProblemCaseDetailModal({ isOpen, onClose, problemId }) {
         onClose={onClose}
         title="문제 상세 정보"
         maxWidth="600px"
+        z-index="10000"
       >
         <S.Content>
           <S.InfoTable role="table">
@@ -108,7 +176,7 @@ export function ProblemCaseDetailModal({ isOpen, onClose, problemId }) {
               <S.InfoTh>제목</S.InfoTh>
               <S.InfoTd>{problem.title}</S.InfoTd>
               <S.InfoTh>문제 유형</S.InfoTh>
-              <S.InfoTd>{problem.category.title}</S.InfoTd>
+              <S.InfoTd>{category?.title || '-'}</S.InfoTd>
             </S.InfoRow>
 
             <S.InfoRow>
@@ -119,7 +187,7 @@ export function ProblemCaseDetailModal({ isOpen, onClose, problemId }) {
                 </Badge>
               </S.InfoTd>
               <S.InfoTh>등록자</S.InfoTh>
-              <S.InfoTd>{registrant?.name || '-'}</S.InfoTd>
+              <S.InfoTd>{registrantName}</S.InfoTd>
             </S.InfoRow>
 
             <S.InfoRow>
@@ -127,9 +195,9 @@ export function ProblemCaseDetailModal({ isOpen, onClose, problemId }) {
               <S.InfoTd>{formatDate(problem.createdAt)}</S.InfoTd>
               <S.InfoTh>관련 서비스</S.InfoTh>
               <S.InfoTd>
-                {problem.services && problem.services.length > 0 ? (
+                {finalServices.length > 0 ? (
                   <S.ServicesContainer>
-                    {problem.services.map((service) => (
+                    {finalServices.map((service) => (
                       <ServiceTag key={service} service={service} />
                     ))}
                   </S.ServicesContainer>
@@ -141,10 +209,10 @@ export function ProblemCaseDetailModal({ isOpen, onClose, problemId }) {
 
             <S.InfoRow>
               <S.InfoTh>관련 배포</S.InfoTh>
-              <S.InfoTd colSpan={3}>
-                {problem.deployments && problem.deployments.length > 0 ? (
+              <S.InfoTd>
+                {problem.deploymentIds && problem.deploymentIds.length > 0 ? (
                   <S.DeploymentsList>
-                    {problem.deployments.map((deploymentId) => (
+                    {problem.deploymentIds.map((deploymentId) => (
                       <span key={deploymentId}>#{deploymentId}</span>
                     ))}
                   </S.DeploymentsList>
@@ -152,6 +220,8 @@ export function ProblemCaseDetailModal({ isOpen, onClose, problemId }) {
                   '—'
                 )}
               </S.InfoTd>
+              <S.InfoTh>해결 여부</S.InfoTh>
+              <S.InfoTd>{getSolvedLabel(problem.isSolved)}</S.InfoTd>
             </S.InfoRow>
           </S.InfoTable>
 
@@ -159,9 +229,7 @@ export function ProblemCaseDetailModal({ isOpen, onClose, problemId }) {
             <S.InfoColGroup>
               <col />
             </S.InfoColGroup>
-            <S.InfoRow>
-              <S.InfoTh>설명</S.InfoTh>
-            </S.InfoRow>
+
             <S.InfoRow>
               <S.InfoTd colSpan={4}>
                 <S.DescriptionText>{problem.description}</S.DescriptionText>
@@ -171,41 +239,46 @@ export function ProblemCaseDetailModal({ isOpen, onClose, problemId }) {
         </S.Content>
 
         <S.Footer>
-          <S.ActionButtons>
-            <S.DeleteButton onClick={handleDelete}>
-              <Trash2 size={16} />
-              삭제
-            </S.DeleteButton>
-            <SecondaryBtn onClick={handleEdit}>
-              <Edit size={16} style={{ marginRight: '4px' }} />
-              수정
-            </SecondaryBtn>
-          </S.ActionButtons>
+          {showActions && (
+            <S.ActionButtons>
+              <S.DeleteButton onClick={handleDelete}>
+                <Trash2 size={16} />
+                삭제
+              </S.DeleteButton>
+              <SecondaryBtn onClick={handleEdit}>
+                <Edit size={16} style={{ marginRight: '4px' }} />
+                수정
+              </SecondaryBtn>
+            </S.ActionButtons>
+          )}
           <PrimaryBtn onClick={onClose}>닫기</PrimaryBtn>
         </S.Footer>
       </Modal>
 
-      {/* 삭제 확인 모달 */}
-      <Modal
-        isOpen={showDeleteConfirm}
-        onClose={handleCloseDeleteConfirm}
-        title="문제 삭제 확인"
-        maxWidth="400px"
-        footer={
-          <S.Footer>
-            <SecondaryBtn onClick={handleCloseDeleteConfirm}>취소</SecondaryBtn>
-            <S.ConfirmDeleteButton onClick={handleConfirmDelete}>
-              삭제
-            </S.ConfirmDeleteButton>
-          </S.Footer>
-        }
-      >
-        <S.ConfirmMessage>
-          이 문제를 삭제하시겠습니까?
-          <br />
-          삭제된 문제는 복구할 수 없습니다.
-        </S.ConfirmMessage>
-      </Modal>
+      {showActions && (
+        <Modal
+          isOpen={showDeleteConfirm}
+          onClose={handleCloseDeleteConfirm}
+          title="문제 삭제 확인"
+          maxWidth="400px"
+          footer={
+            <S.Footer $hasActions={showActions}>
+              <SecondaryBtn onClick={handleCloseDeleteConfirm}>
+                취소
+              </SecondaryBtn>
+              <S.ConfirmDeleteButton onClick={handleConfirmDelete}>
+                삭제
+              </S.ConfirmDeleteButton>
+            </S.Footer>
+          }
+        >
+          <S.ConfirmMessage>
+            이 문제를 삭제하시겠습니까?
+            <br />
+            삭제된 문제는 복구할 수 없습니다.
+          </S.ConfirmMessage>
+        </Modal>
+      )}
     </>
   );
 }

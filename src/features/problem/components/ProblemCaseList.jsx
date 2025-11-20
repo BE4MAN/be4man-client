@@ -1,26 +1,15 @@
-import { Search, RotateCcw } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { RotateCcw, Search as SearchIcon } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
 
+import axiosInstance from '@/api/axios';
+import { API_ENDPOINTS } from '@/api/endpoints';
 import Badge from '@/components/common/Badge';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationPrevious,
-  PaginationNext,
-} from '@/components/common/Pagination';
 import ServiceTag from '@/components/common/ServiceTag';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '@/components/common/Table';
 import ScheduleCustomSelect from '@/components/schedule/components/ScheduleCustomSelect';
-import { mockProblems, mockRegistrants } from '@/mock/problem';
+import {
+  useAllProblemsQuery,
+  useAllProblemCategoriesQuery,
+} from '@/hooks/useProblemQueries';
 
 import * as S from './ProblemCaseList.styles';
 
@@ -31,59 +20,18 @@ const IMPORTANCE_OPTIONS = [
   { value: 'LOW', label: '하' },
 ];
 
-// 서비스 목록 (mockProblems에서 추출)
-const getAvailableServices = () => {
-  const servicesSet = new Set();
-  mockProblems.forEach((problem) => {
-    if (problem.services && Array.isArray(problem.services)) {
-      problem.services.forEach((service) => servicesSet.add(service));
-    }
-  });
-  return Array.from(servicesSet)
-    .sort()
-    .map((service) => ({ value: service, label: service }));
-};
-
-// 카테고리 옵션
-const getCategoryOptions = () => {
-  const categoriesSet = new Set();
-  mockProblems.forEach((problem) => {
-    if (problem.category) {
-      categoriesSet.add(problem.category.title);
-    }
-  });
-  return [
-    { value: '', label: '전체' },
-    ...Array.from(categoriesSet)
-      .sort()
-      .map((title) => ({ value: title, label: title })),
-  ];
-};
-
 const getImportanceLabel = (importance) => {
-  switch (importance) {
-    case 'HIGH':
-      return '상';
-    case 'MEDIUM':
-      return '중';
-    case 'LOW':
-      return '하';
-    default:
-      return importance;
-  }
+  if (importance === 'HIGH') return '상';
+  if (importance === 'MEDIUM') return '중';
+  if (importance === 'LOW') return '하';
+  return importance;
 };
 
 const getImportanceVariant = (importance) => {
-  switch (importance) {
-    case 'HIGH':
-      return 'error';
-    case 'MEDIUM':
-      return 'warning';
-    case 'LOW':
-      return 'info';
-    default:
-      return 'default';
-  }
+  if (importance === 'HIGH') return 'error';
+  if (importance === 'MEDIUM') return 'warning';
+  if (importance === 'LOW') return 'info';
+  return 'default';
 };
 
 const formatDate = (dateString) => {
@@ -104,70 +52,253 @@ export function ProblemCaseList({ selectedCaseId, onSelectCase }) {
   const [importanceFilter, setImportanceFilter] = useState('');
   const [selectedServices, setSelectedServices] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchFocused, setSearchFocused] = useState(false);
   const [shouldSearch, setShouldSearch] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const categoryOptions = useMemo(() => getCategoryOptions(), []);
-  const availableServices = useMemo(() => getAvailableServices(), []);
+  const { data: problems = [] } = useAllProblemsQuery();
+  const { data: categories = [] } = useAllProblemCategoriesQuery();
+
+  const [projectMap, setProjectMap] = useState({});
+  const [accountMap, setAccountMap] = useState({});
+  const [allProjects, setAllProjects] = useState([]);
+
+  const categoryMap = useMemo(() => {
+    const map = new Map();
+    categories.forEach((cat) => {
+      map.set(cat.id, cat);
+    });
+    return map;
+  }, [categories]);
+
+  const categoryOptions = useMemo(
+    () => [
+      { value: '', label: '전체' },
+      ...categories.map((cat) => ({
+        value: String(cat.id),
+        label: cat.title,
+      })),
+    ],
+    [categories],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadAllProjects = async () => {
+      try {
+        const res = await axiosInstance.get(API_ENDPOINTS.PROJECTS);
+        if (cancelled) return;
+
+        const list = Array.isArray(res.data) ? res.data : [];
+        setAllProjects(list);
+      } catch (error) {
+        console.error('전체 프로젝트 목록 조회 실패:', error);
+      }
+    };
+
+    loadAllProjects();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const uniqueProjectIds = Array.from(
+      new Set(
+        categories
+          .map((cat) => cat.projectId)
+          .filter((id) => id !== null && id !== undefined),
+      ),
+    );
+
+    if (uniqueProjectIds.length === 0) return;
+
+    let cancelled = false;
+
+    const loadProjects = async () => {
+      try {
+        const results = await Promise.all(
+          uniqueProjectIds.map(async (id) => {
+            const res = await axiosInstance.get(
+              API_ENDPOINTS.PROJECT_BY_ID(id),
+            );
+            return [id, res.data];
+          }),
+        );
+        if (cancelled) return;
+
+        const nextMap = {};
+        results.forEach(([id, project]) => {
+          nextMap[id] = project;
+        });
+        setProjectMap(nextMap);
+      } catch (error) {
+        console.error('프로젝트 정보 조회 실패:', error);
+      }
+    };
+
+    loadProjects();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [categories]);
+
+  useEffect(() => {
+    const uniqueAccountIds = Array.from(
+      new Set(
+        problems
+          .map((p) => p.accountId)
+          .filter((id) => id !== null && id !== undefined),
+      ),
+    );
+
+    if (uniqueAccountIds.length === 0) return;
+
+    let cancelled = false;
+
+    const loadAccounts = async () => {
+      try {
+        const results = await Promise.all(
+          uniqueAccountIds.map(async (id) => {
+            const res = await axiosInstance.get(
+              API_ENDPOINTS.ACCOUNT_BY_ID(id),
+            );
+            return [id, res.data];
+          }),
+        );
+        if (cancelled) return;
+
+        const nextMap = {};
+        results.forEach(([id, account]) => {
+          nextMap[id] = account;
+        });
+        setAccountMap(nextMap);
+      } catch (error) {
+        console.error('계정 정보 조회 실패:', error);
+      }
+    };
+
+    loadAccounts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [problems]);
+
+  const availableServices = useMemo(() => {
+    const servicesSet = new Set();
+
+    allProjects.forEach((project) => {
+      const serviceName = project?.service || project?.name;
+      if (serviceName) {
+        servicesSet.add(serviceName);
+      }
+    });
+
+    return Array.from(servicesSet)
+      .sort()
+      .map((service) => ({ value: service, label: service }));
+  }, [allProjects]);
 
   const filteredProblems = useMemo(() => {
-    let filtered = [...mockProblems];
+    let filtered = [...problems];
 
-    // 카테고리 필터
     if (categoryFilter) {
       filtered = filtered.filter(
-        (problem) => problem.category.title === categoryFilter,
+        (problem) => String(problem.categoryId) === categoryFilter,
       );
     }
 
-    // 중요도 필터
     if (importanceFilter) {
       filtered = filtered.filter(
         (problem) => problem.importance === importanceFilter,
       );
     }
 
-    // 서비스 필터
     if (selectedServices) {
       filtered = filtered.filter((problem) => {
-        if (!problem.services || !Array.isArray(problem.services)) {
-          return false;
-        }
-        return problem.services.includes(selectedServices);
+        const category = categoryMap.get(problem.categoryId);
+        if (!category) return false;
+        const project = projectMap[category.projectId];
+        const serviceName = project?.service || project?.name;
+        if (!serviceName) return false;
+        return serviceName === selectedServices;
       });
     }
 
-    // 검색어 필터 (검색 버튼 클릭 시에만)
     if (shouldSearch && searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((problem) => {
-        const titleMatch = problem.title.toLowerCase().includes(query);
-        const categoryMatch = problem.category.title
-          .toLowerCase()
-          .includes(query);
-        const registrant = mockRegistrants[problem.accountId];
-        const registrantMatch = registrant?.name?.toLowerCase().includes(query);
-        return titleMatch || categoryMatch || registrantMatch;
+        const titleMatch = problem.title?.toLowerCase().includes(query);
+        const category = categoryMap.get(problem.categoryId);
+        const categoryMatch = category?.title?.toLowerCase().includes(query);
+
+        const account = accountMap[problem.accountId];
+        const accountName = account?.name || '';
+        const accountMatch = accountName.toLowerCase().includes(query);
+
+        return titleMatch || categoryMatch || accountMatch;
       });
     }
 
     return filtered;
   }, [
+    problems,
     categoryFilter,
     importanceFilter,
     selectedServices,
     searchQuery,
     shouldSearch,
+    categoryMap,
+    projectMap,
+    accountMap,
   ]);
 
-  // 페이지네이션 계산
-  const totalPages = Math.ceil(filteredProblems.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProblems.length / ITEMS_PER_PAGE),
+  );
+
+  const safePage = useMemo(
+    () => Math.min(currentPage, totalPages),
+    [currentPage, totalPages],
+  );
+
+  const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentProblems = filteredProblems.slice(startIndex, endIndex);
 
-  // 필터 변경 시 첫 페이지로 리셋
+  const pageWindow = useMemo(() => {
+    if (totalPages <= 9) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const win = new Set([
+      1,
+      2,
+      totalPages - 1,
+      totalPages,
+      safePage,
+      safePage - 1,
+      safePage + 1,
+    ]);
+
+    const arr = Array.from({ length: totalPages }, (_, i) => i + 1).filter(
+      (n) => win.has(n),
+    );
+
+    const out = [];
+    for (let i = 0; i < arr.length; i += 1) {
+      out.push(arr[i]);
+      if (i < arr.length - 1 && arr[i + 1] - arr[i] > 1) {
+        out.push('…');
+      }
+    }
+    return out;
+  }, [safePage, totalPages]);
+
   const handleCategoryFilterChange = (value) => {
     setCategoryFilter(value);
     setCurrentPage(1);
@@ -199,7 +330,7 @@ export function ProblemCaseList({ selectedCaseId, onSelectCase }) {
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
-    setShouldSearch(false); // 검색어 변경 시 검색 결과 초기화
+    setShouldSearch(false);
   };
 
   const handleRowClick = (problemId) => {
@@ -207,172 +338,198 @@ export function ProblemCaseList({ selectedCaseId, onSelectCase }) {
   };
 
   return (
-    <S.Container>
-      <S.SearchFilterSection>
-        <S.FiltersPanel>
-          <S.FiltersRow>
-            <S.FiltersLabel>검색 옵션</S.FiltersLabel>
-
-            <S.SelectWrapper>
+    <S.Wrap>
+      <S.FilterCard>
+        <S.FilterRow>
+          <S.FilterLabel>검색 옵션</S.FilterLabel>
+          <S.FilterSelectWrap>
+            <S.CustomSelect>
               <ScheduleCustomSelect
                 value={selectedServices}
                 onChange={handleServicesChange}
                 options={availableServices}
-                placeholder="관련 서비스 - 전체"
+                placeholder="전체"
               />
-            </S.SelectWrapper>
+            </S.CustomSelect>
 
-            <S.SelectWrapper>
+            <S.CustomSelect>
               <ScheduleCustomSelect
                 value={categoryFilter}
                 onChange={handleCategoryFilterChange}
                 options={categoryOptions}
                 placeholder="유형 - 전체"
               />
-            </S.SelectWrapper>
+            </S.CustomSelect>
 
-            <S.SelectWrapper>
+            <S.CustomSelect>
               <ScheduleCustomSelect
                 value={importanceFilter}
                 onChange={handleImportanceFilterChange}
                 options={IMPORTANCE_OPTIONS}
                 placeholder="중요도 - 전체"
               />
-            </S.SelectWrapper>
+            </S.CustomSelect>
 
-            <S.ResetButton type="button" onClick={handleResetFilters}>
-              <RotateCcw size={16} />
+            <S.ResetBtn type="button" onClick={handleResetFilters}>
+              <RotateCcw size={14} />
               <span>초기화</span>
-            </S.ResetButton>
-          </S.FiltersRow>
-        </S.FiltersPanel>
+            </S.ResetBtn>
+          </S.FilterSelectWrap>
+        </S.FilterRow>
 
-        {/* 선택된 서비스 태그 */}
         {selectedServices && (
-          <S.TagContainer>
-            <ServiceTag
-              service={selectedServices}
-              onRemove={() => setSelectedServices('')}
-            />
-          </S.TagContainer>
+          <S.FilterRow>
+            <S.FilterLabel>선택 서비스</S.FilterLabel>
+            <S.FilterSelectWrap>
+              <ServiceTag
+                service={selectedServices}
+                onRemove={() => setSelectedServices('')}
+              />
+            </S.FilterSelectWrap>
+          </S.FilterRow>
         )}
 
-        <S.SearchBox>
-          <S.SearchLabel>검색명</S.SearchLabel>
-          <S.SearchBar>
-            <Search className="search-icon" />
-            <S.SearchInput
-              type="text"
-              placeholder="제목, 내용, 등록자명 검색"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-              $focused={searchFocused}
-            />
-            {searchQuery && (
-              <S.ClearButton
-                type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setShouldSearch(false);
+        <S.FilterRow>
+          <S.FilterLabel>검색명</S.FilterLabel>
+          <S.SearchRow>
+            <S.SearchInputWrap>
+              <SearchIcon
+                size={16}
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  opacity: 0.6,
                 }}
-              >
-                ✕
-              </S.ClearButton>
-            )}
-          </S.SearchBar>
+              />
+              <S.Input
+                type="text"
+                placeholder="제목, 카테고리, 등록자명 검색"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                style={{ paddingLeft: 30 }}
+              />
+              {searchQuery && (
+                <S.ClearBtn
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setShouldSearch(false);
+                  }}
+                >
+                  ✕
+                </S.ClearBtn>
+              )}
+            </S.SearchInputWrap>
+            <S.SearchBtn type="button" onClick={handleSearchSubmit}>
+              검색
+            </S.SearchBtn>
+          </S.SearchRow>
+        </S.FilterRow>
+      </S.FilterCard>
 
-          <S.SearchButton type="button" onClick={handleSearchSubmit}>
-            검색
-          </S.SearchButton>
-        </S.SearchBox>
-      </S.SearchFilterSection>
-
-      <S.TableContainer>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>번호</TableHead>
-              <TableHead>제목</TableHead>
-              <TableHead>문제 유형</TableHead>
-              <TableHead>관련 서비스</TableHead>
-              <TableHead>영향도</TableHead>
-              <TableHead>등록자</TableHead>
-              <TableHead>등록일</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      <S.Panel>
+        <S.Table>
+          <S.Head>
+            <S.Tr>
+              <S.Th style={{ width: 70 }}>번호</S.Th>
+              <S.Th>제목</S.Th>
+              <S.Th style={{ width: 160 }}>문제 유형</S.Th>
+              <S.Th style={{ width: 160 }}>관련 프로젝트</S.Th>
+              <S.Th style={{ width: 120 }}>중요도</S.Th>
+              <S.Th style={{ width: 120 }}>등록자</S.Th>
+              <S.Th style={{ width: 150 }}>등록일</S.Th>
+            </S.Tr>
+          </S.Head>
+          <S.Body>
             {currentProblems.map((problem, index) => {
-              const registrant = mockRegistrants[problem.accountId];
+              const category = categoryMap.get(problem.categoryId);
+              const project = category ? projectMap[category.projectId] : null;
+              const serviceName = project?.service || project?.name || '-';
+              const account = accountMap[problem.accountId];
+              const accountName = account?.name || '-';
+
               return (
-                <TableRow
+                <S.Tr
                   key={problem.id}
                   onClick={() => handleRowClick(problem.id)}
-                  style={
-                    selectedCaseId === problem.id
-                      ? { backgroundColor: 'rgb(100 150 255 / 12%)' }
-                      : undefined
+                  data-selected={
+                    selectedCaseId === problem.id ? 'true' : undefined
                   }
                 >
-                  <TableCell>{startIndex + index + 1}</TableCell>
-                  <TableCell>
-                    <S.TitleCell>{problem.title}</S.TitleCell>
-                  </TableCell>
-                  <TableCell>{problem.category.title}</TableCell>
-                  <TableCell>
-                    {problem.services && problem.services.length > 0
-                      ? problem.services.join(', ')
-                      : '-'}
-                  </TableCell>
-                  <TableCell>
+                  <S.Td>{startIndex + index + 1}</S.Td>
+                  <S.Td>
+                    <S.Title>{problem.title}</S.Title>
+                  </S.Td>
+                  <S.Td>{category?.title || '-'}</S.Td>
+                  <S.Td>{serviceName}</S.Td>
+                  <S.Td>
                     <Badge variant={getImportanceVariant(problem.importance)}>
                       {getImportanceLabel(problem.importance)}
                     </Badge>
-                  </TableCell>
-                  <TableCell>{registrant?.name || '-'}</TableCell>
-                  <TableCell>{formatDate(problem.createdAt)}</TableCell>
-                </TableRow>
+                  </S.Td>
+                  <S.Td>{accountName}</S.Td>
+                  <S.Td>{formatDate(problem.createdAt)}</S.Td>
+                </S.Tr>
               );
             })}
-          </TableBody>
-        </Table>
-      </S.TableContainer>
+          </S.Body>
+        </S.Table>
+      </S.Panel>
 
-      {totalPages > 1 && (
-        <S.PaginationWrapper>
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                />
-              </PaginationItem>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      onClick={() => setCurrentPage(page)}
-                      isActive={currentPage === page}
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                ),
-              )}
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </S.PaginationWrapper>
-      )}
-    </S.Container>
+      <S.Pagination>
+        <S.PageInfo>
+          총 {filteredProblems.length}건 · {safePage}/{totalPages}페이지
+        </S.PageInfo>
+        <S.PageBtns>
+          <S.PageBtn
+            type="button"
+            onClick={() => setCurrentPage(1)}
+            disabled={safePage === 1}
+          >
+            «
+          </S.PageBtn>
+          <S.PageBtn
+            type="button"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={safePage === 1}
+          >
+            ‹
+          </S.PageBtn>
+
+          {pageWindow.map((n, i) =>
+            n === '…' ? (
+              <S.Ellipsis key={`e-${i}`}>…</S.Ellipsis>
+            ) : (
+              <S.PageBtn
+                key={n}
+                type="button"
+                onClick={() => setCurrentPage(n)}
+                data-active={safePage === n || undefined}
+                aria-current={safePage === n ? 'page' : undefined}
+              >
+                {n}
+              </S.PageBtn>
+            ),
+          )}
+
+          <S.PageBtn
+            type="button"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage === totalPages}
+          >
+            ›
+          </S.PageBtn>
+          <S.PageBtn
+            type="button"
+            onClick={() => setCurrentPage(totalPages)}
+            disabled={safePage === totalPages}
+          >
+            »
+          </S.PageBtn>
+        </S.PageBtns>
+      </S.Pagination>
+    </S.Wrap>
   );
 }

@@ -45,7 +45,7 @@ export const Panel = styled.section`
 
 export const Toolbar = styled.div`
   display: flex;
-  justify-content: end;
+  justify-content: space-between;
   gap: 8px;
   align-items: center;
   margin-bottom: 10px;
@@ -614,6 +614,10 @@ export const ConfirmScrim = styled.div`
   display: grid;
   place-items: center;
   z-index: 1100;
+`;
+
+export const ProblemScrim = styled(ConfirmScrim)`
+  z-index: 900;
 `;
 
 export const ConfirmCard = styled.div`

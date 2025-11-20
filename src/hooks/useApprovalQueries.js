@@ -72,11 +72,9 @@ export function useSubmitApprovalMutation() {
   });
 }
 
-/** 상신 취소 */
 export function useCancelApprovalMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    // body는 옵션 (서버가 null 허용)
     mutationFn: ({ approvalId, body }) => cancelApproval(approvalId, body),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: APPROVAL_QUERY_KEYS.all });

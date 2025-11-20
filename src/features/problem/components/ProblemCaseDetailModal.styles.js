@@ -48,7 +48,7 @@ export const InfoRow = styled.tr`
 `;
 
 export const InfoTh = styled.th`
-  width: 120px;
+  width: 100%;
   vertical-align: middle;
   padding: 8px 10px 8px 15px;
   background: ${({ theme }) => (theme.mode === 'dark' ? '#0f1520' : '#f7f9fc')};
@@ -56,16 +56,16 @@ export const InfoTh = styled.th`
   font-weight: 700;
   text-align: left;
   border-left: 1px solid ${({ theme }) => theme.colors.border};
-  border-right: 1px solid ${({ theme }) => theme.colors.border};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 export const InfoTd = styled.td`
   vertical-align: middle;
   padding: 8px 18px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  border-left: 1px solid ${({ theme }) => theme.colors.border};
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: ${({ theme }) => theme.typography.fontSize.md};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 export const ServicesContainer = styled.div`
@@ -94,11 +94,11 @@ export const DescriptionText = styled.div`
 
 export const Footer = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: ${({ $hasActions }) =>
+    $hasActions ? 'space-between' : 'flex-end'};
   align-items: center;
   margin-top: ${({ theme }) => theme.spacing.md};
-  padding-top: ${({ theme }) => theme.spacing.md};
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  gap: 10px;
 `;
 
 export const ActionButtons = styled.div`
