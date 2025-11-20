@@ -1,7 +1,11 @@
+// src/features/problem/components/ProblemTypeTree.jsx
 import { ChevronRight, ChevronDown, ChevronLeft, Plus } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
-import { mockProblemCategories, mockProblems } from '@/mock/problem';
+import {
+  useAllProblemCategoriesQuery,
+  useAllProblemsQuery,
+} from '@/hooks/useProblemQueries';
 
 import * as S from './ProblemTypeTree.styles';
 
@@ -12,20 +16,24 @@ export function ProblemTypeTree({
   onAddType,
 }) {
   const [collapsed, setCollapsed] = useState(false);
-  const [expandedTypes, setExpandedTypes] = useState(new Set([1, 2]));
+  const [expandedTypes, setExpandedTypes] = useState(new Set());
 
-  // 카테고리별 문제 그룹화
+  const { data: categories = [] } = useAllProblemCategoriesQuery();
+  const { data: problems = [] } = useAllProblemsQuery();
+
+  // 카테고리별 문제 목록 그룹핑 (categoryId 기준)
   const categoryProblemsMap = useMemo(() => {
     const map = new Map();
-    mockProblems.forEach((problem) => {
-      const categoryId = problem.category.id;
+    problems.forEach((problem) => {
+      const categoryId = problem.categoryId;
+      if (!categoryId) return;
       if (!map.has(categoryId)) {
         map.set(categoryId, []);
       }
       map.get(categoryId).push(problem);
     });
     return map;
-  }, []);
+  }, [problems]);
 
   const toggleType = (categoryId) => {
     const newExpanded = new Set(expandedTypes);
@@ -64,10 +72,10 @@ export function ProblemTypeTree({
       </S.Header>
 
       <S.TreeContainer>
-        {mockProblemCategories.map((category) => {
+        {categories.map((category) => {
           const isExpanded = expandedTypes.has(category.id);
           const isSelected = selectedType === category.id;
-          const problems = categoryProblemsMap.get(category.id) || [];
+          const problemsInCategory = categoryProblemsMap.get(category.id) || [];
 
           return (
             <div key={category.id}>
@@ -85,12 +93,12 @@ export function ProblemTypeTree({
                   <ChevronRight size={16} />
                 )}
                 <S.TreeItemText>{category.title}</S.TreeItemText>
-                <S.TreeItemCount>{problems.length}</S.TreeItemCount>
+                <S.TreeItemCount>{problemsInCategory.length}</S.TreeItemCount>
               </S.TreeItem>
 
               {isExpanded && (
                 <S.ChildrenContainer>
-                  {problems.map((problem) => (
+                  {problemsInCategory.map((problem) => (
                     <S.ChildItem
                       key={problem.id}
                       onClick={() => {

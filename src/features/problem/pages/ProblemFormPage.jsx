@@ -6,8 +6,13 @@ import CustomSelect from '@/components/auth/CustomSelect';
 import Textarea from '@/components/common/Textarea';
 import { RequiredAsterisk } from '@/components/schedule/commonStyles';
 import ScheduleCustomSelect from '@/components/schedule/components/ScheduleCustomSelect';
-import { DEPARTMENT_REVERSE_MAP } from '@/constants/accounts';
-import { mockProblems, mockProblemCategories } from '@/mock/problem';
+import {
+  useAllProblemCategoriesQuery,
+  useDeploymentsQuery,
+  useProblemQuery,
+  useCreateProblemMutation,
+  useUpdateProblemMutation,
+} from '@/hooks/useProblemQueries';
 import { useAuthStore } from '@/stores/authStore';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
 
@@ -32,9 +37,8 @@ export default function ProblemFormPage() {
     importance: 'MEDIUM',
     description: '',
     deploymentIds: [],
-    service: '',
+    isSolved: false,
   });
-  const [deployments, setDeployments] = useState([]);
   const [errors, setErrors] = useState({
     title: '',
     categoryId: '',
@@ -49,102 +53,61 @@ export default function ProblemFormPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  // 수정 모드일 때 기존 문제 데이터 로드
+  const { data: categories = [] } = useAllProblemCategoriesQuery();
+  const { data: deployments = [] } = useDeploymentsQuery();
+  const { data: problemDetail } = useProblemQuery(problemId, {
+    enabled: isEditMode && !!problemId,
+  });
+
+  const createProblemMutation = useCreateProblemMutation();
+  const updateProblemMutation = useUpdateProblemMutation(problemId);
+
   useEffect(() => {
-    if (isEditMode && problemId) {
-      const problem = mockProblems.find((p) => p.id === problemId);
-      if (problem) {
-        setFormData({
-          title: problem.title || '',
-          categoryId: problem.category?.id || '',
-          importance: problem.importance || 'MEDIUM',
-          description: problem.description || '',
-          deploymentIds: problem.deployments || [],
-          service:
-            problem.services && problem.services.length > 0
-              ? problem.services[0]
-              : '',
-        });
-      }
+    if (isEditMode && problemDetail) {
+      setFormData({
+        title: problemDetail.title || '',
+        categoryId: problemDetail.categoryId
+          ? String(problemDetail.categoryId)
+          : '',
+        importance: problemDetail.importance || 'MEDIUM',
+        description: problemDetail.description || '',
+        deploymentIds: problemDetail.deploymentIds || [],
+        isSolved:
+          typeof problemDetail.isSolved === 'boolean'
+            ? problemDetail.isSolved
+            : false,
+      });
     }
-  }, [isEditMode, problemId]);
+  }, [isEditMode, problemDetail]);
 
-  // 배포 목록 조회
-  useEffect(() => {
-    const fetchDeployments = async () => {
-      try {
-        // TODO: 실제 API 연동 시 problemAPI.getDeployments() 사용
-        // const data = await problemAPI.getDeployments();
-        // setDeployments(data);
-
-        // Mock data 사용
-        const mockDeployments = [
-          { id: 290, title: '유저 서비스 v2.1.0 배포' },
-          { id: 289, title: '결제 서비스 v1.5.2 배포' },
-          { id: 288, title: '검색 서비스 v3.0.1 배포' },
-          { id: 287, title: '알림 서비스 v1.2.0 배포' },
-          { id: 286, title: 'API 게이트웨이 v2.3.0 배포' },
-          { id: 285, title: '부사 서비스 v1.0.5 배포' },
-          { id: 284, title: '유저 서비스 v2.0.9 배포' },
-          { id: 283, title: '결제 서비스 v1.5.1 배포' },
-          { id: 282, title: '검색 서비스 v2.9.8 배포' },
-          { id: 281, title: '알림 서비스 v1.1.9 배포' },
-          { id: 280, title: 'API 게이트웨이 v2.2.7 배포' },
-        ];
-        setDeployments(mockDeployments);
-      } catch (error) {
-        console.error('배포 목록 조회 실패:', error);
-      }
-    };
-
-    fetchDeployments();
-  }, []);
-
-  const categoryOptions = mockProblemCategories.map((cat) => ({
-    value: cat.id,
-    label: cat.title,
-  }));
+  const categoryOptions = useMemo(
+    () =>
+      categories.map((cat) => ({
+        value: String(cat.id),
+        label: cat.title,
+      })),
+    [categories],
+  );
 
   const deploymentOptions = deployments.map((dep) => ({
     value: dep.id,
-    label: dep.title,
+    label: dep.title || dep.name || `#${dep.id}`,
   }));
 
-  // 서비스 목록 (mockProblems에서 추출)
-  const availableServices = useMemo(() => {
-    const servicesSet = new Set();
-    // TODO: 실제 API 연동 시 서비스 목록 API 사용
-    const mockProblems = [
-      { services: ['유저 서비스'] },
-      { services: ['결제 서비스'] },
-      { services: ['검색 서비스'] },
-      { services: ['알림 서비스'] },
-      { services: ['부사 서비스'] },
-      { services: ['API 게이트웨이'] },
-    ];
-    mockProblems.forEach((problem) => {
-      if (problem.services && Array.isArray(problem.services)) {
-        problem.services.forEach((service) => servicesSet.add(service));
-      }
-    });
-    return Array.from(servicesSet)
-      .sort()
-      .map((service) => ({ value: service, label: service }));
-  }, []);
-
   const validateField = (field, value) => {
-    switch (field) {
-      case 'title':
-        return !value || value.trim() === '' ? '제목을 입력해주세요' : '';
-      case 'categoryId':
-        return !value || value === '' ? '문제 유형을 선택해주세요' : '';
-      case 'importance':
-        return !value || value === '' ? '중요도를 선택해주세요' : '';
-      case 'description':
-        return !value || value.trim() === '' ? '설명을 입력해주세요' : '';
-      default:
-        return '';
+    if (field === 'title') {
+      return !value || value.trim() === '' ? '제목을 입력해주세요' : '';
     }
+    if (field === 'categoryId') {
+      return !value || value === '' ? '문제 유형을 선택해주세요' : '';
+    }
+    if (field === 'importance') {
+      return !value || value === '' ? '중요도를 선택해주세요' : '';
+    }
+    if (field === 'description') {
+      return !value || value.trim() === '' ? '설명을 입력해주세요' : '';
+    }
+    return '';
   };
 
   const handleFieldChange = (field, value) => {
@@ -183,7 +146,6 @@ export default function ProblemFormPage() {
     return !Object.values(newErrors).some((error) => error !== '');
   };
 
-  // 필수 필드 검증 (등록 버튼 활성화 여부)
   const isFormValid = useMemo(() => {
     return (
       formData.title.trim() !== '' &&
@@ -207,30 +169,32 @@ export default function ProblemFormPage() {
 
     setIsLoading(true);
     try {
-      const problemData = {
-        categoryId: Number.parseInt(formData.categoryId, 10),
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        importance: formData.importance,
-        deploymentIds: formData.deploymentIds,
-      };
-
       if (isEditMode) {
-        // 수정 모드
-        // TODO: 실제 API 연동 시 주석 해제
-        // await problemAPI.updateProblem(problemId, problemData);
-        console.log('문제 수정:', problemId, problemData);
+        const updateData = {
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          importance: formData.importance,
+          categoryId: Number.parseInt(formData.categoryId, 10),
+          deploymentIds: formData.deploymentIds,
+          accountId: user?.id || null,
+          isSolved: formData.isSolved,
+        };
+        await updateProblemMutation.mutateAsync(updateData);
       } else {
-        // 생성 모드
-        // TODO: 실제 API 연동 시 주석 해제
-        // await problemAPI.createProblem(problemData);
-        console.log('문제 생성:', problemData);
+        const createData = {
+          categoryId: Number.parseInt(formData.categoryId, 10),
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          importance: formData.importance,
+          deploymentIds: formData.deploymentIds,
+          accountId: user?.id || null,
+          isSolved: formData.isSolved,
+        };
+        await createProblemMutation.mutateAsync(createData);
       }
 
-      // 성공 시 문제 목록으로 이동
       navigate(PATHS.PROBLEMS);
-    } catch (error) {
-      console.error(isEditMode ? '문제 수정 실패:' : '문제 생성 실패:', error);
+    } catch {
       alert(
         isEditMode
           ? '문제 수정에 실패했습니다. 다시 시도해주세요.'
@@ -272,11 +236,25 @@ export default function ProblemFormPage() {
             <S.MetaRow>
               <S.MetaTh>등록자</S.MetaTh>
               <S.MetaTdText>{user?.name || ''}</S.MetaTdText>
-              <S.MetaTh>등록부서</S.MetaTh>
+              <S.MetaTh>
+                해결 여부<RequiredAsterisk>*</RequiredAsterisk>
+              </S.MetaTh>
               <S.MetaTdText>
-                {user?.department
-                  ? DEPARTMENT_REVERSE_MAP[user.department] || user.department
-                  : '없음'}
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData.isSolved}
+                    onChange={(e) =>
+                      handleFieldChange('isSolved', e.target.checked)
+                    }
+                  />
+                </label>
               </S.MetaTdText>
             </S.MetaRow>
 
@@ -286,7 +264,7 @@ export default function ProblemFormPage() {
               </S.MetaTh>
               <S.MetaTdTitle>
                 <S.Input
-                  placeholder="문제 사례의 제목을 입력하세요"
+                  placeholder="제목을 입력하세요"
                   value={formData.title}
                   onChange={(e) => handleFieldChange('title', e.target.value)}
                   onBlur={() => handleBlur('title')}
@@ -328,18 +306,6 @@ export default function ProblemFormPage() {
                   options={deploymentOptions}
                   placeholder="관련 배포를 선택하세요"
                   multiple
-                />
-              </S.MetaTd>
-            </S.MetaRow>
-
-            <S.MetaRow>
-              <S.MetaTh>관련 서비스</S.MetaTh>
-              <S.MetaTd colSpan={3}>
-                <CustomSelect
-                  value={formData.service}
-                  onChange={(value) => handleFieldChange('service', value)}
-                  options={availableServices}
-                  placeholder="관련 서비스를 선택하세요"
                 />
               </S.MetaTd>
             </S.MetaRow>

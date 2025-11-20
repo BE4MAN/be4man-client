@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useMemo, useEffect } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { useApprovalDetailQuery } from '@/hooks/useApprovalQueries';
 import {
@@ -90,6 +90,12 @@ function toUpdatePayload(
 export default function ApprovalEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.scrollingElement?.scrollTo(0, 0);
+  }, []);
 
   const { data: detail, isLoading, isError } = useApprovalDetailQuery(id);
   const updateMut = useUpdateApprovalMutation();
@@ -127,7 +133,6 @@ export default function ApprovalEditPage() {
       accountId: l.accountId ?? null,
     }));
 
-    // 첫 줄(기안자) 확정 보정
     if (steps.length > 0) {
       steps[0] = {
         ...steps[0],
@@ -186,7 +191,8 @@ export default function ApprovalEditPage() {
         drafterAccountId: initial.drafterAccountId,
       }),
     });
-    navigate('/approvals');
+    const back = location.state?.backTo;
+    navigate({ pathname: '/approvals', search: back?.search || '' });
   };
 
   const handleSubmit = async (form) => {
@@ -199,7 +205,8 @@ export default function ApprovalEditPage() {
       }),
     });
     await submitMut.mutateAsync({ approvalId: initial.approvalId });
-    navigate('/approvals');
+    const back = location.state?.backTo;
+    navigate({ pathname: '/approvals', search: back?.search || '' });
   };
 
   return (

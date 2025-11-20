@@ -1,224 +1,245 @@
+// src/features/problem/components/ProblemCaseList.styles.jsx
 import styled from '@emotion/styled';
 
-export const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-  gap: 1rem;
+export const Wrap = styled.div`
+  color: ${({ theme }) => theme.colors.textPrimary};
+  padding: 10px;
 `;
 
-export const SearchFilterSection = styled.div`
-  padding: 20px;
+export const FilterCard = styled.section`
+  background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 0.3125rem;
+  padding: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+export const FilterRow = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+
+  @media (width <= 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+export const FilterLabel = styled.div`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 13px;
+  min-width: 70px;
   flex-shrink: 0;
 `;
 
-export const FiltersPanel = styled.div`
+export const FilterSelectWrap = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.md};
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
 `;
 
-export const FiltersRow = styled.div`
+export const SearchRow = styled.div`
   display: flex;
-  gap: ${({ theme }) => theme.spacing.md};
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
+  gap: 8px;
+  flex: 1;
+  width: 100%;
 
-  ${({ theme }) => theme.mqMax.md`
+  @media (width <= 640px) {
     flex-direction: column;
-    align-items: stretch;
-  `}
-`;
-
-export const FiltersLabel = styled.span`
-  font-size: 14px;
-  font-family: Arial, sans-serif;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  margin-right: 10px;
-`;
-
-export const SelectWrapper = styled.div`
-  min-width: 14.0625rem;
-  width: auto;
-  height: 2.2rem;
-  display: flex;
-  align-items: center;
-
-  & > div {
-    width: 100%;
-  }
-
-  button {
-    width: 100%;
-    height: 100%;
-    background-color: ${({ theme }) => theme.colors.bg};
   }
 `;
 
-export const ResetButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-family: Arial, sans-serif;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  background-color: transparent;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 0.25rem;
-  cursor: pointer;
-  white-space: nowrap;
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.brand};
-  }
-
-  ${({ theme }) => theme.mqMax.md`
-    width: 100%;
-  `}
-`;
-
-export const TagContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${({ theme }) => theme.spacing.sm};
-  padding: 0;
-  background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.md};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-`;
-
-export const SearchBox = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  flex-wrap: wrap;
-
-  ${({ theme }) => theme.mqMax.md`
-    flex-direction: column;
-    align-items: stretch;
-    gap: ${theme.spacing.sm};
-  `}
-`;
-
-export const SearchLabel = styled.span`
-  font-size: 14px;
-  font-family: Arial, sans-serif;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  margin-right: 26px;
-`;
-
-export const SearchBar = styled.div`
+export const SearchInputWrap = styled.div`
   position: relative;
   flex: 1;
-  max-width: 765px;
-
-  .search-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
-    color: ${({ theme }) => theme.colors.textSecondary};
-    pointer-events: none;
-  }
+  min-width: 0;
 `;
 
-export const SearchInput = styled.input`
+export const Input = styled.input`
   width: 100%;
-  padding: 10px 40px;
-  font-size: 14px;
-  font-family: Arial, sans-serif;
-  border: 1px solid
-    ${({ $focused, theme }) =>
-      $focused ? theme.colors.brand : theme.colors.border};
-  border-radius: 0.25rem;
-  outline: none;
-  background-color: ${({ theme }) => theme.colors.bg};
-  color: ${({ theme }) => theme.colors.textPrimary};
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.textSecondary};
-  }
-`;
-
-export const ClearButton = styled.button`
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  padding: 4px;
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.textPrimary};
-  }
-`;
-
-export const SearchButton = styled.button`
-  height: 2.5rem;
-  min-width: 5.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.lg};
+  height: 36px;
+  padding: 0 12px;
   border-radius: ${({ theme }) => theme.radius.md};
-  border: none;
-  background: ${({ theme }) => theme.colors.brand};
-  color: ${({ theme }) => theme.colors.onPrimary || '#ffffff'};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
-  cursor: pointer;
-
-  &:hover {
-    filter: brightness(0.95);
-  }
-
-  &:active {
-    filter: brightness(0.9);
-  }
-
-  ${({ theme }) => theme.mqMax.md`
-    width: 100%;
-  `}
-`;
-
-export const TableContainer = styled.div`
-  flex: 1;
-  overflow: auto;
-  min-height: 0;
-`;
-
-export const TitleCell = styled.div`
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.inputBg};
   color: ${({ theme }) => theme.colors.textPrimary};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  max-width: 400px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  outline: none;
+  font-size: 14px;
+`;
+
+export const SearchBtn = styled.button`
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.onPrimary};
+  border-radius: ${({ theme }) => theme.radius.md};
+  font-weight: 600;
+  cursor: pointer;
   white-space: nowrap;
 `;
 
-export const PaginationWrapper = styled.div`
-  padding-top: ${({ theme }) => theme.spacing.md};
-  margin-top: ${({ theme }) => theme.spacing.md};
+export const ResetBtn = styled.button`
+  height: 36px;
+  padding: 0 12px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surface};
+  }
+`;
+
+export const ClearBtn = styled.button`
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  cursor: pointer;
+  font-size: 12px;
+`;
+
+export const Panel = styled.section`
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  overflow: clip;
+`;
+
+export const Table = styled.table`
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+`;
+
+export const Head = styled.thead`
+  display: contents;
+`;
+
+export const Body = styled.tbody`
+  display: contents;
+`;
+
+export const Tr = styled.tr`
+  cursor: pointer;
+
+  &[data-selected='true'] {
+    background: rgb(37 99 235 / 8%);
+  }
+
+  &:hover {
+    background: rgb(148 163 184 / 12%);
+  }
+`;
+
+export const Th = styled.th`
+  background: ${({ theme }) => (theme.mode === 'dark' ? '#111827' : '#f7f8fa')};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-weight: 600;
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  padding: 10px 12px;
+  text-align: center;
+
+  & + & {
+    border-left: 0.5px solid ${({ theme }) => theme.colors.border};
+  }
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+export const Td = styled.td`
+  padding: 12px;
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  text-align: center;
+  border-top: 0.5px solid ${({ theme }) => theme.colors.border};
+
+  & + & {
+    border-left: 1px solid ${({ theme }) => theme.colors.border};
+  }
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &[data-no-ellipsis] {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+`;
+
+export const Title = styled.span`
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+export const Pagination = styled.nav`
+  position: relative;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  padding: ${({ theme }) => theme.spacing.sm} 4px;
+  margin-top: 5px;
+`;
+
+export const PageInfo = styled.div`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+`;
+
+export const PageBtns = styled.div`
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+`;
+
+export const PageBtn = styled.button`
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  cursor: pointer;
+  font-size: 13px;
+
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &[data-active] {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+export const CustomSelect = styled.div`
+  min-width: 140px;
 `;

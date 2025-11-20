@@ -13,15 +13,14 @@ export const MainContent = styled.div`
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
-  padding: 1.5rem;
 `;
 
 export const ActionBar = styled.div`
-  height: 64px;
+  height: 3rem;
+  margin: 0 0 -10px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 0 ${({ theme }) => theme.spacing.lg};
   gap: ${({ theme }) => theme.spacing.sm};
   flex-shrink: 0;
 `;

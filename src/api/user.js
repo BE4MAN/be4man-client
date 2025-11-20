@@ -22,3 +22,8 @@ export const userAPI = {
     return data;
   },
 };
+
+export async function fetchAccountById(accountId) {
+  const res = await axiosInstance.get(API_ENDPOINTS.ACCOUNT_BY_ID(accountId));
+  return res.data;
+}

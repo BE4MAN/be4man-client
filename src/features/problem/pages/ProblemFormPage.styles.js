@@ -105,6 +105,7 @@ export const MetaTdText = styled(MetaTd)`
 
 export const MetaTdTitle = styled(MetaTd)`
   & > input {
+    border: 1px solid ${({ theme }) => theme.colors.border};
     width: 100%;
   }
 `;
