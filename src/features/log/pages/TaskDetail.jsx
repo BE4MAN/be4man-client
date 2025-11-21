@@ -442,7 +442,7 @@ export default function TaskDetail() {
               style={{
                 padding: '20px',
                 textAlign: 'center',
-                color: theme.colors.textSecondary,
+                color: theme.colors.textsecondary,
               }}
             >
               타임라인 정보가 없습니다.
@@ -788,7 +788,7 @@ export default function TaskDetail() {
                   style={{
                     padding: '20px',
                     textAlign: 'center',
-                    color: theme.colors.textSecondary,
+                    color: theme.colors.textsecondary,
                   }}
                 >
                   승인 정보가 없습니다.

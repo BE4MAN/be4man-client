@@ -1,3 +1,5 @@
+// src/api/endpoints.js
+
 // API Base URL
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -18,6 +20,9 @@ export const API_ENDPOINTS = {
   CONSOLE_LOG: '/api/console-log',
   BUILD_RESULT: '/api/build-result',
   ALL_STAGES: '/api/console-log',
+
+  // 🔥 Jenkins 실시간 로그 SSE 엔드포인트
+  JENKINS_LOG_STREAM: '/api/jenkins/log-stream',
 
   // Statistics
   DEPLOY_FAILURE_SERIES: '/api/statistics/deploy-failures/series',
@@ -56,4 +61,7 @@ export const API_ENDPOINTS = {
   ACCOUNT_BY_ID: (id) => `/api/accounts/${id}`,
 
   DEPLOYMENTS: '/api/deployments',
+
+  // 배포 상태 조회
+  DEPLOYMENT_STATUS: '/api/build-result/deployment-status',
 };

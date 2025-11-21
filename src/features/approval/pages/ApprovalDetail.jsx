@@ -134,6 +134,9 @@ export default function ApprovalDetail() {
   let currentUserId = user?.accountId || user?.id;
   let currentUserName = user?.name || user?.username || user?.displayName || '';
 
+  currentUserId = 2;
+  currentUserName = '이원석';
+
   const { data: apiDetail, isLoading, isError } = useApprovalDetailQuery(id);
 
   const approveMut = useApproveApprovalMutation();
