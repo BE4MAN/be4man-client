@@ -93,16 +93,75 @@ function renderPipelineIcon(status) {
 function PRIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" aria-label="PR">
+      <g fill="none" stroke="currentColor" strokeWidth="1.6">
+        <circle cx="6" cy="6" r="2" />
+        <circle cx="18" cy="6" r="2" />
+        <circle cx="12" cy="18" r="2" />
+        <path d="M6 8v8" strokeLinecap="round" />
+        <path d="M18 8v8" strokeLinecap="round" />
+        <path d="M6 8c2 2 6 2 12 0" strokeLinecap="round" />
+      </g>
+    </svg>
+  );
+}
+
+/* Small SVG icons to avoid OS emoji rendering issues */
+function ClockIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
       <path
-        d="M7 3a3 3 0 0 0-1 5.83V15a3 3 0 1 0 2 0V8.83A3.001 3.001 0 0 0 7 3zm0 2a1 1 0 1 1-.001 2.001A1 1 0 0 1 7 5zm0 12a1 1 0 1 1-.001 2.001A1 1 0 0 1 7 17zm10-2a3 3 0 0 0-2-2.816V7a3 3 0 1 0-2 0v5.184A3.001 3.001 0 0 0 17 15zm0-10a1 1 0 1 1-.001 2.001A1 1 0 0 1 17 5z"
+        d="M12 1a11 11 0 1 0 11 11A11.012 11.012 0 0 0 12 1zm0 20a9 9 0 1 1 9-9 9.01 9.01 0 0 1-9 9z"
+        fill="currentColor"
+        opacity="0.15"
+      />
+      <path
+        d="M12.75 7h-1.5v6l5.25 3.15.75-1.23-4.5-2.67z"
         fill="currentColor"
       />
     </svg>
   );
 }
 
+function TimerIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2zm1 11h-4v-1h3V7h1z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function DurationIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M12 1a11 11 0 1 0 11 11A11.012 11.012 0 0 0 12 1zm0 2a9 9 0 1 1-9 9 9.01 9.01 0 0 1 9-9zm.5 5h-1v5l4.2 2.52.6-1-3.8-2.28z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function StartIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+      <path d="M4 2v20l18-10L4 2z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function EndIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+      <rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor" />
+    </svg>
+  );
+}
+
 export default function JenkinsTab({
-  id,
+  id, // deploymentId
   theme,
   baseStyles, // planCard / planHeader / planBody 재사용
 }) {
@@ -112,27 +171,142 @@ export default function JenkinsTab({
   const consoleOutputRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // ▶ 배포 상태 기반 실시간 플래그
+  const [isRealtimeBuild, setIsRealtimeBuild] = useState(false);
+
+  // ▶ SSE 상태
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [realtimeLog, setRealtimeLog] = useState('');
+  const eventSourceRef = useRef(null);
+
+  // ▶ REST 기반 콘솔 로그
   const [jenkinsLogData, setJenkinsLogData] = useState(null);
   const [jenkinsLogLoading, setJenkinsLogLoading] = useState(false);
   const [jenkinsLogError, setJenkinsLogError] = useState(null);
 
+  // ▶ 빌드 결과 / 목록
   const [buildResultData, setBuildResultData] = useState(null);
   const [buildResultLoading, setBuildResultLoading] = useState(false);
-  const [buildResultError, setBuildResultError] = useState(null);
-  // 빌드 목록 (새 요구사항: 먼저 목록을 보여줌)
+  const [buildResultError, setBuildResultError] = useState(false);
   const [buildList, setBuildList] = useState([]);
 
+  // ▶ 파이프라인 스테이지
   const [pipelineStages, setPipelineStages] = useState([]);
   const [pipelineLoading, setPipelineLoading] = useState(false);
   const [pipelineError, setPipelineError] = useState(null);
   const [selectedStageIndex, setSelectedStageIndex] = useState(null);
 
-  // API: 콘솔 로그
+  /** 1) deploymentId 기반 배포 상태 조회 → 실시간 여부 결정 */
   useEffect(() => {
-    // 새 API: /api/console-log/{deploymentId}/{buildRunId}
+    if (!id) {
+      setIsRealtimeBuild(false);
+      setRealtimeLog('');
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+      setIsStreaming(false);
+      return;
+    }
+
+    (async () => {
+      try {
+        console.log('[JenkinsTab] fetchDeploymentStatus: start', { id });
+        const status = await taskAPI.fetchDeploymentStatus(id);
+        console.log('[JenkinsTab] fetchDeploymentStatus: response', status);
+
+        const shouldRealtime =
+          status?.stage === 'DEPLOYMENT' && status?.status === 'IN_PROGRESS';
+
+        setIsRealtimeBuild(!!shouldRealtime);
+
+        if (!shouldRealtime) {
+          // 실시간 조건이 아니면 SSE 끊고 로그 초기화
+          if (eventSourceRef.current) {
+            eventSourceRef.current.close();
+            eventSourceRef.current = null;
+          }
+          setIsStreaming(false);
+          setRealtimeLog('');
+        }
+      } catch (e) {
+        console.error('[JenkinsTab] fetchDeploymentStatus: error', e);
+        setIsRealtimeBuild(false);
+        if (eventSourceRef.current) {
+          eventSourceRef.current.close();
+          eventSourceRef.current = null;
+        }
+        setIsStreaming(false);
+        setRealtimeLog('');
+      }
+    })();
+  }, [id]);
+
+  /** 2) 실시간 모드일 때만 SSE 연결 */
+  useEffect(() => {
+    if (!isRealtimeBuild || !id) {
+      // 실시간 모드가 아니면 SSE 정리
+      if (eventSourceRef.current) {
+        console.log('[JenkinsTab] SSE close (not realtime)');
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+      setIsStreaming(false);
+      return;
+    }
+
+    // 이미 연결되어 있으면 재연결 방지
+    if (eventSourceRef.current) return;
+
+    const url = taskAPI.getJenkinsLogStreamUrl(id);
+    console.log('[JenkinsTab] SSE connect:', url);
+
+    const es = new EventSource(url);
+    eventSourceRef.current = es;
+    setIsStreaming(true);
+    setRealtimeLog('');
+
+    es.addEventListener('connected', (e) => {
+      console.log('[JenkinsTab] SSE connected:', e.data);
+    });
+
+    es.addEventListener('log', (e) => {
+      const chunk = processEscapeChars(e.data || '');
+      setRealtimeLog((prev) => (prev ? `${prev}\n${chunk}` : chunk));
+    });
+
+    es.addEventListener('complete', (e) => {
+      console.log('[JenkinsTab] SSE complete:', e.data);
+      setIsStreaming(false);
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+    });
+
+    es.onerror = (err) => {
+      console.error('[JenkinsTab] SSE error:', err);
+      setIsStreaming(false);
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+    };
+
+    return () => {
+      if (eventSourceRef.current) {
+        console.log('[JenkinsTab] SSE cleanup (unmount/change)');
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+      setIsStreaming(false);
+    };
+  }, [id, isRealtimeBuild]);
+
+  /** 3) REST 콘솔 로그 (실시간 모드일 때는 스킵) */
+  useEffect(() => {
     const buildRunId = buildResultData?.buildRunId;
-    if (!id || !buildRunId) {
-      // 빌드가 선택되지 않았으면 이전 로그 초기화
+    if (!id || !buildRunId || isRealtimeBuild) {
       setJenkinsLogData(null);
       return;
     }
@@ -154,9 +328,9 @@ export default function JenkinsTab({
         console.log('[JenkinsTab] fetchConsoleLog: end');
       }
     })();
-  }, [id, buildResultData?.buildRunId]);
+  }, [id, buildResultData?.buildRunId, isRealtimeBuild]);
 
-  // API: 빌드 결과
+  /** 4) 빌드 결과 목록 */
   useEffect(() => {
     if (!id) return;
     (async () => {
@@ -166,10 +340,8 @@ export default function JenkinsTab({
       try {
         const res = await taskAPI.fetchBuildResult(id);
         console.log('[JenkinsTab] fetchBuildResult: response', res);
-        // API now returns an array of build results. 저장 및 기본 선택(first) 처리
         if (Array.isArray(res)) {
           setBuildList(res);
-          // 기본으로 첫 빌드를 선택하면 상세 정보를 다시 조회해서 최신 데이터를 가져옴
           const first = res[0];
           if (first) {
             try {
@@ -179,7 +351,6 @@ export default function JenkinsTab({
               );
               setBuildResultData(detail || first);
             } catch (detailErr) {
-              // 상세 조회 실패 시 목록 항목으로 내려놓기
               console.error(
                 '[JenkinsTab] fetchBuildResult: detail fetch error',
                 detailErr,
@@ -190,7 +361,6 @@ export default function JenkinsTab({
             setBuildResultData(null);
           }
         } else if (res && typeof res === 'object') {
-          // 이전 단일 객체 응답과의 하위호환
           setBuildList([res]);
           setBuildResultData(res);
         } else {
@@ -207,9 +377,8 @@ export default function JenkinsTab({
     })();
   }, [id]);
 
-  // API: 파이프라인 stages
+  /** 5) 파이프라인 stages */
   useEffect(() => {
-    // Fetch pipeline stages for the selected buildRunId (new API expects buildRunId in path)
     const buildRunId = buildResultData?.buildRunId;
     if (!id || !buildRunId) {
       setPipelineStages([]);
@@ -238,7 +407,7 @@ export default function JenkinsTab({
     })();
   }, [id, buildResultData?.buildRunId]);
 
-  // Fullscreen 상태 추적
+  /** 6) Fullscreen 상태 추적 */
   useEffect(() => {
     const handleFullscreenChange = () => {
       const enabled = !!(
@@ -270,6 +439,12 @@ export default function JenkinsTab({
     };
   }, []);
 
+  /** 7) 콘솔 자동 스크롤 */
+  useEffect(() => {
+    if (!consoleOutputRef.current) return;
+    consoleOutputRef.current.scrollTop = consoleOutputRef.current.scrollHeight;
+  }, [realtimeLog, jenkinsLogData?.processedLog, selectedStageIndex]);
+
   const isConsoleDownloadDisabled =
     !jenkinsLogData?.processedLog || jenkinsLogLoading;
 
@@ -277,7 +452,7 @@ export default function JenkinsTab({
   const selectedStage =
     selectedStageIndex !== null ? pipelineStages[selectedStageIndex] : null;
 
-  // 선택된 스테이지의 이슈/해결책 (mock 사용 금지: API 응답만 사용)
+  // 선택된 스테이지의 이슈/해결책
   const issueSummary =
     !selectedStage?.isSuccess &&
     (selectedStage?.problemSummary ||
@@ -291,7 +466,7 @@ export default function JenkinsTab({
         }
       : null;
 
-  // Builds list inline styles (로그 목록과 유사한 테이블 형식)
+  // Builds list inline styles
   const buildListStyles = {
     wrapper: { overflowX: 'auto' },
     table: {
@@ -327,12 +502,22 @@ export default function JenkinsTab({
     }),
   };
 
+  /** 콘솔에 뿌릴 로그 결정 (우선순위) */
+  let displayedLog = '';
+  if (selectedStage) {
+    displayedLog = processEscapeChars(selectedStage.log || '');
+  } else if (realtimeLog) {
+    displayedLog = realtimeLog;
+  } else if (jenkinsLogData?.processedLog) {
+    displayedLog = jenkinsLogData.processedLog;
+  }
+
   return (
     <>
       {/* 전역 반응형/가상선택자 및 스크롤바 숨김 CSS */}
       <Global styles={buildJenkinsGlobalStyles()} />
 
-      {/* Builds 목록 (새 요구사항) - 로그 목록과 유사한 테이블 형태 */}
+      {/* Builds 목록 */}
       <div style={baseStyles.planCard}>
         <div style={baseStyles.planHeader}>
           <span style={baseStyles.planIcon}></span>
@@ -412,6 +597,7 @@ export default function JenkinsTab({
           )}
         </div>
       </div>
+
       {/* Pipeline */}
       <div style={baseStyles.planCard}>
         <div style={baseStyles.planHeader}>
@@ -552,63 +738,67 @@ export default function JenkinsTab({
             </div>
           ) : buildResultData ? (
             <div className="jt-stats-grid">
-              <div className="jt-stats-item" style={s.statsItem}>
-                <div className="jt-stats-icon" style={s.statsIcon}>
-                  ✓
-                </div>
-                <div style={s.statsContent}>
-                  <div style={s.statsLabel}>빌드 상태</div>
-                  <div
-                    style={s.statsValue(
-                      buildResultData.isDeployed ? '성공' : '실패',
-                    )}
-                  >
-                    {buildResultData.isDeployed ? '빌드 성공' : '빌드 실패'}
-                  </div>
-                </div>
-              </div>
-
-              <div className="jt-stats-item" style={s.statsItem}>
-                <div className="jt-stats-icon" style={s.statsIcon}>
-                  ⏱
-                </div>
-                <div style={s.statsContent}>
-                  <div style={s.statsLabel}>빌드 소요 시간</div>
-                  <div style={s.statsValue()}>
-                    {formatDuration(buildResultData.duration)}
-                  </div>
-                </div>
-              </div>
-
-              {buildResultData.startedAt && (
+              {/* Top row: 빌드 상태 | 빌드 시작 시간 | 빌드 종료 시간 */}
+              <div className="jt-stats-row">
                 <div className="jt-stats-item" style={s.statsItem}>
                   <div className="jt-stats-icon" style={s.statsIcon}>
-                    🕐
+                    ✓
+                  </div>
+                  <div style={s.statsContent}>
+                    <div style={s.statsLabel}>빌드 상태</div>
+                    <div
+                      style={s.statsValue(
+                        buildResultData.isDeployed ? '성공' : '실패',
+                      )}
+                    >
+                      {buildResultData.isDeployed ? '빌드 성공' : '빌드 실패'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="jt-stats-item" style={s.statsItem}>
+                  <div className="jt-stats-icon" style={s.statsIcon}>
+                    <StartIcon />
                   </div>
                   <div style={s.statsContent}>
                     <div style={s.statsLabel}>빌드 시작 시간</div>
                     <div style={s.statsValue()}>
-                      {formatKoreanDateTime(buildResultData.startedAt)}
+                      {buildResultData.startedAt
+                        ? formatKoreanDateTime(buildResultData.startedAt)
+                        : '-'}
                     </div>
                   </div>
                 </div>
-              )}
 
-              {buildResultData.endedAt && (
                 <div className="jt-stats-item" style={s.statsItem}>
                   <div className="jt-stats-icon" style={s.statsIcon}>
-                    🕑
+                    <EndIcon />
                   </div>
                   <div style={s.statsContent}>
                     <div style={s.statsLabel}>빌드 종료 시간</div>
                     <div style={s.statsValue()}>
-                      {formatKoreanDateTime(buildResultData.endedAt)}
+                      {buildResultData.endedAt
+                        ? formatKoreanDateTime(buildResultData.endedAt)
+                        : '-'}
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {buildResultData.prNumber && (
+              {/* Bottom row: 빌드 소요 시간 | 배포된 PR */}
+              <div className="jt-stats-row bottom">
+                <div className="jt-stats-item" style={s.statsItem}>
+                  <div className="jt-stats-icon" style={s.statsIcon}>
+                    <DurationIcon />
+                  </div>
+                  <div style={s.statsContent}>
+                    <div style={s.statsLabel}>빌드 소요 시간</div>
+                    <div style={s.statsValue()}>
+                      {formatDuration(buildResultData.duration)}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="jt-stats-item" style={s.statsItem}>
                   <div className="jt-stats-icon" style={s.statsIcon}>
                     <PRIcon />
@@ -616,26 +806,30 @@ export default function JenkinsTab({
                   <div style={s.statsContent}>
                     <div style={s.statsLabel}>배포된 PR</div>
                     <div style={s.statsValue()}>
-                      {buildResultData.prUrl ? (
-                        <a
-                          href={buildResultData.prUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            color: theme.colors.brand,
-                            textDecoration: 'underline',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          #{buildResultData.prNumber}
-                        </a>
+                      {buildResultData.prNumber ? (
+                        buildResultData.prUrl ? (
+                          <a
+                            href={buildResultData.prUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: theme.colors.brand,
+                              textDecoration: 'underline',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            #{buildResultData.prNumber}
+                          </a>
+                        ) : (
+                          `#${buildResultData.prNumber}`
+                        )
                       ) : (
-                        `#${buildResultData.prNumber}`
+                        '-'
                       )}
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           ) : (
             <div style={{ padding: 16, color: theme.colors.textsecondary }}>
@@ -696,7 +890,20 @@ export default function JenkinsTab({
 
         <div style={baseStyles.planBody}>
           <div className="jt-console-header" style={s.consoleHeader}>
-            <span style={s.consoleTitle}>Console</span>
+            <span style={s.consoleTitle}>
+              Console
+              {isRealtimeBuild && (
+                <span
+                  style={{
+                    marginLeft: 8,
+                    fontSize: 12,
+                    color: theme.colors.brand,
+                  }}
+                >
+                  {isStreaming ? ' (실시간 수집 중)' : ' (실시간 모드 대기)'}
+                </span>
+              )}
+            </span>
             <div style={s.consoleActions}>
               <button
                 style={{
@@ -777,15 +984,15 @@ export default function JenkinsTab({
             style={s.consoleOutput}
             data-no-scrollbar="true"
           >
-            {jenkinsLogLoading ? (
+            {jenkinsLogLoading && !displayedLog ? (
               <div style={{ padding: 16, color: theme.colors.textsecondary }}>
                 로그를 불러오는 중...
               </div>
-            ) : jenkinsLogError ? (
+            ) : jenkinsLogError && !displayedLog ? (
               <div style={{ padding: 16, color: theme.colors.error }}>
                 {jenkinsLogError}
               </div>
-            ) : selectedStage ? (
+            ) : displayedLog ? (
               <pre
                 style={{
                   margin: 0,
@@ -796,20 +1003,7 @@ export default function JenkinsTab({
                   color: theme.colors.textprimary,
                 }}
               >
-                {processEscapeChars(selectedStage.log || '')}
-              </pre>
-            ) : jenkinsLogData?.processedLog ? (
-              <pre
-                style={{
-                  margin: 0,
-                  whiteSpace: 'pre-wrap',
-                  fontFamily: 'monospace',
-                  fontSize: '13px',
-                  lineHeight: 1.5,
-                  color: theme.colors.textprimary,
-                }}
-              >
-                {jenkinsLogData.processedLog}
+                {displayedLog}
               </pre>
             ) : (
               <div style={{ padding: 16, color: theme.colors.textsecondary }}>

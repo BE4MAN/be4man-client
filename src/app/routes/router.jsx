@@ -19,6 +19,9 @@ const ApprovalFormPage = lazy(
 const ApprovalDetailPage = lazy(
   () => import('@/features/approval/pages/ApprovalDetail'),
 );
+const ApprovalEditPage = lazy(
+  () => import('@/features/approval/pages/ApprovalEdit'),
+);
 
 const LogManagement = lazy(() => import('@/features/log/pages/LogManagement'));
 const ScheduleManagement = lazy(
@@ -29,6 +32,12 @@ const RestrictedPeriodCreationPage = lazy(
 );
 const AnalyticsPage = lazy(
   () => import('@/features/analytics/pages/AnalyticsPage'),
+);
+const ProblemManagement = lazy(
+  () => import('@/features/problem/pages/ProblemManagement'),
+);
+const ProblemFormPage = lazy(
+  () => import('@/features/problem/pages/ProblemFormPage'),
 );
 
 export const router = createBrowserRouter([
@@ -91,6 +100,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: PATHS.APPROVAL_EDIT,
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <ApprovalEditPage />
+          </Suspense>
+        ),
+      },
+      {
         path: PATHS.SCHEDULE,
         element: (
           <Suspense fallback={<PageSkeleton />}>
@@ -127,6 +144,22 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageSkeleton />}>
             <AnalyticsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: PATHS.PROBLEMS,
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <ProblemManagement />
+          </Suspense>
+        ),
+      },
+      {
+        path: PATHS.PROBLEM_NEW,
+        element: (
+          <Suspense fallback={<PageSkeleton />}>
+            <ProblemFormPage />
           </Suspense>
         ),
       },

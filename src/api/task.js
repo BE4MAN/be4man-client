@@ -1,5 +1,6 @@
+// src/api/task.js
 import axiosInstance from './axios';
-import { API_ENDPOINTS } from './endpoints';
+import { API_BASE_URL, API_ENDPOINTS } from './endpoints';
 
 /**
  * 작업(Task) 관련 API 함수 모음
@@ -21,7 +22,8 @@ export const taskAPI = {
   /**
    * 빌드 결과 조회
    * @param {number|string} id - 배포 ID
-   * @returns {Promise<{deploymentId: number, isDeployed: boolean, duration: number, startedAt: string, endedAt: string, prNumber: number, prUrl: string}>}
+   * @param {number|string} [buildRunId] - 빌드 실행 ID (선택)
+   * @returns {Promise|Array}
    */
   fetchBuildResult: async (id, buildRunId) => {
     // If buildRunId is provided, call /api/build-result/{id}/{buildRunId}
@@ -34,15 +36,35 @@ export const taskAPI = {
 
   /**
    * 모든 Jenkins stage 정보 조회
-   * @param {number|string} id - 배포 ID
+   * @param {number|string} buildRunId - 빌드 실행 ID
    * @returns {Promise<Array<{deploymentId: number, buildRunId: number, stageRunId: number, stageName: string, isSuccess: boolean, orderIndex: number, log: string, problemSummary: string|null, problemSolution: string|null}>>}
    */
   fetchAllStages: async (buildRunId) => {
-    // If buildRunId is provided, use it in the URL (new API expects buildRunId in path)
-    const target = buildRunId;
     const { data } = await axiosInstance.get(
-      `${API_ENDPOINTS.ALL_STAGES}/${target}/all-stages`,
+      `${API_ENDPOINTS.ALL_STAGES}/${buildRunId}/all-stages`,
     );
     return data;
+  },
+
+  /**
+   * 배포 상태 조회 (DEPLOYMENT / IN_PROGRESS 여부 확인)
+   * @param {number|string} deploymentId
+   */
+  async fetchDeploymentStatus(deploymentId) {
+    const { data } = await axiosInstance.get(
+      `${API_ENDPOINTS.DEPLOYMENT_STATUS}/${deploymentId}`,
+    );
+    return data;
+  },
+
+  /**
+   * Jenkins 실시간 로그 SSE URL 생성
+   * (EventSource에서 사용, axios 아님)
+   * @param {number|string} deploymentId
+   * @returns {string} SSE 접속 URL
+   */
+  getJenkinsLogStreamUrl(deploymentId) {
+    // API_BASE_URL이 이미 VITE_API_BASE_URL로 설정되어 있음
+    return `${API_BASE_URL}${API_ENDPOINTS.JENKINS_LOG_STREAM}?deploymentId=${deploymentId}`;
   },
 };

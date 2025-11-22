@@ -53,6 +53,13 @@ export const SelectButton = styled.button`
     font-family: Arial, sans-serif;
   }
 
+  &:focus,
+  &:active {
+    border-color: ${({ $hasError, theme }) =>
+      $hasError ? theme.colors.error : theme.colors.border};
+    outline: none;
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -76,7 +83,7 @@ export const OptionsPanel = styled.div`
   top: 100%;
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: 10;
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 0.3125rem;

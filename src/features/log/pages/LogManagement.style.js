@@ -1,353 +1,493 @@
-// src/features/log/pages/LogManagement.style.js
+import styled from '@emotion/styled';
 
-export const getStyles = (theme) => {
-  const isDark = theme.mode === 'dark';
+export const Wrap = styled.div`
+  color: ${({ theme }) => theme.colors.textPrimary};
+  padding: 10px;
+`;
 
-  return {
-    container: {
-      display: 'flex',
-      flexDirection: 'column',
-      flex: '1 1 auto',
-      minHeight: 0,
-      overflow: 'hidden',
-      padding: '24px',
-      backgroundColor: theme.colors.background,
-    },
+export const TopBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`;
 
-    // 검색 및 필터 영역
-    searchFilterSection: {
-      backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
-      borderRadius: '12px',
-      padding: '20px',
-      marginBottom: '20px',
-      boxShadow: isDark
-        ? '0 1px 3px rgba(0,0,0,0.3)'
-        : '0 1px 3px rgba(0,0,0,0.1)',
-    },
+export const Breadcrumb = styled.div`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 30px;
+`;
 
-    topControls: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      gap: '12px',
-      marginBottom: '16px',
-    },
+export const PrimaryBtn = styled.button`
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.onPrimary};
+  border-radius: ${({ theme }) => theme.radius.md};
+  font-weight: 600;
+  cursor: pointer;
+`;
 
-    searchBar: {
-      position: 'relative',
-      flex: 1,
-      maxWidth: '500px',
-    },
+export const FilterCard = styled.section`
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  padding: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+`;
 
-    searchIcon: {
-      position: 'absolute',
-      left: '12px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      color: theme.colors.textSecondary,
-      pointerEvents: 'none',
-    },
+export const FilterRow = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+`;
 
-    searchInput: (focused) => ({
-      width: '100%',
-      padding: '10px 40px 10px 40px',
-      fontSize: '14px',
-      border: `1px solid ${focused ? theme.colors.brand : theme.colors.border}`,
-      borderRadius: '8px',
-      outline: 'none',
-      backgroundColor: 'transparent',
-      color: isDark ? '#e0e0e0' : '#333333',
-    }),
+export const FilterLabel = styled.div`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 13px;
+  min-width: 70px;
+`;
 
-    clearButton: (hovered) => ({
-      position: 'absolute',
-      right: '12px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      fontSize: '18px',
-      color: hovered ? theme.colors.danger : theme.colors.textSecondary,
-      padding: '4px',
-    }),
+export const FilterSelectWrap = styled.div`
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+`;
 
-    resetButton: (hovered) => ({
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px',
-      padding: '10px 16px',
-      fontSize: '14px',
-      fontWeight: '500',
-      color: hovered ? theme.colors.brand : theme.colors.textSecondary,
-      backgroundColor: 'transparent',
-      border: `1px solid ${theme.colors.border}`,
-      borderRadius: '8px',
-      cursor: 'pointer',
-      whiteSpace: 'nowrap',
-    }),
+export const SearchRow = styled.div`
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+`;
 
-    // 필터 패널
-    filtersPanel: {
-      marginTop: '16px',
-    },
+export const Select = styled.select`
+  height: 36px;
+  padding: 0 10px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
 
-    filtersRow: {
-      display: 'flex',
-      gap: '16px',
-      alignItems: 'flex-end',
-      flexWrap: 'wrap',
-    },
+  &:focus {
+    outline: none;
+    box-shadow: none;
+    border-color: ${({ theme }) => theme.colors.border};
+  }
+`;
 
-    filterRowItem: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '6px',
-    },
+export const Input = styled.input`
+  flex: 1;
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.inputBg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  outline: none;
+`;
 
-    filterLabel: {
-      fontSize: '13px',
-      fontWeight: '500',
-      color: isDark ? '#b0b0b0' : '#424242',
-    },
+export const SearchBtn = styled.button`
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.onPrimary};
+  border-radius: ${({ theme }) => theme.radius.md};
+  font-weight: 600;
+  cursor: pointer;
+`;
 
-    dateInput: {
-      padding: '8px 12px',
-      fontSize: '14px',
-      border: `1px solid ${theme.colors.border}`,
-      borderRadius: '6px',
-      outline: 'none',
-      backgroundColor: theme.colors.background,
-      color: theme.colors.text,
-      minWidth: '140px',
-    },
+export const ResetBtn = styled.button`
+  height: 36px;
+  padding: 0 12px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
 
-    // 드롭다운 스타일 추가
-    dropdownWrapper: {
-      position: 'relative',
-      minWidth: '140px',
-    },
+  &:hover {
+    background: ${({ theme }) => theme.colors.surface};
+  }
+`;
 
-    dropdownButton: (isOpen) => ({
-      width: '100%',
-      padding: '8px 12px',
-      fontSize: '14px',
-      border: `1px solid ${theme.colors.border}`,
-      borderRadius: '6px',
-      backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
-      color: theme.colors.text,
-      cursor: 'pointer',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      outline: isOpen ? `2px solid ${theme.colors.brand}` : 'none',
-    }),
+export const Panel = styled.section`
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  overflow: clip;
+`;
 
-    dropdownMenu: {
-      position: 'absolute',
-      top: 'calc(100% + 4px)',
-      left: 0,
-      right: 0,
-      backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
-      border: `1px solid ${theme.colors.border}`,
-      borderRadius: '6px',
-      boxShadow: isDark
-        ? '0 4px 12px rgba(0,0,0,0.3)'
-        : '0 4px 12px rgba(0,0,0,0.15)',
-      zIndex: 1000,
-      maxHeight: '200px',
-      overflowY: 'auto',
-    },
+export const Table = styled.table`
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+`;
 
-    dropdownMenuItem: (isSelected, hovered) => ({
-      padding: '8px 12px',
-      fontSize: '14px',
-      color: theme.colors.text,
-      backgroundColor: isSelected
-        ? isDark
-          ? 'rgba(33, 150, 243, 0.2)'
-          : '#e3f2fd'
-        : hovered
-          ? isDark
-            ? '#2a2a2a'
-            : '#f5f5f5'
-          : 'transparent',
-      cursor: 'pointer',
-    }),
+export const Head = styled.thead`
+  display: contents;
+`;
 
-    // 날짜 선택기 스타일 추가
-    dateRangePickerWrapper: {
-      position: 'relative',
-      maxWidth: '200px',
-    },
+export const Body = styled.tbody`
+  display: contents;
+`;
 
-    dateRangePickerButton: (isOpen) => ({
-      width: '100%',
-      padding: '8px 12px',
-      fontSize: '14px',
-      border: `1px solid ${theme.colors.border}`,
-      borderRadius: '6px',
-      backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
-      color: theme.colors.text,
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      outline: isOpen ? `2px solid ${theme.colors.brand}` : 'none',
-    }),
+export const Tr = styled.tr`
+  cursor: pointer;
+`;
 
-    dateRangePickerPopup: {
-      position: 'absolute',
-      top: 'calc(100% + 4px)',
-      right: 0,
-      backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
-      border: `1px solid ${theme.colors.border}`,
-      borderRadius: '12px',
-      boxShadow: isDark
-        ? '0 8px 24px rgba(0,0,0,0.3)'
-        : '0 8px 24px rgba(0,0,0,0.15)',
-      zIndex: 1001,
-      padding: '16px',
-      maxWidth: '600px',
-      width: 'max-content',
-    },
+export const Th = styled.th`
+  background: ${({ theme }) => (theme.mode === 'dark' ? '#111827' : '#f7f8fa')};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-weight: 600;
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  padding: 10px 12px;
+  text-align: center;
 
-    // 테이블
-    tableWrapper: {
-      backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
-      borderRadius: '12px',
-      overflow: 'hidden',
-      boxShadow: isDark
-        ? '0 1px 3px rgba(0,0,0,0.3)'
-        : '0 1px 3px rgba(0,0,0,0.1)',
-    },
+  & + & {
+    border-left: 0.5px solid ${({ theme }) => theme.colors.border};
+  }
 
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-    },
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
 
-    thead: {
-      backgroundColor:
-        theme.colors.backgroundHover || (isDark ? '#2a2a2a' : '#f8f9fa'),
-    },
+export const Td = styled.td`
+  padding: 12px;
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  text-align: center;
+  border-top: 0.5px solid ${({ theme }) => theme.colors.border};
 
-    th: {
-      padding: '16px',
-      textAlign: 'left',
-      fontSize: '13px',
-      fontWeight: '600',
-      color: theme.colors.textSecondary,
-      borderBottom: `1px solid ${theme.colors.border}`,
-    },
+  & + & {
+    border-left: 1px solid ${({ theme }) => theme.colors.border};
+  }
 
-    tr: (hovered) => ({
-      backgroundColor: hovered
-        ? theme.colors.backgroundHover || (isDark ? '#2a2a2a' : '#f8f9fa')
-        : 'transparent',
-      transition: 'background-color 0.2s',
-      cursor: 'pointer',
-    }),
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
-    td: {
-      padding: '16px',
-      fontSize: '14px',
-      color: theme.colors.text,
-      borderBottom: `1px solid ${theme.colors.border}`,
-    },
+  &[data-no-ellipsis] {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
 
-    // 배지 스타일
-    badge: (type, value) => {
-      let backgroundColor, color;
+  &[data-nopointer] {
+    cursor: default;
+  }
+`;
 
-      if (type === 'status') {
-        // 처리 상태
-      } else if (type === 'result') {
-        // 결과
-        switch (value) {
-          case '성공':
-            backgroundColor = isDark ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9';
-            color = isDark ? '#81c784' : '#388e3c';
-            break;
-          case '실패':
-            backgroundColor = isDark ? 'rgba(244, 67, 54, 0.2)' : '#ffebee';
-            color = isDark ? '#ef5350' : '#d32f2f';
-            break;
-          default:
-            backgroundColor =
-              theme.colors.backgroundHover || (isDark ? '#333333' : '#f5f5f5');
-            color = theme.colors.textSecondary;
-        }
+export const Title = styled.span`
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+export const LinkLike = styled.a`
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: ${({ theme }) =>
+    theme.mode === 'dark' ? theme.colors.brand : '#2563EB'};
+  text-decoration: none;
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+export const ApproveWrap = styled.div`
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const Pagination = styled.nav`
+  position: relative;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  gap: 12px;
+  padding: ${({ theme }) => theme.spacing.sm} 4px;
+  margin-top: 5px;
+`;
+
+export const PageInfo = styled.div`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+`;
+
+export const PageBtns = styled.div`
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+`;
+
+export const PageBtn = styled.button`
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  cursor: pointer;
+
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &[data-active] {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+export const Ellipsis = styled.span`
+  padding: 0 6px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+export const StatusBtn = styled.button`
+  height: 28px;
+  padding: 0 10px;
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid
+    ${({ theme, ...p }) =>
+      p['data-variant'] === 'danger'
+        ? (theme.colors.danger ?? '#DC2626')
+        : p['data-variant'] === 'warning'
+          ? (theme.colors.warning ?? '#D97706')
+          : '#007aff'};
+  background: ${({ theme, ...p }) => {
+    const isDanger = p['data-variant'] === 'danger';
+    const isWarn = p['data-variant'] === 'warning';
+    if (theme.mode === 'dark') {
+      if (isDanger) return theme.colors.danger ?? '#DC2626';
+      if (isWarn) return theme.colors.warning ?? '#D97706';
+      return theme.colors.bg;
+    }
+    if (isDanger) return '#fff';
+    if (isWarn) return '#fff';
+    return theme.colors.bg;
+  }};
+  color: ${({ theme, ...p }) => {
+    const isDanger = p['data-variant'] === 'danger';
+    const isWarn = p['data-variant'] === 'warning';
+    if (theme.mode === 'dark') {
+      if (isDanger) return '#fff';
+      if (isWarn) return '#fff';
+      return theme.colors.textPrimary;
+    }
+    if (isDanger) return theme.colors.danger ?? '#DC2626';
+    if (isWarn) return theme.colors.warning ?? '#D97706';
+    return '#007aff';
+  }};
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ theme, ...p }) => {
+      const isDanger = p['data-variant'] === 'danger';
+      const isWarn = p['data-variant'] === 'warning';
+      if (theme.mode === 'dark') {
+        if (isDanger) return theme.colors.danger ?? '#DC2626';
+        if (isWarn) return theme.colors.warning ?? '#D97706';
+        return theme.colors.surface;
       }
+      if (isDanger) return '#FFF1F2';
+      if (isWarn) return '#FFFBEB';
+      return theme.colors.surface;
+    }};
+  }
+`;
 
-      return {
-        display: 'inline-block',
-        padding: '4px 12px',
-        borderRadius: '12px',
-        fontSize: '13px',
-        fontWeight: '500',
-        backgroundColor,
-        color,
-      };
-    },
+export const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgb(2 6 23 / 50%);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+`;
 
-    // 페이지네이션
-    pagination: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: '8px',
-      marginTop: '24px',
-    },
+export const Modal = styled.div`
+  width: min(560px, 92vw);
+  background: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  overflow: hidden;
+`;
 
-    paginationArrow: (disabled, hovered) => ({
-      padding: '8px 12px',
-      fontSize: '16px',
-      fontWeight: '600',
-      color: disabled
-        ? isDark
-          ? '#424242'
-          : '#bdbdbd' // 비활성화: 다크/라이트 구분
-        : hovered && !disabled
-          ? theme.colors.brand
-          : isDark
-            ? '#e0e0e0'
-            : '#333333',
-      backgroundColor:
-        hovered && !disabled ? (isDark ? '#2a2a2a' : '#f0f0f0') : 'transparent',
-      border: `1px solid ${
-        disabled ? (isDark ? '#424242' : '#e0e0e0') : theme.colors.border
-      }`,
-      borderRadius: '6px',
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      opacity: disabled ? 0.5 : 1,
-      userSelect: 'none',
-    }),
+export const ModalHeader = styled.div`
+  padding: 14px 16px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+`;
 
-    paginationButton: (isActive, disabled, hovered) => ({
-      padding: '8px 12px',
-      fontSize: '14px',
-      fontWeight: '500',
-      color: isActive
-        ? '#ffffff'
-        : hovered && !disabled
-          ? theme.colors.brand
-          : isDark
-            ? '#e0e0e0'
-            : '#333333',
-      backgroundColor: isActive
-        ? theme.colors.brand
-        : hovered && !disabled
-          ? isDark
-            ? '#2a2a2a'
-            : '#f0f0f0'
-          : 'transparent',
-      border: `1px solid ${isActive ? theme.colors.brand : theme.colors.border}`,
-      borderRadius: '6px',
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      minWidth: '36px',
-      opacity: disabled ? 0.5 : 1,
-      userSelect: 'none',
-    }),
-  };
-};
+export const ModalTitle = styled.h3`
+  margin: 0;
+  font-size: 16px;
+`;
+
+export const ModalBody = styled.div`
+  padding: 16px;
+`;
+
+export const ReasonBox = styled.pre`
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  padding: 12px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) =>
+    theme.mode === 'dark' ? 'rgba(148,163,184,0.08)' : '#fafafa'};
+`;
+
+export const ModalActions = styled.div`
+  padding: 12px 16px 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+`;
+
+export const Card = styled.section`
+  background: ${({ theme }) => theme.colors.surface};
+  overflow: hidden;
+`;
+
+export const KV = styled.div`
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  row-gap: 8px;
+  column-gap: 10px;
+  align-items: center;
+  padding: 12px;
+
+  @media (width <= 520px) {
+    grid-template-columns: 100px 1fr;
+  }
+`;
+
+export const K = styled.div`
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+export const V = styled.div`
+  color: ${({ theme }) => theme.colors.textPrimary};
+  min-width: 0;
+`;
+
+export const Dashed = styled.div`
+  height: 1px;
+  margin: 0 12px;
+  background-image: linear-gradient(
+    to right,
+    ${({ theme }) => theme.colors.border} 33%,
+    transparent 0%
+  );
+  background-size: 8px 1px;
+  background-repeat: repeat-x;
+`;
+
+export const ReasonScroll = styled.div`
+  padding: 12px;
+  max-height: 260px;
+  overflow: auto;
+`;
+
+export const CustomSelect = styled.div`
+  position: relative;
+  min-width: 140px;
+`;
+
+export const CustomSelectBtn = styled.button`
+  width: 100%;
+  height: 36px;
+  padding: 0 34px 0 10px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  cursor: pointer;
+  position: relative;
+
+  span {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: ${({ theme }) => theme.colors.textSecondary};
+    pointer-events: none;
+  }
+`;
+
+export const CustomSelectList = styled.ul`
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow: auto;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  z-index: 40;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+
+  /* 스크롤 커스텀 */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgb(148 163 184 / 45%);
+    border-radius: 9999px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(148 163 184 / 70%);
+  }
+`;
+
+export const CustomSelectItem = styled.li`
+  padding: 6px 10px;
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  cursor: pointer;
+  line-height: 1.4;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surfaceHover ?? '#eff6ff'};
+  }
+`;

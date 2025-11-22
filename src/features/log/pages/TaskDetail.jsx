@@ -1,8 +1,8 @@
 import { useTheme } from '@emotion/react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-import mockData from '../../../mock/taskManage';
+import { getTaskById } from '../../../api/taskManagement';
 
 import JenkinsTab from './JenkinsTab';
 import { getStyles } from './TaskDetail.style';
@@ -12,26 +12,70 @@ export default function TaskDetail() {
   const styles = getStyles(theme);
   const { id } = useParams();
 
-  const taskItem = mockData.find((item) => item.id === parseInt(id, 10));
+  const [taskItem, setTaskItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // 단계별 초기 탭 결정
-  const getInitialTab = () => {
-    if (!taskItem) return 'plan';
-    if (taskItem.stage === '계획서') return 'plan';
-    if (taskItem.stage === '배포') return 'jenkins';
-    if (taskItem.stage === '결과보고') return 'report';
-    return 'plan';
-  };
-
-  // 탭 상태 관리
-  const [activeTab, setActiveTab] = useState(getInitialTab());
+  const [activeTab, setActiveTab] = useState('plan');
   const [approvalLoading, setApprovalLoading] = useState(false);
   const [approvalMessage, setApprovalMessage] = useState('');
 
-  // 모달 상태 관리
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState('reject'); // 'reject' or 'cancel'
+  const [modalType, setModalType] = useState('reject');
   const [comment, setComment] = useState('');
+
+  // ✅ 현재 로그인한 사용자 ID (실제로는 Context나 Redux에서 가져와야 함)
+  const currentUserId = 1; // TODO: 실제 로그인 사용자 ID로 변경
+
+  const fetchTaskDetail = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const data = await getTaskById(id);
+      setTaskItem(data);
+
+      if (data.initialTab) {
+        setActiveTab(data.initialTab);
+      } else {
+        if (data.currentStage === '결과보고') {
+          setActiveTab('report');
+        } else if (data.currentStage === '배포') {
+          setActiveTab('jenkins');
+        } else {
+          setActiveTab('plan');
+        }
+      }
+    } catch (err) {
+      console.error('작업 상세 조회 실패:', err);
+      setError('작업 정보를 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchTaskDetail();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.notFound}>로딩 중...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.notFound}>{error}</div>
+      </div>
+    );
+  }
 
   if (!taskItem) {
     return (
@@ -41,60 +85,102 @@ export default function TaskDetail() {
     );
   }
 
-  const { planInfo, detailInfo, approval, jenkinsLog, report } = taskItem;
+  const timeline = taskItem?.timeline || [];
+  const planApproval = taskItem?.planApproval || {};
+  const reportApproval = taskItem?.reportApproval || {};
+  const planContent = taskItem?.planContent || {};
+  const reportContent = taskItem?.reportContent || null;
 
-  // 계획서 상태 판별 함수
   const getPlanApprovalStatus = () => {
-    // 배포 또는 레포트 단계에 있으면 계획서는 무조건 승인 완료
-    if (taskItem.stage === '배포' || taskItem.stage === '결과보고') {
+    if (
+      taskItem.currentStage === '배포' ||
+      taskItem.currentStage === '결과보고'
+    ) {
       return '승인';
     }
-
-    // 계획서 단계일 때는 실제 상태 반환
-    return taskItem.status;
+    return taskItem.currentStatus || '대기';
   };
 
-  // 탭 활성화 여부 결정
   const isTabEnabled = (tabName) => {
-    if (taskItem.stage === '계획서') {
-      return tabName === 'plan'; // 계획서만 활성화
+    const maxStage = taskItem.maxStage; // ✅ 가장 진행된 단계
+
+    if (tabName === 'plan') {
+      return true; // 계획서는 항상 활성화
     }
-    if (taskItem.stage === '배포') {
-      return tabName !== 'report'; // 레포트만 비활성화
+
+    if (tabName === 'jenkins') {
+      // 배포 또는 결과보고까지 진행되었으면 활성화
+      return (
+        maxStage === '배포' ||
+        maxStage === '재배포' ||
+        maxStage === '복구' ||
+        maxStage === '결과보고'
+      );
     }
-    if (taskItem.stage === '결과보고') {
-      return true; // 모든 탭 활성화
+
+    if (tabName === 'report') {
+      // 결과보고까지 진행되었으면 활성화
+      return maxStage === '결과보고';
     }
-    return tabName === 'plan'; // 기본값
+
+    return false;
   };
 
-  // 승인 핸들러
+  // ✅ 실제 승인 API 호출
   const handleApprove = async () => {
     setApprovalLoading(true);
     setApprovalMessage('승인 처리 중...');
-    // API 호출
-    setTimeout(() => {
+
+    try {
+      // 현재 activeTab에 따라 approvalId 결정
+      const approvalId =
+        activeTab === 'report'
+          ? reportApproval?.approvalId
+          : planApproval?.approvalId;
+
+      if (!approvalId) {
+        setApprovalMessage('승인 정보를 찾을 수 없습니다.');
+        setApprovalLoading(false);
+        return;
+      }
+
+      const response = await fetch(`/api/approvals/${approvalId}/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          approverAccountId: currentUserId,
+          comment: '',
+        }),
+      });
+
+      if (response.ok) {
+        setApprovalMessage('승인 완료되었습니다.');
+        // 1초 후 페이지 새로고침하여 최신 상태 반영
+        setTimeout(() => {
+          fetchTaskDetail();
+        }, 1000);
+      } else {
+        const errorData = await response.json();
+        setApprovalMessage(errorData.message || '승인 처리 실패');
+      }
+    } catch (error) {
+      console.error('승인 실패:', error);
+      setApprovalMessage('승인 처리 중 오류가 발생했습니다.');
+    } finally {
       setApprovalLoading(false);
-      setApprovalMessage('승인 완료되었습니다.');
-    }, 1500);
+    }
   };
 
-  // 반려 버튼 클릭 (모달 오픈)
   const handleRejectClick = () => {
     setModalType('reject');
     setComment('');
     setIsModalOpen(true);
   };
 
-  // 취소 버튼 클릭 (이미 승인한 사람)
-  const handleCancelClick = () => {
-    setModalType('cancel');
-    setComment('');
-    setIsModalOpen(true);
-  };
-
-  // 모달 제출 핸들러
-  const handleModalSubmit = () => {
+  // ✅ 실제 반려/취소 API 호출
+  const handleModalSubmit = async () => {
     if (!comment.trim()) {
       alert('사유를 입력해주세요.');
       return;
@@ -104,16 +190,54 @@ export default function TaskDetail() {
     setApprovalLoading(true);
     setApprovalMessage(`${actionText} 처리 중...`);
 
-    // API 호출
-    setTimeout(() => {
+    try {
+      const approvalId =
+        activeTab === 'report'
+          ? reportApproval?.approvalId
+          : planApproval?.approvalId;
+
+      if (!approvalId) {
+        setApprovalMessage('승인 정보를 찾을 수 없습니다.');
+        setApprovalLoading(false);
+        return;
+      }
+
+      const endpoint =
+        modalType === 'reject'
+          ? `/api/approvals/${approvalId}/reject`
+          : `/api/approvals/${approvalId}/cancel`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          approverAccountId: currentUserId,
+          comment: comment,
+        }),
+      });
+
+      if (response.ok) {
+        setApprovalMessage(`${actionText} 완료되었습니다.`);
+        setIsModalOpen(false);
+        setComment('');
+        // 1초 후 페이지 새로고침하여 최신 상태 반영
+        setTimeout(() => {
+          fetchTaskDetail();
+        }, 1000);
+      } else {
+        const errorData = await response.json();
+        setApprovalMessage(errorData.message || `${actionText} 처리 실패`);
+      }
+    } catch (error) {
+      console.error(`${actionText} 실패:`, error);
+      setApprovalMessage(`${actionText} 처리 중 오류가 발생했습니다.`);
+    } finally {
       setApprovalLoading(false);
-      setApprovalMessage(`${actionText} 완료되었습니다.`);
-      setIsModalOpen(false);
-      setComment('');
-    }, 1500);
+    }
   };
 
-  // 모달 닫기
   const handleModalClose = () => {
     setIsModalOpen(false);
     setComment('');
@@ -121,7 +245,6 @@ export default function TaskDetail() {
 
   const isDark = theme.mode === 'dark';
 
-  // 모달 스타일
   const modalStyles = {
     backdrop: {
       position: 'fixed',
@@ -162,17 +285,6 @@ export default function TaskDetail() {
       marginBottom: '8px',
       color: theme.colors.text,
     },
-    select: {
-      width: '100%',
-      padding: '10px 12px',
-      borderRadius: '6px',
-      border: `1px solid ${theme.colors.border}`,
-      backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
-      color: theme.colors.text,
-      fontSize: '14px',
-      marginBottom: '16px',
-      outline: 'none',
-    },
     textarea: {
       width: '100%',
       minHeight: '120px',
@@ -211,17 +323,6 @@ export default function TaskDetail() {
       fontSize: '14px',
       fontWeight: '500',
       cursor: 'pointer',
-    },
-    cancelOrRejectButton: {
-      padding: '6px 12px',
-      borderRadius: '6px',
-      border: `1px solid ${theme.colors.border}`,
-      backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5',
-      color: theme.colors.text,
-      fontSize: '12px',
-      fontWeight: '500',
-      cursor: 'pointer',
-      marginTop: '8px',
     },
   };
 
@@ -264,95 +365,95 @@ export default function TaskDetail() {
         </div>
       )}
 
-      {/* 타임라인 */}
       <div style={styles.timelineCard}>
         <h3 style={styles.timelineTitle}>작업 타임라인</h3>
         <div style={styles.timelineWrapper}>
-          {taskItem.timeline.map((step, index) => {
-            const isLastStep = index === taskItem.timeline.length - 1;
-            const nextStep = !isLastStep ? taskItem.timeline[index + 1] : null;
+          {timeline && timeline.length > 0 ? (
+            timeline.map((step, index) => {
+              const isLastStep = index === timeline.length - 1;
+              const nextStep = !isLastStep ? timeline[index + 1] : null;
 
-            const shouldShowLine =
-              !isLastStep &&
-              nextStep &&
-              !nextStep.disabled &&
-              nextStep.status !== '대기';
+              const shouldShowLine =
+                !isLastStep && nextStep && nextStep.status !== 'pending';
 
-            // 라인 색상은 현재 단계의 완료 상태를 기반으로 결정
-            const getLineColor = () => {
-              const currentStatus = step.status;
+              const getLineColor = () => {
+                const currentStatus = step.status;
+                const currentResult = step.result;
 
-              // 현재 단계가 실패한 경우 (rejected 플래그 사용)
-              if (step.rejected || currentStatus === '취소') {
-                return isDark ? '#ef5350' : '#f44336';
-              }
+                if (currentResult === 'failure') {
+                  return isDark ? '#ef5350' : '#f44336';
+                }
 
-              // 현재 단계가 완료/승인/성공인 경우
-              if (
-                currentStatus === '완료' ||
-                currentStatus === '승인' ||
-                currentStatus === '성공' ||
-                currentStatus === '작성완료'
-              ) {
-                return isDark ? '#4caf50' : '#66bb6a'; // 초록색
-              }
+                if (currentResult === 'success') {
+                  return isDark ? '#4caf50' : '#66bb6a';
+                }
 
-              // 진행중인 경우
-              if (currentStatus === '진행중') {
-                return isDark ? '#ffa726' : '#ff9800'; // 노란색
-              }
+                if (currentStatus === 'rejected' || currentStatus === '취소') {
+                  return isDark ? '#ef5350' : '#f44336';
+                }
 
-              // 기본 (대기 상태)
-              return isDark ? '#424242' : '#e0e0e0';
-            };
+                if (
+                  currentStatus === 'completed' ||
+                  currentStatus === '승인' ||
+                  currentStatus === '성공' ||
+                  currentStatus === '작성완료'
+                ) {
+                  return isDark ? '#4caf50' : '#66bb6a';
+                }
 
-            return (
-              <div key={index} style={styles.timelineStep(step.disabled)}>
-                <div style={styles.timelineIconWrapper}>
-                  {renderStepIcon(step, isLastStep, styles, theme)}
+                if (currentStatus === 'active') {
+                  return isDark ? '#ffa726' : '#ff9800';
+                }
 
-                  {shouldShowLine && (
-                    <div style={styles.timelineLine(getLineColor())} />
-                  )}
+                return isDark ? '#424242' : '#e0e0e0';
+              };
+
+              return (
+                <div key={index} style={styles.timelineStep(false)}>
+                  <div style={styles.timelineIconWrapper}>
+                    {renderStepIcon(step, isLastStep, styles)}
+
+                    {shouldShowLine && (
+                      <div style={styles.timelineLine(getLineColor())} />
+                    )}
+                  </div>
+
+                  <div style={styles.timelineStepName}>
+                    {step.stepNumber}. {step.stepName}
+                  </div>
+
+                  <div style={styles.timelineStepTime}>
+                    {step.timestamp || '-'}
+                  </div>
+
+                  <div
+                    style={styles.timelineStepStatus(
+                      step.result === 'failure',
+                      false,
+                    )}
+                  >
+                    {step.description || step.status}
+                  </div>
                 </div>
-
-                <div style={styles.timelineStepName}>{step.step}</div>
-
-                <div style={styles.timelineStepTime}>
-                  {step.time || <span>-</span>}
-                </div>
-
-                <div
-                  style={styles.timelineStepStatus(step.warning, step.rejected)}
-                >
-                  {/* 배포 종료 단계: "완료" → "종료", 결과 표시 */}
-                  {step.step === '배포종료' || step.step === '배포 종료' ? (
-                    <>
-                      {step.status === '완료' ? '종료' : step.status}
-                      {step.result && ` - ${step.result}`}
-                    </>
-                  ) : (
-                    <>
-                      {step.status}
-                      {step.result && ` (${step.result})`}
-                    </>
-                  )}
-                  {step.comment && (
-                    <div style={styles.timelineStepComment}>{step.comment}</div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div
+              style={{
+                padding: '20px',
+                textAlign: 'center',
+                color: theme.colors.textsecondary,
+              }}
+            >
+              타임라인 정보가 없습니다.
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 메인 컨텐츠 - 좌우 레이아웃 */}
       <div style={styles.mainContentWrapper}>
-        {/* 왼쪽: 계획서 카드 (서브 탭 포함) */}
         <div style={styles.leftContent}>
           <div style={styles.planCard}>
-            {/* 서브 탭 */}
             <div style={styles.subTabContainer}>
               <button
                 style={styles.subTabButton(
@@ -388,11 +489,9 @@ export default function TaskDetail() {
               </button>
             </div>
 
-            {/* 탭 컨텐츠 */}
             <div style={styles.tabContentWrapper}>
               {activeTab === 'plan' && (
                 <>
-                  {/* 기본 정보 카드 */}
                   <div style={styles.planCard}>
                     <div style={styles.planHeader}>
                       <span style={styles.planIcon}></span>
@@ -403,42 +502,43 @@ export default function TaskDetail() {
                         <div style={styles.infoItem}>
                           <span style={styles.infoLabel}>작업명</span>
                           <span style={styles.infoValue}>
-                            {taskItem.taskTitle}
+                            {taskItem.taskTitle || '-'}
                           </span>
                         </div>
 
                         <div style={styles.infoItem}>
                           <span style={styles.infoLabel}>서비스명</span>
                           <span style={styles.infoValue}>
-                            {taskItem.serviceName}
+                            {taskItem.serviceName || '-'}
                           </span>
                         </div>
 
                         <div style={styles.infoItem}>
                           <span style={styles.infoLabel}>기안자</span>
                           <span style={styles.infoValue}>
-                            {taskItem.drafter} ({taskItem.department})
+                            {planContent?.drafter || '-'} (
+                            {planContent?.department || '-'})
                           </span>
                         </div>
 
                         <div style={styles.infoItem}>
                           <span style={styles.infoLabel}>기안일자</span>
                           <span style={styles.infoValue}>
-                            {planInfo.draftDate}
+                            {planContent?.createdAt || '-'}
                           </span>
                         </div>
 
                         <div style={styles.infoItem}>
                           <span style={styles.infoLabel}>배포 시작</span>
                           <span style={styles.infoValue}>
-                            {planInfo.deploymentDateTime.start}
+                            {planContent?.scheduledAt || '-'}
                           </span>
                         </div>
 
                         <div style={styles.infoItem}>
                           <span style={styles.infoLabel}>배포 종료</span>
                           <span style={styles.infoValue}>
-                            {planInfo.deploymentDateTime.end.split(' ')[1]}
+                            {planContent?.scheduledToEndedAt || '-'}
                           </span>
                         </div>
 
@@ -454,7 +554,6 @@ export default function TaskDetail() {
                     </div>
                   </div>
 
-                  {/* 상세 정보 카드 */}
                   <div style={styles.planCard}>
                     <div style={styles.planHeader}>
                       <span style={styles.planIcon}></span>
@@ -462,45 +561,38 @@ export default function TaskDetail() {
                     </div>
 
                     <div style={styles.planBody}>
-                      <pre style={styles.detailTextContent}>{detailInfo}</pre>
+                      <div
+                        style={styles.detailTextContent}
+                        dangerouslySetInnerHTML={{
+                          __html: planContent?.content || '내용이 없습니다.',
+                        }}
+                      />
 
-                      {/* 승인/반려/취소 버튼 - 상세 정보 맨 아래 */}
-                      {(approval?.canApprove || approval?.canCancel) && (
+                      {(planApproval?.approvers || []).some(
+                        (a) => a.canApprove || a.canCancel,
+                      ) && (
                         <div style={styles.detailApprovalButtons}>
                           {approvalMessage && (
                             <div style={styles.approvalMessage}>
                               {approvalMessage}
                             </div>
                           )}
-                          {approval?.canApprove && (
-                            <div style={styles.detailApprovalButtonWrapper}>
-                              <button
-                                style={styles.detailApproveButton}
-                                onClick={handleApprove}
-                                disabled={approvalLoading}
-                              >
-                                ✓ 승인
-                              </button>
-                              <button
-                                style={styles.detailRejectButton}
-                                onClick={handleRejectClick}
-                                disabled={approvalLoading}
-                              >
-                                ✕ 반려
-                              </button>
-                            </div>
-                          )}
-                          {approval?.canCancel && (
-                            <div style={styles.detailApprovalButtonWrapper}>
-                              <button
-                                style={styles.detailRejectButton}
-                                onClick={handleCancelClick}
-                                disabled={approvalLoading}
-                              >
-                                ⚠️ 취소
-                              </button>
-                            </div>
-                          )}
+                          <div style={styles.detailApprovalButtonWrapper}>
+                            <button
+                              style={styles.detailApproveButton}
+                              onClick={handleApprove}
+                              disabled={approvalLoading}
+                            >
+                              ✓ 승인
+                            </button>
+                            <button
+                              style={styles.detailRejectButton}
+                              onClick={handleRejectClick}
+                              disabled={approvalLoading}
+                            >
+                              ✕ 반려
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -517,18 +609,90 @@ export default function TaskDetail() {
                     planHeader: styles.planHeader,
                     planBody: styles.planBody,
                   }}
-                  jenkinsLog={jenkinsLog}
                 />
               )}
 
-              {activeTab === 'report' && report && (
+              {activeTab === 'report' && (
                 <div style={styles.planCard}>
                   <div style={styles.planHeader}>
                     <span style={styles.planIcon}></span>
                     <h2 style={styles.planTitle}>결과 보고</h2>
                   </div>
                   <div style={styles.planBody}>
-                    <pre style={styles.detailTextContent}>{report}</pre>
+                    {reportContent ? (
+                      <>
+                        {/* 배포 결과 정보 */}
+                        <div style={styles.infoGrid}>
+                          {reportContent.deploymentResult && (
+                            <div style={styles.infoItem}>
+                              <span style={styles.infoLabel}>배포 결과</span>
+                              <span
+                                style={styles.statusBadge(
+                                  reportContent.deploymentResult,
+                                )}
+                              >
+                                {reportContent.deploymentResult}
+                              </span>
+                            </div>
+                          )}
+
+                          {reportContent.actualStartedAt && (
+                            <div style={styles.infoItem}>
+                              <span style={styles.infoLabel}>
+                                실제 시작 시각
+                              </span>
+                              <span style={styles.infoValue}>
+                                {reportContent.actualStartedAt}
+                              </span>
+                            </div>
+                          )}
+
+                          {reportContent.actualEndedAt && (
+                            <div style={styles.infoItem}>
+                              <span style={styles.infoLabel}>
+                                실제 종료 시각
+                              </span>
+                              <span style={styles.infoValue}>
+                                {reportContent.actualEndedAt}
+                              </span>
+                            </div>
+                          )}
+
+                          {reportContent.actualDuration && (
+                            <div style={styles.infoItem}>
+                              <span style={styles.infoLabel}>
+                                실제 소요 시간
+                              </span>
+                              <span style={styles.infoValue}>
+                                {reportContent.actualDuration}
+                              </span>
+                            </div>
+                          )}
+
+                          {reportContent.reportCreatedAt && (
+                            <div style={styles.infoItem}>
+                              <span style={styles.infoLabel}>
+                                결과보고 작성일
+                              </span>
+                              <span style={styles.infoValue}>
+                                {reportContent.reportCreatedAt}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 결과보고 내용 */}
+                        <div
+                          style={styles.detailTextContent}
+                          dangerouslySetInnerHTML={{
+                            __html:
+                              reportContent.reportContent || '내용이 없습니다.', // ✅ .reportContent 사용
+                          }}
+                        />
+                      </>
+                    ) : (
+                      <div>결과 보고가 없습니다.</div>
+                    )}
                   </div>
                 </div>
               )}
@@ -536,194 +700,100 @@ export default function TaskDetail() {
           </div>
         </div>
 
-        {/* 오른쪽: 승인 정보 */}
         <div style={styles.approvalSidebarFull}>
           <div style={styles.sidebarHeader}>
             <h3 style={styles.sidebarTitle}>승인 정보</h3>
           </div>
 
-          {/* 승인자 리스트 */}
           <div style={styles.approvalListContainer}>
             {(() => {
-              let approvalHistory = [];
-              let nextApprover = null;
+              const approvers =
+                activeTab === 'report'
+                  ? reportApproval?.approvers || []
+                  : planApproval?.approvers || [];
 
-              if (activeTab === 'report') {
-                approvalHistory = approval?.reportApprovalHistory || [];
-                nextApprover = approval?.nextReportApprover || null;
-              } else {
-                approvalHistory = approval?.planApprovalHistory || [];
-                nextApprover = approval?.nextApprover || null;
-              }
+              return approvers.length > 0 ? (
+                approvers.map((approver, idx) => {
+                  const approvalStatus = approver.approvalStatus || '대기중';
+                  const isApproved = approvalStatus === '승인';
+                  const isRejected = approvalStatus === '반려';
+                  const isPending = approvalStatus === '대기중';
 
-              const pendingApprovers =
-                activeTab === 'report' ? [] : approval?.pendingApprovers || [];
-
-              // ✅ 수정: 모든 승인자 리스트 구성
-              let allApprovers = [
-                ...approvalHistory.map((h) => ({
-                  ...h,
-                  name: h.approver,
-                  isPending: false,
-                })),
-                ...pendingApprovers.map((p) => ({
-                  ...p,
-                  isPending: true,
-                })),
-              ].sort((a, b) => a.order - b.order);
-
-              // ✅ 수정: cancellationReason과 cancellationDetails를 함께 사용
-              if (
-                (approval?.cancellationReason ||
-                  approval?.cancellationDetails) &&
-                activeTab !== 'report' &&
-                taskItem.status === '취소'
-              ) {
-                // cancellationDetails가 있으면 사용, 없으면 cancellationReason에서 파싱
-                const cancellationInfo = approval?.cancellationDetails || {
-                  cancelledBy: approval?.cancellationReason?.actor
-                    ?.split('(')[0]
-                    .trim(),
-                  department:
-                    approval?.cancellationReason?.actor
-                      ?.split('(')[1]
-                      ?.replace(')', '')
-                      .trim() || '',
-                  role: '작업자',
-                  cancelledAt: approval?.cancellationReason?.processedAt,
-                  stage: '계획서 단계',
-                  type: 'MANUAL',
-                };
-
-                allApprovers = [
-                  ...allApprovers,
-                  {
-                    name: cancellationInfo.cancelledBy,
-                    department: cancellationInfo.department,
-                    role: cancellationInfo.role,
-                    email: cancellationInfo.email,
-                    phone: cancellationInfo.phone,
-                    status: '취소',
-                    cancelledAt: cancellationInfo.cancelledAt,
-                    comment: approval?.cancellationReason?.reason,
-                    type: cancellationInfo.type,
-                    stage: cancellationInfo.stage,
-                    order: 999, // 마지막에 표시
-                    isCancellation: true,
-                  },
-                ];
-              }
-
-              const currentApproverOrder = nextApprover?.order;
-
-              return allApprovers.map((approver, idx) => {
-                const isCurrentTurn = approver.order === currentApproverOrder;
-                const isApproved = approver.status === '승인';
-                const isRejected = approver.status === '반려';
-                const isCancelled = approver.status === '취소';
-
-                return (
-                  <div
-                    key={idx}
-                    style={styles.approverListItem(
-                      isCurrentTurn,
-                      isCancelled,
-                      isRejected,
-                    )}
-                  >
-                    {/* 승인자 이름 */}
+                  return (
                     <div
-                      style={styles.approverListName(
-                        isCurrentTurn,
-                        isCancelled,
-                        isApproved,
+                      key={idx}
+                      style={styles.approverListItem(
+                        approver.isCurrentTurn,
+                        false,
                         isRejected,
                       )}
                     >
-                      {isApproved && <span style={styles.checkMark}>✓</span>}
-                      {isRejected && <span style={styles.rejectMark}>✕</span>}
-                      {isCancelled && <span style={styles.cancelMark}>⚠️</span>}
-                      {approver.name}
-                    </div>
+                      <div
+                        style={styles.approverListName(
+                          approver.isCurrentTurn,
+                          false,
+                          isApproved,
+                          isRejected,
+                        )}
+                      >
+                        {isApproved && <span style={styles.checkMark}>✓</span>}
+                        {isRejected && <span style={styles.rejectMark}>✕</span>}
+                        {isPending && approver.isCurrentTurn && (
+                          <span style={styles.pendingMark}>⏳</span>
+                        )}
+                        {approver.approverName}
+                      </div>
 
-                    {/* 부서/역할 */}
-                    <div
-                      style={styles.approverListInfo(
-                        isCurrentTurn,
-                        isCancelled,
-                        isApproved,
-                        isRejected,
-                      )}
-                    >
-                      {approver.department} · {approver.role}
-                    </div>
+                      <div
+                        style={styles.approverListInfo(
+                          approver.isCurrentTurn,
+                          false,
+                          isApproved,
+                          isRejected,
+                        )}
+                      >
+                        {approver.approverDepartment} · 승인자
+                      </div>
 
-                    {/* ✅ 취소 정보 상세 표시 */}
-                    {isCancelled && (
-                      <>
+                      {approver.processedAt && (
                         <div
                           style={styles.approverListInfo(
-                            isCurrentTurn,
-                            isCancelled,
+                            approver.isCurrentTurn,
+                            false,
                             isApproved,
                             isRejected,
                           )}
                         >
-                          {approver.cancelledAt}
+                          {approver.processedAt}
                         </div>
+                      )}
 
-                        {/* ✅ 취소 사유 표시 */}
-                        {approver.comment && (
-                          <div
-                            style={styles.approverListInfo(
-                              isCurrentTurn,
-                              isCancelled,
-                              isApproved,
-                              isRejected,
-                            )}
-                          >
-                            <strong>취소 사유:</strong> {approver.comment}
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {/* 반려 정보 */}
-                    {isRejected && approver.comment && (
-                      <div
-                        style={styles.approverListInfo(
-                          isCurrentTurn,
-                          isCancelled,
-                          isApproved,
-                          isRejected,
-                        )}
-                      >
-                        <strong>반려 사유:</strong> {approver.comment}
-                      </div>
-                    )}
-
-                    {/* 승인 대기 정보 */}
-                    {isCurrentTurn && nextApprover?.email && (
-                      <div
-                        style={styles.approverListInfo(
-                          isCurrentTurn,
-                          isCancelled,
-                          isApproved,
-                          isRejected,
-                        )}
-                      >
-                        📧 {nextApprover.email}
-                      </div>
-                    )}
-
-                    {isCurrentTurn && nextApprover?.waitingTime && (
-                      <div style={styles.approverListWaiting}>
-                        ⏱️ 대기: {nextApprover.waitingTime}
-                      </div>
-                    )}
-                  </div>
-                );
-              });
+                      {approver.comment && (
+                        <div
+                          style={styles.approverListInfo(
+                            approver.isCurrentTurn,
+                            false,
+                            isApproved,
+                            isRejected,
+                          )}
+                        >
+                          <strong>의견:</strong> {approver.comment}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <div
+                  style={{
+                    padding: '20px',
+                    textAlign: 'center',
+                    color: theme.colors.textsecondary,
+                  }}
+                >
+                  승인 정보가 없습니다.
+                </div>
+              );
             })()}
           </div>
         </div>
@@ -732,50 +802,11 @@ export default function TaskDetail() {
   );
 }
 
-// 타임라인 아이콘 렌더링 함수
 function renderStepIcon(step, isLastStep, styles) {
-  if (step.disabled) {
-    return (
-      <span style={styles.timelineIcon('pending', isLastStep)}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <circle
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="2"
-            fill="none"
-          />
-          <path
-            d="M12 6v6l4 2.4"
-            stroke="currentColor"
-            strokeWidth="2"
-            fill="none"
-            strokeLinecap="round"
-          />
-        </svg>
-      </span>
-    );
-  }
+  const status = step.status;
+  const result = step.result;
 
-  // 배포 종료 단계는 result 속성을 확인 (띄어쓰기 있는 것과 없는 것 모두 체크)
-  if (
-    (step.step === '배포종료' || step.step === '배포 종료') &&
-    step.result === '성공'
-  ) {
-    return (
-      <span style={styles.timelineIcon('completed', isLastStep)}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-        </svg>
-      </span>
-    );
-  }
-
-  if (
-    (step.step === '배포종료' || step.step === '배포 종료') &&
-    step.result === '실패'
-  ) {
+  if (result === 'failure') {
     return (
       <span style={styles.timelineIcon('rejected', isLastStep)}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -785,12 +816,7 @@ function renderStepIcon(step, isLastStep, styles) {
     );
   }
 
-  if (
-    step.status === '완료' ||
-    step.status === '승인' ||
-    step.status === '성공' ||
-    step.status === '작성완료'
-  ) {
+  if (result === 'success') {
     return (
       <span style={styles.timelineIcon('completed', isLastStep)}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -800,45 +826,31 @@ function renderStepIcon(step, isLastStep, styles) {
     );
   }
 
-  if (step.status === '진행중') {
+  if (status === 'completed') {
+    return (
+      <span style={styles.timelineIcon('completed', isLastStep)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+        </svg>
+      </span>
+    );
+  }
+
+  if (status === 'active') {
     return (
       <span style={styles.timelineIcon('inProgress', isLastStep)}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z" />
+          <circle cx="12" cy="12" r="8" fill="currentColor" />
         </svg>
       </span>
     );
   }
 
-  if (step.status === '실패' || step.rejected || step.status === '취소') {
+  if (status === 'rejected') {
     return (
       <span style={styles.timelineIcon('rejected', isLastStep)}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
-        </svg>
-      </span>
-    );
-  }
-
-  if (step.status === '대기' && !step.disabled) {
-    return (
-      <span style={styles.timelineIcon('pending', isLastStep)}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <circle
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="2"
-            fill="none"
-          />
-          <path
-            d="M12 6v6l4 2.4"
-            stroke="currentColor"
-            strokeWidth="2"
-            fill="none"
-            strokeLinecap="round"
-          />
         </svg>
       </span>
     );
@@ -854,13 +866,6 @@ function renderStepIcon(step, isLastStep, styles) {
           stroke="currentColor"
           strokeWidth="2"
           fill="none"
-        />
-        <path
-          d="M12 6v6l4 2.4"
-          stroke="currentColor"
-          strokeWidth="2"
-          fill="none"
-          strokeLinecap="round"
         />
       </svg>
     </span>

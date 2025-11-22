@@ -13,4 +13,17 @@ export const userAPI = {
     const { data } = await axiosInstance.get(API_ENDPOINTS.ME);
     return data;
   },
+
+  fetchApprovalLineCandidates: async (params = {}) => {
+    const { data } = await axiosInstance.get(
+      API_ENDPOINTS.APPROVAL_LINE_CANDIDATES,
+      { params },
+    );
+    return data;
+  },
 };
+
+export async function fetchAccountById(accountId) {
+  const res = await axiosInstance.get(API_ENDPOINTS.ACCOUNT_BY_ID(accountId));
+  return res.data;
+}

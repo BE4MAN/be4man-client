@@ -1,3 +1,4 @@
+import { LibraryBig } from 'lucide-react';
 import { useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -93,6 +94,13 @@ export default function Sidebar() {
         },
         end: true,
       },
+      {
+        key: 'problems',
+        to: PATHS.PROBLEMS,
+        label: '문제관리',
+        iconComponent: LibraryBig,
+        end: true,
+      },
     ],
     [],
   );
@@ -118,6 +126,9 @@ export default function Sidebar() {
   const isTasksFamily =
     pathname === PATHS.TASKS || pathname.startsWith('/tasks/');
 
+  const isProblemsFamily =
+    pathname === PATHS.PROBLEMS || pathname.startsWith('/problems/');
+
   return (
     <S.Aside open={sidebarOpen}>
       <S.MenuWrap>
@@ -129,7 +140,9 @@ export default function Sidebar() {
                 ? isScheduleFamily
                 : it.key === 'tasks'
                   ? isTasksFamily
-                  : false;
+                  : it.key === 'problems'
+                    ? isProblemsFamily
+                    : false;
 
           return (
             <S.Item
@@ -140,9 +153,17 @@ export default function Sidebar() {
             >
               {({ isActive }) => {
                 const src = iconSrc(isActive || forceActive, it.icons);
+                const IconComponent = it.iconComponent;
+                const isItemActive = isActive || forceActive;
                 return (
                   <>
-                    {src ? (
+                    {IconComponent ? (
+                      <IconComponent
+                        size={18}
+                        style={{ flexShrink: 0 }}
+                        color={isItemActive ? undefined : 'currentColor'}
+                      />
+                    ) : src ? (
                       <S.IconImg src={src} alt="" aria-hidden="true" />
                     ) : null}
                     {it.label}

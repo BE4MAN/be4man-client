@@ -6,27 +6,52 @@ import logo from '/icons/logo.svg';
 import { PATHS } from '@/app/routes/paths';
 import { POSITION_REVERSE_MAP } from '@/constants/accounts';
 import { useAuth } from '@/hooks/useAuth';
+import { useAccountProjectsByAccountQuery } from '@/hooks/useProjectQueries';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 
 import * as S from './Header.styles';
 
 export default function Header() {
-  const { setTheme, theme, service, setService } = useUIStore();
+  const ui = useUIStore();
+  const { setTheme, theme, service, setService } = ui;
+  const setProjectId = ui.setProjectId;
+
   const { user } = useAuthStore();
   const { logout } = useAuth();
   const isDark = theme === 'dark';
   const nextTheme = isDark ? 'light' : 'dark';
 
-  // 실제 사용자 정보 사용 (ProtectedRoute에서 이미 user 로드 보장)
   const displayName = user?.name;
   const position = user?.position ? POSITION_REVERSE_MAP[user.position] : null;
   const avatar = user?.profileImageUrl;
 
-  const options = useMemo(
-    () => ['Project A', 'Project B', 'Project Jenkins CI/CD'],
-    [],
-  );
+  const accountId = user?.accountId ?? user?.id;
+
+  const {
+    data: memberships = [],
+    isLoading: isLoadingProjects,
+    isError: isProjectsError,
+  } = useAccountProjectsByAccountQuery(accountId);
+
+  const projects = useMemo(() => {
+    if (!memberships?.length) return [];
+    return memberships
+      .map((m) => ({
+        id: m.projectId ?? m.project?.id ?? m.project_id,
+        name: m.projectName ?? m.project?.name ?? m.project_name,
+      }))
+      .filter((p) => p.id && p.name);
+  }, [memberships]);
+
+  const ALL_PROJECTS_LABEL = '전체 프로젝트';
+  const EMPTY_LABEL = '(프로젝트 없음)';
+
+  const options = useMemo(() => {
+    const names = projects.map((p) => p.name);
+    return [ALL_PROJECTS_LABEL, ...(names.length ? names : [EMPTY_LABEL])];
+  }, [projects]);
+
   const selectedIndex = useMemo(
     () =>
       Math.max(
@@ -56,6 +81,22 @@ export default function Header() {
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
   }, [selectedIndex]);
+
+  const selectProjectByName = useCallback(
+    (name) => {
+      if (name === EMPTY_LABEL) return;
+      setService(name);
+      if (name === ALL_PROJECTS_LABEL) {
+        if (typeof setProjectId === 'function') setProjectId(null);
+        return;
+      }
+      const selected = projects.find((p) => p.name === name);
+      if (selected && typeof setProjectId === 'function') {
+        setProjectId(selected.id);
+      }
+    },
+    [projects, setService, setProjectId],
+  );
 
   const onKey = useCallback(
     (e) => {
@@ -91,12 +132,12 @@ export default function Header() {
         setActiveIndex(selectedIndex);
       } else if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        setService(options[activeIndex]);
+        selectProjectByName(options[activeIndex]);
         setUsingKeyboard(false);
         setOpen(false);
       }
     },
-    [open, selectedIndex, options, activeIndex, setService],
+    [open, selectedIndex, options, activeIndex, selectProjectByName],
   );
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -150,6 +191,12 @@ export default function Header() {
     await logout();
   }, [logout]);
 
+  useEffect(() => {
+    if (!isLoadingProjects && !service) {
+      selectProjectByName(ALL_PROJECTS_LABEL);
+    }
+  }, [isLoadingProjects, service, selectProjectByName]);
+
   return (
     <S.Bar>
       <S.Left>
@@ -177,7 +224,11 @@ export default function Header() {
               onKeyDown={onKey}
               $open={open}
             >
-              {service || options[0]}
+              {isLoadingProjects
+                ? '불러오는 중...'
+                : isProjectsError
+                  ? '프로젝트 조회 실패'
+                  : service || options[0]}
             </S.SelectButton>
 
             {open && (
@@ -200,7 +251,7 @@ export default function Header() {
                     }
                     onMouseEnter={() => setUsingKeyboard(false)}
                     onClick={() => {
-                      setService(opt);
+                      selectProjectByName(opt);
                       setOpen(false);
                       setUsingKeyboard(false);
                     }}
@@ -297,7 +348,7 @@ export default function Header() {
                       key={opt}
                       aria-selected={service === opt}
                       onClick={() => {
-                        setService(opt);
+                        selectProjectByName(opt);
                         closeMobile();
                       }}
                     >

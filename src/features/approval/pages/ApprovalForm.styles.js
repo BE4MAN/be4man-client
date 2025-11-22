@@ -45,7 +45,7 @@ export const Panel = styled.section`
 
 export const Toolbar = styled.div`
   display: flex;
-  justify-content: end;
+  justify-content: space-between;
   gap: 8px;
   align-items: center;
   margin-bottom: 10px;
@@ -551,6 +551,11 @@ export const TableRow = styled.div`
     border-right: 0;
   }
 
+  &[data-full='true'] > div {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+
   cursor: pointer;
 
   &:hover {
@@ -611,6 +616,10 @@ export const ConfirmScrim = styled.div`
   z-index: 1100;
 `;
 
+export const ProblemScrim = styled(ConfirmScrim)`
+  z-index: 900;
+`;
+
 export const ConfirmCard = styled.div`
   width: min(520px, calc(100vw - 32px));
   background: ${({ theme }) => theme.colors.surface};
@@ -665,6 +674,5 @@ export const ConfirmFoot = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 12px 14px 14px;
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  padding: 12px 14px;
 `;
