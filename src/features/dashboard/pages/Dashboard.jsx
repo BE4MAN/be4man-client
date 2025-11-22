@@ -1,11 +1,15 @@
 import { useTheme } from '@emotion/react';
-import { format, parseISO } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
+import { format, parseISO, startOfWeek, addDays } from 'date-fns';
 import { Bell, CalendarOff, ClipboardClock, ClipboardList } from 'lucide-react';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 
+import { dashboardAPI } from '@/api/dashboard';
 import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
 import WeeklyCalendar from '@/components/schedule/WeeklyCalendar';
+import { useBans } from '@/features/schedule/hooks/useBans';
+import { useDeployments } from '@/features/schedule/hooks/useDeployments';
 import { useHolidays } from '@/features/schedule/hooks/useHolidays';
 import { getDeploymentIcon } from '@/features/schedule/utils/deploymentIconMapper';
 import {
@@ -13,22 +17,19 @@ import {
   getDurationInMinutes,
 } from '@/features/schedule/utils/durationUtils';
 import {
+  enumToBanType,
   enumToStage,
   enumToStatus,
   enumToWeekday,
 } from '@/features/schedule/utils/enumConverter';
-import { formatTimeToKorean } from '@/features/schedule/utils/timeFormatter';
+import {
+  formatTimeToKorean,
+  formatDateTimeToKoreanWithSeconds,
+  removeMillisecondsFromTime,
+} from '@/features/schedule/utils/timeFormatter';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
 
-import {
-  PENDING_APPROVALS,
-  IN_PROGRESS_TASKS,
-  NOTIFICATIONS,
-  WEEKLY_EVENTS,
-  DEPLOYMENT_BLACKOUTS,
-  RECOVERY,
-  STATS,
-} from '../../../mock/dashboard';
+// 주간 캘린더는 API를 사용하므로 mock 데이터 제거
 
 import * as S from './Dashboard.styles';
 
@@ -57,20 +58,121 @@ export default function Dashboard() {
   const currentYear = new Date().getFullYear();
   const { data: holidays = [] } = useHolidays(currentYear);
 
+  // Dashboard API 호출
+  const {
+    data: pendingApprovalsData,
+    isLoading: isLoadingPendingApprovals,
+    isError: isErrorPendingApprovals,
+  } = useQuery({
+    queryKey: ['dashboard', 'pending-approvals'],
+    queryFn: () => dashboardAPI.getPendingApprovals(),
+  });
+
+  const {
+    data: inProgressTasksData,
+    isLoading: isLoadingInProgressTasks,
+    isError: isErrorInProgressTasks,
+  } = useQuery({
+    queryKey: ['dashboard', 'in-progress-tasks'],
+    queryFn: () => dashboardAPI.getInProgressTasks(),
+  });
+
+  const {
+    data: notificationsData,
+    isLoading: isLoadingNotifications,
+    isError: isErrorNotifications,
+  } = useQuery({
+    queryKey: ['dashboard', 'notifications'],
+    queryFn: () => dashboardAPI.getNotifications(),
+  });
+
   // 복구현황 pagination
   const [recoveryPage, setRecoveryPage] = useState(1);
   const recoveryPageSize = 5;
-  const recoveryTotal = RECOVERY.length;
-  const recoveryTotalPages = Math.max(
-    1,
-    Math.ceil(recoveryTotal / recoveryPageSize),
+  const {
+    data: recoveryData,
+    isLoading: isLoadingRecovery,
+    isError: isErrorRecovery,
+  } = useQuery({
+    queryKey: ['dashboard', 'recovery', recoveryPage, recoveryPageSize],
+    queryFn: () =>
+      dashboardAPI.getRecovery({
+        page: recoveryPage,
+        pageSize: recoveryPageSize,
+      }),
+  });
+
+  // API 데이터 추출 및 변환
+  // API 응답이 { data: [...] } 형태이거나 배열을 직접 반환할 수 있으므로 두 경우 모두 처리
+  const pendingApprovals = Array.isArray(pendingApprovalsData)
+    ? pendingApprovalsData
+    : pendingApprovalsData?.data || [];
+  const inProgressTasks = Array.isArray(inProgressTasksData)
+    ? inProgressTasksData
+    : inProgressTasksData?.data || [];
+  const notifications = Array.isArray(notificationsData)
+    ? notificationsData
+    : notificationsData?.data || [];
+  // 복구현황은 pagination도 포함되므로 항상 객체 형태
+  const recoveryItems = recoveryData?.data || [];
+  const recoveryPagination = recoveryData?.pagination || {
+    total: 0,
+    page: 1,
+    pageSize: 5,
+    totalPages: 1,
+  };
+
+  // 복구현황 상태 한글 변환
+  const getRecoveryStatusLabel = (status) => {
+    switch (status) {
+      case 'COMPLETED':
+        return '복구 완료';
+      case 'IN_PROGRESS':
+        return '진행중';
+      case 'PENDING':
+        return '대기중';
+      default:
+        return status;
+    }
+  };
+
+  // 복구일 포맷팅 (recoveredAt 또는 null)
+  const formatRecoveryDate = (recoveredAt) => {
+    if (!recoveredAt) return '—';
+    return formatDateTimeToKoreanWithSeconds(recoveredAt);
+  };
+
+  // 통계 계산
+  const stats = useMemo(
+    () => [
+      {
+        id: 'pending',
+        label: '승인 대기',
+        value: pendingApprovals.length,
+        desc: '결재가 필요한 문서',
+        color: '#2563eb',
+      },
+      {
+        id: 'tasks',
+        label: '진행중인 업무',
+        value: inProgressTasks.length,
+        desc: '내가 승인한 후 배포 대기',
+        color: '#7c3aed',
+      },
+      {
+        id: 'notifications',
+        label: '알림',
+        value: notifications.length,
+        desc: '취소/반려 알림',
+        color: '#dc2626',
+      },
+    ],
+    [pendingApprovals.length, inProgressTasks.length, notifications.length],
   );
+
+  const recoveryTotal = recoveryPagination.total;
+  const recoveryTotalPages = recoveryPagination.totalPages;
   const recoverySafePage = Math.min(recoveryPage, recoveryTotalPages);
-  const recoveryStart = (recoverySafePage - 1) * recoveryPageSize;
-  const recoveryPageItems = RECOVERY.slice(
-    recoveryStart,
-    recoveryStart + recoveryPageSize,
-  );
 
   const recoveryPageWindow = useMemo(() => {
     if (recoveryTotalPages <= 9)
@@ -132,6 +234,7 @@ export default function Dashboard() {
       setSelectedDay({
         dateKey: options.dateKey,
         blackoutItems: options.blackoutItems || [],
+        deployments: options.deployments || [],
       });
     }
 
@@ -177,69 +280,112 @@ export default function Dashboard() {
   const todayMidnight = new Date(now);
   todayMidnight.setHours(0, 0, 0, 0);
 
-  // Mock 데이터를 WeeklyCalendar 형식으로 변환
+  // 주간 캘린더 현재 주 추적
+  const [calendarCurrentDate, setCalendarCurrentDate] = useState(new Date());
+
+  // 주의 시작일(월요일)과 종료일(일요일) 계산
+  const weekDateRange = useMemo(() => {
+    // WeeklyCalendar는 일요일을 주의 시작으로 사용하므로, 월요일을 계산
+    const weekStart = startOfWeek(calendarCurrentDate, { weekStartsOn: 0 }); // 일요일
+    const monday = addDays(weekStart, 1); // 월요일
+    const sunday = addDays(weekStart, 6); // 일요일
+
+    return {
+      startDate: format(monday, 'yyyy-MM-dd'),
+      endDate: format(sunday, 'yyyy-MM-dd'),
+    };
+  }, [calendarCurrentDate]);
+
+  // 배포 작업 목록 조회
+  const { data: deploymentsData = [] } = useDeployments(
+    weekDateRange.startDate,
+    weekDateRange.endDate,
+  );
+
+  // 작업 금지 기간 목록 조회
+  const { data: bansData = [] } = useBans({
+    startDate: weekDateRange.startDate,
+    endDate: weekDateRange.endDate,
+  });
+
+  // 배포 작업 데이터 변환 (WeeklyCalendar 형식)
   const deployments = useMemo(() => {
-    const result = [];
-    Object.entries(WEEKLY_EVENTS).forEach(([dateStr, events]) => {
-      events.forEach((ev, idx) => {
-        result.push({
-          id: ev.id || `event-${dateStr}-${idx}`,
-          title: ev.label,
-          service: ev.service || '알 수 없음',
-          date: dateStr,
-          scheduledTime: '00:00',
-          status:
-            ev.type === '성공'
-              ? 'COMPLETED'
-              : ev.type === '실패'
-                ? 'REJECTED'
-                : 'PENDING',
-          stage: 'DEPLOYMENT',
-          isDeployed:
-            ev.type === '성공' ? true : ev.type === '실패' ? false : null,
-        });
-      });
-    });
-    return result;
-  }, []);
+    if (!deploymentsData || deploymentsData.length === 0) return [];
 
+    return deploymentsData.map((d) => ({
+      id: d.id,
+      title: d.title,
+      service: d.projectName || '알 수 없음',
+      date: d.scheduledDate || null,
+      scheduledTime: d.scheduledTime
+        ? removeMillisecondsFromTime(d.scheduledTime)
+        : null,
+      status: d.status,
+      stage: d.stage,
+      isDeployed:
+        (d.stage === 'PLAN' || d.stage === 'DEPLOYMENT') &&
+        d.status === 'PENDING'
+          ? null
+          : d.isDeployed,
+    }));
+  }, [deploymentsData]);
+
+  // 작업 금지 기간 데이터 변환 (WeeklyCalendar 형식)
   const restrictedPeriods = useMemo(() => {
-    return DEPLOYMENT_BLACKOUTS.map((blackout) => {
-      const startDate = new Date(blackout.start);
-      const endDate = new Date(blackout.end);
-      const startDateStr = format(startDate, 'yyyy-MM-dd');
-      const startTimeStr = format(startDate, 'HH:mm');
-      const endTimeStr = format(endDate, 'HH:mm');
-      const durationMinutes = Math.round((endDate - startDate) / (1000 * 60));
+    if (!bansData || bansData.length === 0) return [];
 
-      return {
-        id: blackout.id.toString(),
-        title: blackout.name,
-        description: blackout.reason,
-        startDate: startDateStr,
-        startTime: startTimeStr,
-        endTime: endTimeStr,
-        endedAt: blackout.end,
-        durationMinutes,
-        type: 'MAINTENANCE', // 기본값
-        services: [],
-      };
-    });
-  }, []);
+    return bansData
+      .filter((ban) => ban.startDate && ban.startTime) // 필수 필드 확인
+      .map((ban) => ({
+        id: ban.id,
+        title: ban.title,
+        description: ban.description,
+        startDate: ban.startDate,
+        startTime: ban.startTime
+          ? removeMillisecondsFromTime(ban.startTime)
+          : null,
+        endTime:
+          ban.endTime || ban.startTime
+            ? removeMillisecondsFromTime(ban.endTime || ban.startTime)
+            : null,
+        endedAt: ban.endedAt,
+        durationMinutes: ban.durationMinutes,
+        type: enumToBanType(ban.type) || ban.type,
+        services: ban.services || [],
+        registrant: ban.registrant,
+        registrantDepartment: ban.registrantDepartment,
+        recurrenceType: ban.recurrenceType,
+        recurrenceWeekday: ban.recurrenceWeekday,
+        recurrenceWeekOfMonth: ban.recurrenceWeekOfMonth,
+        recurrenceEndDate: ban.recurrenceEndDate,
+      }));
+  }, [bansData]);
 
   const handleDayCellClick = (day) => {
     const dateKey = format(day, 'yyyy-MM-dd');
-    const blackoutItems = DEPLOYMENT_BLACKOUTS.filter((b) =>
-      isDateInRangeByDay(day, b.start, b.end),
-    );
+    // 해당 날짜의 작업 금지 기간 필터링
+    const blackoutItems = restrictedPeriods.filter((ban) => {
+      const banStart = new Date(`${ban.startDate}T${ban.startTime}`);
+      const banEnd = ban.endedAt
+        ? new Date(ban.endedAt)
+        : new Date(`${ban.startDate}T${ban.endTime || ban.startTime}`);
+      return isDateInRangeByDay(
+        day,
+        banStart.toISOString(),
+        banEnd.toISOString(),
+      );
+    });
+    // 해당 날짜의 배포 작업 필터링
+    const dayDeployments = deployments.filter((d) => d.date === dateKey);
     openPanel('day', {
       dateKey,
       blackoutItems,
+      deployments: dayDeployments,
     });
   };
 
-  const handleCalendarDateChange = () => {
-    // WeeklyCalendar 내부에서 날짜 관리
+  const handleCalendarDateChange = (newDate) => {
+    setCalendarCurrentDate(newDate);
   };
 
   const handleDeploymentClick = () => {
@@ -262,7 +408,7 @@ export default function Dashboard() {
     <>
       <S.Wrap>
         <S.StatGrid>
-          {STATS.map((s) => {
+          {stats.map((s) => {
             const getIcon = () => {
               if (s.id === 'pending') return ClipboardList;
               if (s.id === 'tasks') return ClipboardClock;
@@ -310,7 +456,7 @@ export default function Dashboard() {
           <S.Table>
             <thead>
               <tr>
-                <th>배포작업명</th>
+                <th>제목</th>
                 <th>서비스명</th>
                 <th>상태</th>
                 <th>소요시간</th>
@@ -318,23 +464,33 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {recoveryPageItems.length === 0 ? (
+              {isLoadingRecovery ? (
+                <tr>
+                  <td colSpan={5}>로딩 중...</td>
+                </tr>
+              ) : isErrorRecovery ? (
+                <tr>
+                  <td colSpan={5}>데이터를 불러오는 중 오류가 발생했습니다.</td>
+                </tr>
+              ) : recoveryItems.length === 0 ? (
                 <tr>
                   <td colSpan={5}>데이터가 없습니다.</td>
                 </tr>
               ) : (
-                recoveryPageItems.map((r, idx) => (
+                recoveryItems.map((r) => (
                   <S.RecoveryRow
-                    key={idx}
+                    key={r.id}
                     onClick={() => openPanel('recovery', { item: r })}
                   >
-                    <td>{r.title}</td>
-                    <td>{r.service}</td>
+                    <td>{r.title || '—'}</td>
+                    <td>{r.service || '—'}</td>
                     <td>
-                      <S.Status $status={r.status}>{r.status}</S.Status>
+                      <S.Status $status={r.status}>
+                        {getRecoveryStatusLabel(r.status)}
+                      </S.Status>
                     </td>
-                    <td>{r.duration}</td>
-                    <td>{r.failedAt}</td>
+                    <td>{r.duration || '—'}</td>
+                    <td>{formatRecoveryDate(r.recoveredAt)}</td>
                   </S.RecoveryRow>
                 ))
               )}
@@ -481,11 +637,11 @@ export default function Dashboard() {
                 </S.PanelTitle>
                 <S.PanelSub>
                   {panelMode === 'pending' &&
-                    `총 ${PENDING_APPROVALS.length}건의 승인 대기 문서`}
+                    `총 ${pendingApprovals.length}건의 승인 대기 문서`}
                   {panelMode === 'tasks' &&
-                    `총 ${IN_PROGRESS_TASKS.length}건의 업무`}
+                    `총 ${inProgressTasks.length}건의 업무`}
                   {panelMode === 'notifications' &&
-                    `총 ${NOTIFICATIONS.length}건의 알림`}
+                    `총 ${notifications.length}건의 알림`}
                   {panelMode === 'day' &&
                     selectedDay &&
                     `날짜: ${selectedDay.dateKey}`}
@@ -502,36 +658,51 @@ export default function Dashboard() {
             <>
               {viewMode === 'list' && (
                 <S.TaskList>
-                  {PENDING_APPROVALS.map((p) => (
-                    <S.TaskItem
-                      key={p.id}
-                      onClick={() => {
-                        setSelectedApproval(p);
-                        setViewMode('detail');
-                      }}
-                    >
-                      <div>
-                        <S.TaskTitle>{p.title}</S.TaskTitle>
-                        <S.TaskMeta>
-                          <div>문서유형: {p.docType}</div>
-                          <div>
-                            서비스:{' '}
-                            {Array.isArray(p.serviceName)
-                              ? p.serviceName.join(', ')
-                              : p.serviceName}
-                          </div>
-                          <div>
-                            승인 예정자:{' '}
-                            {Array.isArray(p.currentApprover)
-                              ? p.currentApprover.join(', ')
-                              : p.currentApprover}
-                          </div>
-                          <div>요청일: {p.requestedAt}</div>
-                        </S.TaskMeta>
-                      </div>
-                      <S.TaskBadge $variant="pending">승인 대기</S.TaskBadge>
-                    </S.TaskItem>
-                  ))}
+                  {isLoadingPendingApprovals ? (
+                    <S.Empty>로딩 중...</S.Empty>
+                  ) : isErrorPendingApprovals ? (
+                    <S.Empty>데이터를 불러오는 중 오류가 발생했습니다.</S.Empty>
+                  ) : pendingApprovals.length === 0 ? (
+                    <S.Empty>승인 대기 문서가 없습니다.</S.Empty>
+                  ) : (
+                    pendingApprovals.map((p) => (
+                      <S.TaskItem
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedApproval(p);
+                          setViewMode('detail');
+                        }}
+                      >
+                        <div>
+                          <S.TaskTitle>{p.title}</S.TaskTitle>
+                          <S.TaskMeta>
+                            <div>문서유형: {p.docType}</div>
+                            <div>
+                              서비스:{' '}
+                              {Array.isArray(p.serviceName)
+                                ? p.serviceName.join(', ')
+                                : p.serviceName}
+                            </div>
+                            <div>
+                              승인 예정자:{' '}
+                              {Array.isArray(p.currentApprover)
+                                ? p.currentApprover.join(', ')
+                                : p.currentApprover}
+                            </div>
+                            <div>
+                              요청일자:{' '}
+                              {p.requestedAt
+                                ? formatDateTimeToKoreanWithSeconds(
+                                    p.requestedAt,
+                                  )
+                                : '—'}
+                            </div>
+                          </S.TaskMeta>
+                        </div>
+                        <S.TaskBadge $variant="pending">승인 대기</S.TaskBadge>
+                      </S.TaskItem>
+                    ))
+                  )}
                 </S.TaskList>
               )}
 
@@ -544,6 +715,13 @@ export default function Dashboard() {
                       <col />
                       <col />
                     </S.InfoColGroup>
+
+                    <S.InfoRow>
+                      <S.InfoTh>제목</S.InfoTh>
+                      <S.InfoTd colSpan={3}>
+                        {selectedApproval.title || '—'}
+                      </S.InfoTd>
+                    </S.InfoRow>
 
                     <S.InfoRow>
                       <S.InfoTh>등록자</S.InfoTh>
@@ -585,16 +763,13 @@ export default function Dashboard() {
                     </S.InfoRow>
 
                     <S.InfoRow>
-                      <S.InfoTh>요청일</S.InfoTh>
+                      <S.InfoTh>요청일자</S.InfoTh>
                       <S.InfoTd colSpan={3}>
-                        {selectedApproval.requestedAt || '—'}
-                      </S.InfoTd>
-                    </S.InfoRow>
-
-                    <S.InfoRow>
-                      <S.InfoTh>설명</S.InfoTh>
-                      <S.InfoTd colSpan={3}>
-                        {selectedApproval.description || '—'}
+                        {selectedApproval.requestedAt
+                          ? formatDateTimeToKoreanWithSeconds(
+                              selectedApproval.requestedAt,
+                            )
+                          : '—'}
                       </S.InfoTd>
                     </S.InfoRow>
                   </S.InfoTable>
@@ -628,27 +803,42 @@ export default function Dashboard() {
             <>
               {viewMode === 'list' && (
                 <S.TaskList>
-                  {NOTIFICATIONS.map((n) => (
-                    <S.TaskItem
-                      key={n.id}
-                      onClick={() => {
-                        setSelectedNotification(n);
-                        setViewMode('detail');
-                      }}
-                    >
-                      <div>
-                        <S.TaskTitle>
-                          [{n.kind}] {n.serviceName}
-                        </S.TaskTitle>
-                        <S.TaskMeta>
-                          <div>{n.reason}</div>
-                          {n.rejectedBy && <div>반려자: {n.rejectedBy}</div>}
-                          <div>발생 시각: {n.when}</div>
-                        </S.TaskMeta>
-                      </div>
-                      <S.TaskBadge $variant="alert">{n.kind}</S.TaskBadge>
-                    </S.TaskItem>
-                  ))}
+                  {isLoadingNotifications ? (
+                    <S.Empty>로딩 중...</S.Empty>
+                  ) : isErrorNotifications ? (
+                    <S.Empty>데이터를 불러오는 중 오류가 발생했습니다.</S.Empty>
+                  ) : notifications.length === 0 ? (
+                    <S.Empty>알림이 없습니다.</S.Empty>
+                  ) : (
+                    notifications.map((n) => {
+                      // API 응답 형식에 맞게 변환
+                      const notificationDate = n.canceledAt || n.rejectedAt;
+                      const formattedDate = notificationDate
+                        ? formatDateTimeToKoreanWithSeconds(notificationDate)
+                        : '-';
+
+                      return (
+                        <S.TaskItem
+                          key={n.id}
+                          onClick={() => {
+                            setSelectedNotification(n);
+                            setViewMode('detail');
+                          }}
+                        >
+                          <div>
+                            <S.TaskTitle>
+                              [{n.kind}] {n.serviceName}
+                            </S.TaskTitle>
+                            <S.TaskMeta>
+                              <div>{n.reason}</div>
+                              <div>발생 시각: {formattedDate}</div>
+                            </S.TaskMeta>
+                          </div>
+                          <S.TaskBadge $variant="alert">{n.kind}</S.TaskBadge>
+                        </S.TaskItem>
+                      );
+                    })
+                  )}
                 </S.TaskList>
               )}
 
@@ -659,6 +849,13 @@ export default function Dashboard() {
                       <col />
                       <col />
                     </S.InfoColGroup>
+
+                    <S.InfoRow>
+                      <S.InfoTh $noBorder>제목</S.InfoTh>
+                      <S.InfoTd>
+                        {selectedNotification.deploymentTitle || '—'}
+                      </S.InfoTd>
+                    </S.InfoRow>
 
                     <S.InfoRow>
                       <S.InfoTh $noBorder>서비스</S.InfoTh>
@@ -674,7 +871,15 @@ export default function Dashboard() {
 
                     <S.InfoRow>
                       <S.InfoTh $noBorder>발생 시각</S.InfoTh>
-                      <S.InfoTd>{selectedNotification.when || '—'}</S.InfoTd>
+                      <S.InfoTd>
+                        {selectedNotification.canceledAt ||
+                        selectedNotification.rejectedAt
+                          ? formatDateTimeToKoreanWithSeconds(
+                              selectedNotification.canceledAt ||
+                                selectedNotification.rejectedAt,
+                            )
+                          : '—'}
+                      </S.InfoTd>
                     </S.InfoRow>
                   </S.InfoTable>
                   <S.ButtonRow>
@@ -691,30 +896,47 @@ export default function Dashboard() {
             <>
               {viewMode === 'list' && (
                 <S.TaskList>
-                  {IN_PROGRESS_TASKS.map((t) => (
-                    <S.TaskItem
-                      key={t.id}
-                      onClick={() => {
-                        setSelectedTask(t);
-                        setViewMode('detail');
-                      }}
-                    >
-                      <div>
-                        <S.TaskTitle>{t.title}</S.TaskTitle>
-                        <S.TaskMeta>
-                          <div>등록자: {t.registrant || t.owner}</div>
-                          <div>
-                            배포일: {t.due || `${t.date} ${t.scheduledTime}`}
-                          </div>
-                        </S.TaskMeta>
-                      </div>
-                      <S.TaskBadge>
-                        {t.status
-                          ? enumToStatus(t.status) || t.status
-                          : '진행중'}
-                      </S.TaskBadge>
-                    </S.TaskItem>
-                  ))}
+                  {isLoadingInProgressTasks ? (
+                    <S.Empty>로딩 중...</S.Empty>
+                  ) : isErrorInProgressTasks ? (
+                    <S.Empty>데이터를 불러오는 중 오류가 발생했습니다.</S.Empty>
+                  ) : inProgressTasks.length === 0 ? (
+                    <S.Empty>진행중인 업무가 없습니다.</S.Empty>
+                  ) : (
+                    inProgressTasks.map((t) => (
+                      <S.TaskItem
+                        key={t.id}
+                        onClick={() => {
+                          setSelectedTask(t);
+                          setViewMode('detail');
+                        }}
+                      >
+                        <div>
+                          <S.TaskTitle>{t.title}</S.TaskTitle>
+                          <S.TaskMeta>
+                            <div>등록자: {t.registrant}</div>
+                            <div>
+                              작업일자:{' '}
+                              {t.date && t.scheduledTime
+                                ? formatDateTimeToKoreanWithSeconds(
+                                    `${t.date} ${t.scheduledTime}`,
+                                  )
+                                : t.date
+                                  ? formatDateTimeToKoreanWithSeconds(
+                                      `${t.date} 00:00:00`,
+                                    )
+                                  : '—'}
+                            </div>
+                          </S.TaskMeta>
+                        </div>
+                        <S.TaskBadge>
+                          {t.status
+                            ? enumToStatus(t.status) || t.status
+                            : '진행중'}
+                        </S.TaskBadge>
+                      </S.TaskItem>
+                    ))
+                  )}
                 </S.TaskList>
               )}
 
@@ -729,10 +951,15 @@ export default function Dashboard() {
                     </S.InfoColGroup>
 
                     <S.InfoRow>
-                      <S.InfoTh>등록자</S.InfoTh>
-                      <S.InfoTd>
-                        {selectedTask.registrant || selectedTask.owner || '—'}
+                      <S.InfoTh>제목</S.InfoTh>
+                      <S.InfoTd colSpan={3}>
+                        {selectedTask.title || '—'}
                       </S.InfoTd>
+                    </S.InfoRow>
+
+                    <S.InfoRow>
+                      <S.InfoTh>등록자</S.InfoTh>
+                      <S.InfoTd>{selectedTask.registrant || '—'}</S.InfoTd>
                       <S.InfoTh>등록부서</S.InfoTh>
                       <S.InfoTd>
                         {selectedTask.registrantDepartment || '—'}
@@ -773,11 +1000,13 @@ export default function Dashboard() {
                       <S.InfoTh>작업일자</S.InfoTh>
                       <S.InfoTd colSpan={3}>
                         {selectedTask.date && selectedTask.scheduledTime
-                          ? formatTimeToKorean(
+                          ? formatDateTimeToKoreanWithSeconds(
                               `${selectedTask.date} ${selectedTask.scheduledTime}`,
                             )
-                          : selectedTask.due
-                            ? selectedTask.due
+                          : selectedTask.date
+                            ? formatDateTimeToKoreanWithSeconds(
+                                `${selectedTask.date} 00:00:00`,
+                              )
                             : '—'}
                       </S.InfoTd>
                     </S.InfoRow>
@@ -801,7 +1030,7 @@ export default function Dashboard() {
                     <S.InfoRow>
                       <S.InfoTh>설명</S.InfoTh>
                       <S.InfoTd colSpan={3}>
-                        {selectedTask.description || selectedTask.desc || '—'}
+                        {selectedTask.description || '—'}
                       </S.InfoTd>
                     </S.InfoRow>
                   </S.InfoTable>
@@ -852,39 +1081,44 @@ export default function Dashboard() {
                               color={theme.colors.schedule?.restrictedDanger}
                             />
                           </S.TaskIcon>
-                          {b.name}
+                          {b.title || b.name}
                         </S.TaskTitle>
                         <S.TaskMeta>
-                          <div>사유: {b.reason}</div>
-                          <div>시작: {b.start}</div>
-                          <div>종료: {b.end}</div>
+                          <div>사유: {b.description || b.reason}</div>
+                          <div>
+                            시작:{' '}
+                            {b.startDate && b.startTime
+                              ? `${b.startDate} ${b.startTime}`
+                              : b.start || '—'}
+                          </div>
+                          <div>
+                            종료:{' '}
+                            {b.endedAt
+                              ? formatTimeToKorean(b.endedAt)
+                              : b.end || '—'}
+                          </div>
                         </S.TaskMeta>
                       </div>
                       <S.TaskBadge $variant="alert">작업 금지</S.TaskBadge>
                     </S.TaskItem>
                   ))}
 
-                  {(WEEKLY_EVENTS[selectedDay.dateKey] || []).map((ev) => {
-                    const getIsDeployed = () => {
-                      if (ev.type === '성공') return true;
-                      if (ev.type === '실패') return false;
-                      return null;
-                    };
+                  {(selectedDay.deployments || []).map((deployment) => {
                     const iconConfig = getDeploymentIcon(
-                      ev.stage || '배포',
-                      ev.status || ev.type,
-                      getIsDeployed(),
+                      deployment.stage || 'DEPLOYMENT',
+                      deployment.status,
+                      deployment.isDeployed,
                       theme,
                       16,
                     );
                     const { Icon, color } = iconConfig;
                     return (
                       <S.TaskItem
-                        key={ev.id}
+                        key={deployment.id}
                         onClick={() => {
                           setSelectedDayDetail({
-                            kind: 'event',
-                            data: ev,
+                            kind: 'deployment',
+                            data: deployment,
                             dateKey: selectedDay.dateKey,
                           });
                           setViewMode('detail');
@@ -895,26 +1129,36 @@ export default function Dashboard() {
                             <S.TaskIcon>
                               <Icon size={16} color={color} />
                             </S.TaskIcon>
-                            {ev.label}
+                            {deployment.title}
                           </S.TaskTitle>
                           <S.TaskMeta>
-                            <div>유형: {ev.type}</div>
-                            <div>날짜: {selectedDay.dateKey} 00:00</div>
+                            <div>서비스: {deployment.service}</div>
+                            <div>
+                              날짜:{' '}
+                              {deployment.date && deployment.scheduledTime
+                                ? formatDateTimeToKoreanWithSeconds(
+                                    `${deployment.date} ${deployment.scheduledTime}`,
+                                  )
+                                : deployment.date
+                                  ? formatDateTimeToKoreanWithSeconds(
+                                      `${deployment.date} 00:00:00`,
+                                    )
+                                  : '—'}
+                            </div>
                           </S.TaskMeta>
                         </div>
                         <S.TaskBadge>
-                          {ev.type === '대기'
-                            ? '대기'
-                            : ev.type === '성공'
-                              ? '성공'
-                              : '실패'}
+                          {deployment.status
+                            ? enumToStatus(deployment.status) ||
+                              deployment.status
+                            : '대기'}
                         </S.TaskBadge>
                       </S.TaskItem>
                     );
                   })}
 
                   {selectedDay.blackoutItems.length === 0 &&
-                    (WEEKLY_EVENTS[selectedDay.dateKey] || []).length === 0 && (
+                    (selectedDay.deployments || []).length === 0 && (
                       <S.Empty>해당 날짜의 일정이 없습니다.</S.Empty>
                     )}
                 </S.TaskList>
@@ -1100,11 +1344,6 @@ export default function Dashboard() {
                       })()
                     : (() => {
                         const deploymentData = selectedDayDetail.data;
-                        const getIsDeployed = () => {
-                          if (deploymentData.type === '성공') return true;
-                          if (deploymentData.type === '실패') return false;
-                          return null;
-                        };
 
                         return (
                           <S.InfoTable role="table">
@@ -1118,70 +1357,12 @@ export default function Dashboard() {
                             <S.InfoRow>
                               <S.InfoTh>제목</S.InfoTh>
                               <S.InfoTd colSpan={3}>
-                                {deploymentData.title || deploymentData.label}
+                                {deploymentData.title || '—'}
                               </S.InfoTd>
                             </S.InfoRow>
 
                             <S.InfoRow>
-                              <S.InfoTh>등록자</S.InfoTh>
-                              <S.InfoTd>
-                                {deploymentData.registrant || '—'}
-                              </S.InfoTd>
-                              <S.InfoTh>등록부서</S.InfoTh>
-                              <S.InfoTd>
-                                {deploymentData.registrantDepartment || '—'}
-                              </S.InfoTd>
-                            </S.InfoRow>
-
-                            <S.InfoRow>
-                              <S.InfoTh>작업 상태</S.InfoTh>
-                              <S.InfoTd>
-                                {(() => {
-                                  const stageLabel = deploymentData.stage
-                                    ? enumToStage(deploymentData.stage) ||
-                                      deploymentData.stage
-                                    : '배포';
-                                  const statusLabel = deploymentData.status
-                                    ? enumToStatus(deploymentData.status) ||
-                                      deploymentData.status
-                                    : deploymentData.type === '대기'
-                                      ? '대기'
-                                      : deploymentData.type === '성공'
-                                        ? '완료'
-                                        : deploymentData.type === '실패'
-                                          ? '반려'
-                                          : null;
-                                  if (stageLabel && statusLabel) {
-                                    return `${stageLabel} ${statusLabel}`;
-                                  }
-                                  if (stageLabel) return stageLabel;
-                                  if (statusLabel) return statusLabel;
-                                  return '—';
-                                })()}
-                              </S.InfoTd>
-                              <S.InfoTh>배포 상태</S.InfoTh>
-                              <S.InfoTd>
-                                {getIsDeployed() === true
-                                  ? '성공'
-                                  : getIsDeployed() === false
-                                    ? '실패'
-                                    : '—'}
-                              </S.InfoTd>
-                            </S.InfoRow>
-
-                            <S.InfoRow>
-                              <S.InfoTh>작업일자</S.InfoTh>
-                              <S.InfoTd colSpan={3}>
-                                {selectedDayDetail.dateKey
-                                  ? formatTimeToKorean(
-                                      `${selectedDayDetail.dateKey} 00:00`,
-                                    )
-                                  : '—'}
-                              </S.InfoTd>
-                            </S.InfoRow>
-
-                            <S.InfoRow>
-                              <S.InfoTh>연관 서비스</S.InfoTh>
+                              <S.InfoTh>서비스</S.InfoTh>
                               <S.InfoTd colSpan={3}>
                                 {deploymentData.service ? (
                                   <S.ServicesContainer>
@@ -1192,6 +1373,52 @@ export default function Dashboard() {
                                 ) : (
                                   '—'
                                 )}
+                              </S.InfoTd>
+                            </S.InfoRow>
+
+                            <S.InfoRow>
+                              <S.InfoTh>작업 상태</S.InfoTh>
+                              <S.InfoTd>
+                                {(() => {
+                                  const stageLabel = deploymentData.stage
+                                    ? enumToStage(deploymentData.stage) ||
+                                      deploymentData.stage
+                                    : null;
+                                  const statusLabel = deploymentData.status
+                                    ? enumToStatus(deploymentData.status) ||
+                                      deploymentData.status
+                                    : null;
+                                  if (stageLabel && statusLabel) {
+                                    return `${stageLabel} ${statusLabel}`;
+                                  }
+                                  if (stageLabel) return stageLabel;
+                                  if (statusLabel) return statusLabel;
+                                  return '—';
+                                })()}
+                              </S.InfoTd>
+                              <S.InfoTh>배포 상태</S.InfoTh>
+                              <S.InfoTd>
+                                {deploymentData.isDeployed === true
+                                  ? '성공'
+                                  : deploymentData.isDeployed === false
+                                    ? '실패'
+                                    : '—'}
+                              </S.InfoTd>
+                            </S.InfoRow>
+
+                            <S.InfoRow>
+                              <S.InfoTh>작업일자</S.InfoTh>
+                              <S.InfoTd colSpan={3}>
+                                {deploymentData.date &&
+                                deploymentData.scheduledTime
+                                  ? formatDateTimeToKoreanWithSeconds(
+                                      `${deploymentData.date} ${deploymentData.scheduledTime}`,
+                                    )
+                                  : deploymentData.date
+                                    ? formatDateTimeToKoreanWithSeconds(
+                                        `${deploymentData.date} 00:00:00`,
+                                      )
+                                    : '—'}
                               </S.InfoTd>
                             </S.InfoRow>
                           </S.InfoTable>
@@ -1215,7 +1442,7 @@ export default function Dashboard() {
                   </S.InfoColGroup>
 
                   <S.InfoRow>
-                    <S.InfoTh>배포작업명</S.InfoTh>
+                    <S.InfoTh>제목</S.InfoTh>
                     <S.InfoTd colSpan={3}>
                       {selectedRecovery.title || '—'}
                     </S.InfoTd>
@@ -1225,13 +1452,17 @@ export default function Dashboard() {
                     <S.InfoTh>서비스명</S.InfoTh>
                     <S.InfoTd>{selectedRecovery.service || '—'}</S.InfoTd>
                     <S.InfoTh>상태</S.InfoTh>
-                    <S.InfoTd>{selectedRecovery.status || '—'}</S.InfoTd>
+                    <S.InfoTd>
+                      {getRecoveryStatusLabel(selectedRecovery.status) || '—'}
+                    </S.InfoTd>
                   </S.InfoRow>
 
                   <S.InfoRow>
-                    <S.InfoTh>사유</S.InfoTh>
-                    <S.InfoTd colSpan={3}>
-                      {selectedRecovery.cause || '—'}
+                    <S.InfoTh>등록자</S.InfoTh>
+                    <S.InfoTd>{selectedRecovery.registrant || '—'}</S.InfoTd>
+                    <S.InfoTh>등록부서</S.InfoTh>
+                    <S.InfoTd>
+                      {selectedRecovery.registrantDepartment || '—'}
                     </S.InfoTd>
                   </S.InfoRow>
 
@@ -1239,7 +1470,16 @@ export default function Dashboard() {
                     <S.InfoTh>소요시간</S.InfoTh>
                     <S.InfoTd>{selectedRecovery.duration || '—'}</S.InfoTd>
                     <S.InfoTh>복구일</S.InfoTh>
-                    <S.InfoTd>{selectedRecovery.failedAt || '—'}</S.InfoTd>
+                    <S.InfoTd>
+                      {formatRecoveryDate(selectedRecovery.recoveredAt)}
+                    </S.InfoTd>
+                  </S.InfoRow>
+
+                  <S.InfoRow>
+                    <S.InfoTh>배포 ID</S.InfoTh>
+                    <S.InfoTd colSpan={3}>
+                      {selectedRecovery.deploymentId || '—'}
+                    </S.InfoTd>
                   </S.InfoRow>
                 </S.InfoTable>
               </S.DetailContent>

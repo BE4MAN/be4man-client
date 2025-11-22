@@ -27,8 +27,8 @@ export const dashboardAPI = {
    *       status: string,
    *       stage: string,
    *       projectName: string,
-   *       scheduledDate: string,
-   *       scheduledTime: string,
+   *       scheduledDate?: string|null,
+   *       scheduledTime?: string|null,
    *       registrant: string,
    *       registrantDepartment: string,
    *       relatedServices: Array<{
@@ -44,6 +44,14 @@ export const dashboardAPI = {
     const { data } = await axiosInstance.get(
       API_ENDPOINTS.DASHBOARD_PENDING_APPROVALS,
     );
+    console.log('[Pending Approvals API] Response:', data);
+    console.log(
+      '[Pending Approvals API] Response length:',
+      data?.data?.length || 0,
+    );
+    if (data?.data && data.data.length > 0) {
+      console.log('[Pending Approvals API] First item:', data.data[0]);
+    }
     return data;
   },
 
@@ -54,8 +62,8 @@ export const dashboardAPI = {
    *   data: Array<{
    *     id: number,
    *     title: string,
-   *     date: string,
-   *     scheduledTime: string,
+   *     date?: string|null,
+   *     scheduledTime?: string|null,
    *     status: string,
    *     stage: string,
    *     isDeployed: boolean|null,
@@ -71,6 +79,14 @@ export const dashboardAPI = {
     const { data } = await axiosInstance.get(
       API_ENDPOINTS.DASHBOARD_IN_PROGRESS_TASKS,
     );
+    console.log('[In Progress Tasks API] Response:', data);
+    console.log(
+      '[In Progress Tasks API] Response length:',
+      data?.data?.length || 0,
+    );
+    if (data?.data && data.data.length > 0) {
+      console.log('[In Progress Tasks API] First item:', data.data[0]);
+    }
     return data;
   },
 
@@ -94,6 +110,14 @@ export const dashboardAPI = {
     const { data } = await axiosInstance.get(
       API_ENDPOINTS.DASHBOARD_NOTIFICATIONS,
     );
+    console.log('[Notifications API] Response:', data);
+    console.log(
+      '[Notifications API] Response length:',
+      data?.data?.length || 0,
+    );
+    if (data?.data && data.data.length > 0) {
+      console.log('[Notifications API] First item:', data.data[0]);
+    }
     return data;
   },
 
@@ -130,6 +154,12 @@ export const dashboardAPI = {
         pageSize: params.pageSize || 5,
       },
     });
+    console.log('[Recovery API] Response:', data);
+    console.log('[Recovery API] Response length:', data?.data?.length || 0);
+    console.log('[Recovery API] Pagination:', data?.pagination);
+    if (data?.data && data.data.length > 0) {
+      console.log('[Recovery API] First item:', data.data[0]);
+    }
     return data;
   },
 };

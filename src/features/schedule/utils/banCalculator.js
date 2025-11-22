@@ -13,7 +13,13 @@ const getBanDateRange = (ban) => {
     return null;
   }
 
-  const startDateTime = toDateOrNull(`${ban.startDate}T${ban.startTime}:00`);
+  // startTime이 "HH:mm:ss" 형식인지 "HH:mm" 형식인지 확인
+  const startTimeStr =
+    ban.startTime.includes(':') && ban.startTime.split(':').length === 3
+      ? ban.startTime // 이미 "HH:mm:ss" 형식
+      : `${ban.startTime}:00`; // "HH:mm" 형식이면 ":00" 추가
+
+  const startDateTime = toDateOrNull(`${ban.startDate}T${startTimeStr}`);
   if (!startDateTime) {
     return null;
   }
@@ -26,9 +32,17 @@ const getBanDateRange = (ban) => {
       endDateTime = new Date(startDateTime);
       endDateTime.setMinutes(endDateTime.getMinutes() + durationMinutes);
     } else if (ban.endDate || ban.endTime) {
+      // endTime도 동일하게 처리
+      const endTimeStr =
+        ban.endTime &&
+        ban.endTime.includes(':') &&
+        ban.endTime.split(':').length === 3
+          ? ban.endTime // 이미 "HH:mm:ss" 형식
+          : `${ban.endTime || ban.startTime || '00:00'}:00`; // "HH:mm" 형식이면 ":00" 추가
+
       const legacyEnd = ban.endDate
-        ? `${ban.endDate}T${ban.endTime || ban.startTime || '00:00'}:00`
-        : `${ban.startDate}T${ban.endTime}:00`;
+        ? `${ban.endDate}T${endTimeStr}`
+        : `${ban.startDate}T${endTimeStr}`;
       endDateTime = toDateOrNull(legacyEnd);
     }
   }
