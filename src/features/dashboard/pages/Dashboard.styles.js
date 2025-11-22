@@ -736,3 +736,81 @@ export const DangerButton = styled.button`
     background: #b91c1c;
   }
 `;
+
+// 승인/반려 모달 스타일 (ApprovalDetail과 동일)
+export const ActionModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: ${({ theme }) => theme.colors.modalOverlay};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+`;
+
+export const ActionModal = styled.div`
+  width: 720px;
+  max-width: calc(100% - 40px);
+  max-height: calc(100% - 80px);
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  display: flex;
+  flex-direction: column;
+`;
+
+export const ActionModalHeader = styled.div`
+  padding: 12px 16px;
+  border-bottom: 0.5px solid ${({ theme }) => theme.colors.border};
+`;
+
+export const ActionModalTitle = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.md};
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+export const ActionModalBody = styled.div`
+  padding: 12px 16px;
+  flex: 1;
+  overflow-y: auto;
+`;
+
+export const ActionModalActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px 14px;
+  border-top: 0.5px solid ${({ theme }) => theme.colors.border};
+`;
+
+export const SubtleButton = styled.button`
+  padding: 6px 12px;
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid ${({ theme }) => theme.colors.cancelBorder || '#e8e8ef'};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.interactiveHover};
+  }
+`;
+
+export const ReasonTextarea = styled.textarea`
+  width: 100%;
+  min-height: 120px;
+  padding: 8px;
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.inputBg || theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  resize: vertical;
+  outline: none;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.brand};
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 10%);
+  }
+`;

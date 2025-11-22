@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO, startOfWeek, addDays } from 'date-fns';
 import { Bell, CalendarOff, ClipboardClock, ClipboardList } from 'lucide-react';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
@@ -27,6 +27,11 @@ import {
   formatDateTimeToKoreanWithSeconds,
   removeMillisecondsFromTime,
 } from '@/features/schedule/utils/timeFormatter';
+import {
+  useApproveApprovalMutation,
+  useRejectApprovalMutation,
+} from '@/hooks/useApprovalQueries';
+import { useAuthStore } from '@/stores/authStore';
 import { PrimaryBtn, SecondaryBtn } from '@/styles/modalButtons';
 
 // 주간 캘린더는 API를 사용하므로 mock 데이터 제거
@@ -48,6 +53,7 @@ function isDateInRangeByDay(date, startIso, endIso) {
 
 export default function Dashboard() {
   const theme = useTheme();
+  const queryClient = useQueryClient();
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60000);
@@ -209,10 +215,20 @@ export default function Dashboard() {
   const [selectedRecovery, setSelectedRecovery] = useState(null);
   const overlayRef = useRef(null);
 
-  // 확인 모달 상태
+  // 승인/반려 모달 상태 (ApprovalDetail과 동일)
+  const [actionModal, setActionModal] = useState(null); // { type: 'approve' | 'reject' } | null
+  const [actionComment, setActionComment] = useState('');
+
+  // 작업 취소 모달 상태 (기존 유지)
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [confirmModalType, setConfirmModalType] = useState(null); // 'approve' | 'reject' | 'cancel'
+  const [confirmModalType, setConfirmModalType] = useState(null); // 'cancel'
   const [confirmModalData, setConfirmModalData] = useState(null);
+
+  // 사용자 정보 및 mutation 훅
+  const user = useAuthStore((s) => s.user);
+  const currentUserId = user?.accountId || user?.id;
+  const approveMut = useApproveApprovalMutation();
+  const rejectMut = useRejectApprovalMutation();
 
   const openPanel = (mode, options) => {
     setPanelMode(mode);
@@ -777,18 +793,16 @@ export default function Dashboard() {
                   <S.ButtonRow>
                     <S.PrimaryButton
                       onClick={() => {
-                        setConfirmModalType('approve');
-                        setConfirmModalData(selectedApproval);
-                        setConfirmModalOpen(true);
+                        setActionModal({ type: 'approve' });
+                        setActionComment('');
                       }}
                     >
                       승인
                     </S.PrimaryButton>
                     <S.DangerButton
                       onClick={() => {
-                        setConfirmModalType('reject');
-                        setConfirmModalData(selectedApproval);
-                        setConfirmModalOpen(true);
+                        setActionModal({ type: 'reject' });
+                        setActionComment('');
                       }}
                     >
                       반려
@@ -1495,13 +1509,7 @@ export default function Dashboard() {
           setConfirmModalType(null);
           setConfirmModalData(null);
         }}
-        title={
-          confirmModalType === 'approve'
-            ? '승인 처리 확인'
-            : confirmModalType === 'reject'
-              ? '반려 처리 확인'
-              : '작업 취소 확인'
-        }
+        title="작업 취소 확인"
         maxWidth="400px"
         footer={
           <S.ConfirmFooter>
@@ -1516,11 +1524,7 @@ export default function Dashboard() {
             </SecondaryBtn>
             <S.ConfirmButton
               onClick={() => {
-                if (confirmModalType === 'approve') {
-                  alert(`승인 처리 (mock): 문서 ID ${confirmModalData?.id}`);
-                } else if (confirmModalType === 'reject') {
-                  alert(`반려 처리 (mock): 문서 ID ${confirmModalData?.id}`);
-                } else if (confirmModalType === 'cancel') {
+                if (confirmModalType === 'cancel') {
                   alert(
                     `작업 취소 (mock): 진행중인 업무 ID ${confirmModalData?.id}`,
                   );
@@ -1536,20 +1540,6 @@ export default function Dashboard() {
         }
       >
         <S.ConfirmMessage>
-          {confirmModalType === 'approve' && (
-            <>
-              정말로 승인하시겠습니까?
-              <br />
-              승인된 문서는 수정할 수 없습니다.
-            </>
-          )}
-          {confirmModalType === 'reject' && (
-            <>
-              정말로 반려하시겠습니까?
-              <br />
-              반려된 문서는 다시 승인 요청이 필요합니다.
-            </>
-          )}
           {confirmModalType === 'cancel' && (
             <>
               정말로 작업을 취소하시겠습니까?
@@ -1559,6 +1549,82 @@ export default function Dashboard() {
           )}
         </S.ConfirmMessage>
       </ScheduleModal>
+
+      {/* 승인/반려 모달 (ApprovalDetail과 동일) */}
+      {actionModal && (
+        <S.ActionModalOverlay
+          onClick={() => {
+            setActionModal(null);
+            setActionComment('');
+          }}
+        >
+          <S.ActionModal onClick={(e) => e.stopPropagation()}>
+            <S.ActionModalHeader>
+              <S.ActionModalTitle>
+                {actionModal.type === 'approve' && '승인'}
+                {actionModal.type === 'reject' && '반려'}
+              </S.ActionModalTitle>
+            </S.ActionModalHeader>
+
+            <S.ActionModalBody>
+              <S.ReasonTextarea
+                value={actionComment}
+                onChange={(e) => setActionComment(e.target.value)}
+                placeholder="사유를 입력하세요."
+              />
+            </S.ActionModalBody>
+
+            <S.ActionModalActions>
+              <S.SubtleButton
+                onClick={() => {
+                  setActionModal(null);
+                  setActionComment('');
+                }}
+              >
+                취소
+              </S.SubtleButton>
+              <S.PrimaryButton
+                onClick={async () => {
+                  if (!selectedApproval?.id || !currentUserId) return;
+
+                  try {
+                    if (actionModal.type === 'approve') {
+                      await approveMut.mutateAsync({
+                        approvalId: selectedApproval.id,
+                        approverAccountId: currentUserId,
+                        comment: actionComment,
+                      });
+                    } else if (actionModal.type === 'reject') {
+                      await rejectMut.mutateAsync({
+                        approvalId: selectedApproval.id,
+                        approverAccountId: currentUserId,
+                        comment: actionComment,
+                      });
+                    }
+
+                    // 성공 시 쿼리 무효화하여 목록 갱신
+                    queryClient.invalidateQueries({
+                      queryKey: ['dashboard', 'pending-approvals'],
+                    });
+
+                    // 모달 닫기 및 패널 닫기
+                    setActionModal(null);
+                    setActionComment('');
+                    setPanelOpen(false);
+                    setViewMode('list');
+                    setSelectedApproval(null);
+                  } catch (e) {
+                    console.error(e);
+                    alert('요청 처리 중 오류가 발생했습니다.');
+                  }
+                }}
+              >
+                확인
+              </S.PrimaryButton>
+            </S.ActionModalActions>
+          </S.ActionModal>
+        </S.ActionModalOverlay>
+      )}
     </>
   );
 }
