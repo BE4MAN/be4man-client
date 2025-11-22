@@ -1,3 +1,5 @@
+import { parseISO } from 'date-fns';
+
 /**
  * 시간 형식 변환 유틸리티
  * 'HH:mm:ss' 또는 'HH:mm' 형식을 '오전/오후 H시 M분' 형식으로 변환
@@ -103,4 +105,115 @@ export const formatTimeToKorean = (timeString) => {
 
   // 시간만 있는 경우 (HH:mm:ss 또는 HH:mm)
   return formatTimePart(timeString);
+};
+
+/**
+ * ISO 8601 형식 또는 날짜+시간 문자열을 한국어 형식으로 변환 (초 포함)
+ * '2025-11-20T09:05:56.061695' 또는 '2025-11-20 09:05:56' → '2025년 11월 20일 09:05:56'
+ * @param {string} dateTimeString - ISO 8601 형식 또는 'YYYY-MM-DD HH:mm:ss' 형식의 날짜+시간 문자열
+ * @returns {string} 한국어 형식 ('YYYY년 MM월 DD일 HH:MM:SS')
+ */
+export const formatDateTimeToKoreanWithSeconds = (dateTimeString) => {
+  if (!dateTimeString || typeof dateTimeString !== 'string')
+    return dateTimeString;
+
+  try {
+    // ISO 8601 형식 파싱 (예: '2025-11-20T09:05:56.061695')
+    let date;
+    if (dateTimeString.includes('T')) {
+      date = parseISO(dateTimeString);
+    } else {
+      // 'YYYY-MM-DD HH:mm:ss' 형식 파싱
+      const dateTimeMatch = dateTimeString.match(
+        /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/,
+      );
+      if (dateTimeMatch) {
+        const [, year, month, day, hour, minute, second] = dateTimeMatch;
+        date = new Date(
+          parseInt(year, 10),
+          parseInt(month, 10) - 1,
+          parseInt(day, 10),
+          parseInt(hour, 10),
+          parseInt(minute, 10),
+          parseInt(second, 10),
+        );
+      } else {
+        return dateTimeString;
+      }
+    }
+
+    // 유효한 날짜인지 확인
+    if (Number.isNaN(date.getTime())) {
+      return dateTimeString;
+    }
+
+    // '2025년 11월 20일 09:05:56' 형식으로 변환
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}:${seconds}`;
+  } catch {
+    // 파싱 실패 시 원본 문자열 반환
+    return dateTimeString;
+  }
+};
+
+/**
+ * 시간 문자열에서 밀리초를 제거하고 "HH:mm:ss" 형식으로 변환
+ * '12:00:00.123' → '12:00:00'
+ * '12:00:00' → '12:00:00'
+ * '12:00' → '12:00:00'
+ * @param {string} timeString - 시간 문자열 (밀리초 포함 가능)
+ * @returns {string} "HH:mm:ss" 형식의 시간 문자열
+ */
+export const removeMillisecondsFromTime = (timeString) => {
+  if (!timeString || typeof timeString !== 'string') return timeString;
+
+  // 밀리초 제거 (예: '12:00:00.123' → '12:00:00')
+  const withoutMs = timeString.replace(/\.\d+$/, '');
+
+  // "HH:mm:ss" 형식인지 확인
+  if (/^\d{2}:\d{2}:\d{2}$/.test(withoutMs)) {
+    return withoutMs;
+  }
+
+  // "HH:mm" 형식이면 ":00" 추가
+  if (/^\d{2}:\d{2}$/.test(withoutMs)) {
+    return `${withoutMs}:00`;
+  }
+
+  // 그 외 형식은 그대로 반환
+  return withoutMs;
+};
+
+/**
+ * 시간 문자열에서 밀리초와 초를 제거하고 "HH:mm" 형식으로 변환
+ * '12:00:00.123' → '12:00'
+ * '12:00:00' → '12:00'
+ * '12:00' → '12:00'
+ * @param {string} timeString - 시간 문자열 (밀리초 및 초 포함 가능)
+ * @returns {string} "HH:mm" 형식의 시간 문자열
+ */
+export const removeSecondsFromTime = (timeString) => {
+  if (!timeString || typeof timeString !== 'string') return timeString;
+
+  // 밀리초 제거 (예: '12:00:00.123' → '12:00:00')
+  const withoutMs = timeString.replace(/\.\d+$/, '');
+
+  // "HH:mm:ss" 형식이면 초 제거
+  if (/^\d{2}:\d{2}:\d{2}$/.test(withoutMs)) {
+    return withoutMs.substring(0, 5); // "HH:mm" 부분만 반환
+  }
+
+  // "HH:mm" 형식이면 그대로 반환
+  if (/^\d{2}:\d{2}$/.test(withoutMs)) {
+    return withoutMs;
+  }
+
+  // 그 외 형식은 그대로 반환
+  return withoutMs;
 };

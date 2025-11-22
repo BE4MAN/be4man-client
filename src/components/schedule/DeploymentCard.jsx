@@ -2,6 +2,7 @@ import { useTheme } from '@emotion/react';
 import { css } from '@emotion/react';
 
 import { getDeploymentIcon } from '@/features/schedule/utils/deploymentIconMapper';
+import { removeSecondsFromTime } from '@/features/schedule/utils/timeFormatter';
 
 import * as S from './DeploymentCard.styles';
 
@@ -24,6 +25,12 @@ export default function DeploymentCard({
     16, // 주간 캘린더는 16px
   );
   const { Icon, color, size, animated } = iconConfig;
+
+  // scheduledTime을 "HH:mm" 형식으로 변환 (밀리초 및 초 제거)
+  const formatTimeToHHmm = (time) => {
+    if (!time) return '—';
+    return removeSecondsFromTime(time);
+  };
 
   return (
     <S.Card onClick={onClick}>
@@ -53,7 +60,7 @@ export default function DeploymentCard({
         </S.TitleBox>
         <S.Details>
           <S.Service>{service}</S.Service>
-          <S.Time>{scheduledTime}</S.Time>
+          <S.Time>{formatTimeToHHmm(scheduledTime)}</S.Time>
         </S.Details>
       </S.Content>
     </S.Card>
