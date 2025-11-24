@@ -161,7 +161,7 @@ export async function generateSuccessData(serviceId) {
 
 // Ban Type(작업 금지 유형) 색상 매핑 (필요시 취향대로 변경 가능)
 const BAN_TYPE_COLORS = {
-  DB_MIGRATION: '#3B82F6', // 파랑
+  DB_MIGRATION: '#0066cc', // 파랑
   MAINTENANCE: '#FB923C', // 주황
   ACCIDENT: '#EF4444', // 빨강
   EXTERNAL_SCHEDULE: '#10B981', // 초록

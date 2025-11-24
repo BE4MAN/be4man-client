@@ -5,12 +5,22 @@ export const Wrap = styled.div`
   padding: 24px;
   display: grid;
   gap: 24px;
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 16px;
+    gap: 16px;
+  `}
 `;
 
 export const StatGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+
+  ${({ theme }) => theme.mqMax.md`
+    grid-template-columns: 1fr;
+    gap: 16px;
+  `}
 `;
 
 export const StatCard = styled.div`
@@ -73,6 +83,10 @@ export const WeekBlock = styled.div`
   background: ${({ theme }) => theme.colors.bg || '#fff'};
   border: 1px solid ${({ theme }) => theme.colors.border || '#e8e8ef'};
   padding: 16px;
+
+  ${({ theme }) => theme.mqMax.md`
+    display: none;
+  `}
 `;
 
 export const WeekHeader = styled.div`
@@ -99,7 +113,7 @@ export const IconBtn = styled.button`
   &:hover {
     background: ${({ theme }) =>
       theme.mode === 'dark'
-        ? theme.colors.interactiveActive || 'rgb(100 150 255 / 12%)'
+        ? theme.colors.interactiveActive || 'rgb(0 102 204 / 12%)'
         : '#e5e7eb'};
   }
 `;
@@ -165,7 +179,7 @@ export const DayDate = styled.div`
 
 export const MoreBadge = styled.span`
   font-size: 12px;
-  color: ${({ theme }) => theme.colors.brand || '#2563a1'};
+  color: ${({ theme }) => theme.colors.brand || '#0066cc'};
   padding: 1px 6px;
   line-height: 1;
 `;
@@ -175,7 +189,7 @@ export const DayItem = styled.div`
     ${({ $variant, theme }) =>
       $variant === 'blackout'
         ? theme.colors.error || '#ef4444'
-        : theme.colors.brand || '#2563eb'};
+        : theme.colors.brand || '#0066cc'};
   margin: 6px;
   padding: 8px;
   font-size: 13px;
@@ -205,6 +219,10 @@ export const RecoveryBlock = styled.div`
   background: ${({ theme }) => theme.colors.bg || '#fff'};
   border: 1px solid ${({ theme }) => theme.colors.border || '#e8e8ef'};
   padding: 16px;
+
+  ${({ theme }) => theme.mqMax.md`
+    display: none;
+  `}
 `;
 
 export const SectionTitle = styled.div`
@@ -286,7 +304,7 @@ export const Table = styled.table`
   tbody tr:hover {
     background: ${({ theme }) =>
       theme.mode === 'dark'
-        ? theme.colors.interactiveHover || 'rgb(100 150 255 / 8%)'
+        ? theme.colors.interactiveHover || 'rgb(0 102 204 / 8%)'
         : theme.colors.interactiveHover || '#f9fafb'};
   }
 `;
@@ -343,6 +361,13 @@ export const SidePanel = styled.div`
       : '-2px 0 6px rgb(0 0 0 / 10%)'};
   display: flex;
   flex-direction: column;
+
+  ${({ theme }) => theme.mqMax.md`
+    width: 100%;
+    left: 0;
+    border-left: none;
+    border-top: 1px solid ${theme.colors.border || '#e8e8ef'};
+  `}
 `;
 
 export const PanelHeader = styled.div`
@@ -355,11 +380,19 @@ export const PanelHeader = styled.div`
       ? theme.colors.surface || '#131821'
       : theme.colors.interactiveHover || '#f9fafb'};
   color: ${({ theme }) => theme.colors.textPrimary || '#111827'};
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 12px;
+  `}
 `;
 
 export const PanelTitle = styled.div`
   font-size: 16px;
   font-weight: 700;
+
+  ${({ theme }) => theme.mqMax.md`
+    font-size: ${theme.typography?.fontSize.md || '1rem'};
+  `}
 `;
 
 export const PanelTitleWrap = styled.div`
@@ -391,6 +424,10 @@ export const TaskList = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 8px 16px;
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 8px 12px;
+  `}
 `;
 
 export const TaskItem = styled.div`
@@ -407,9 +444,14 @@ export const TaskItem = styled.div`
   &:hover {
     background: ${({ theme }) =>
       theme.mode === 'dark'
-        ? theme.colors.interactiveHover || 'rgb(100 150 255 / 8%)'
+        ? theme.colors.interactiveHover || 'rgb(0 102 204 / 8%)'
         : '#f3f4f6'};
   }
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 10px;
+    margin-bottom: 8px;
+  `}
 `;
 
 export const TaskTitle = styled.div`
@@ -418,6 +460,10 @@ export const TaskTitle = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
+
+  ${({ theme }) => theme.mqMax.md`
+    font-size: ${theme.typography?.fontSize.sm || '0.875rem'};
+  `}
 `;
 
 export const TaskIcon = styled.span`
@@ -434,12 +480,16 @@ export const TaskMeta = styled.div`
   div + div {
     margin-top: 2px;
   }
+
+  ${({ theme }) => theme.mqMax.md`
+    font-size: ${theme.typography?.fontSize.sm || '0.875rem'};
+  `}
 `;
 
 export const TaskBadge = styled.span`
   background: ${({ $variant, theme }) => {
     if ($variant === 'alert') return theme.colors.error || '#b91c1c';
-    if ($variant === 'pending') return theme.colors.brand || '#2563eb';
+    if ($variant === 'pending') return theme.colors.brand || '#0066cc';
     return theme.mode === 'dark'
       ? theme.colors.surface || '#131821'
       : '#111827';
@@ -455,6 +505,10 @@ export const DetailContent = styled.div`
   padding: 16px 0;
   overflow-y: auto;
   flex: 1;
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 12px 0;
+  `}
 `;
 
 export const TaskStatus = styled.span`
@@ -473,6 +527,11 @@ export const DetailTitle = styled.h3`
   font-weight: 700;
   margin: 0 0 12px;
   text-align: left;
+
+  ${({ theme }) => theme.mqMax.md`
+    font-size: ${theme.typography?.fontSize.md || '1rem'};
+    margin: 0 0 8px;
+  `}
 `;
 
 export const DetailMeta = styled.ul`
@@ -484,6 +543,10 @@ export const DetailMeta = styled.ul`
   li {
     margin-bottom: 6px;
   }
+
+  ${({ theme }) => theme.mqMax.md`
+    font-size: ${theme.typography?.fontSize.md || '1rem'};
+  `}
 `;
 
 export const Divider = styled.hr`
@@ -496,14 +559,22 @@ export const DetailDesc = styled.p`
   font-size: 13px;
   color: ${({ theme }) => theme.colors.textPrimary || '#374151'};
   line-height: 1.5;
+
+  ${({ theme }) => theme.mqMax.md`
+    font-size: ${theme.typography?.fontSize.sm || '0.875rem'};
+  `}
 `;
 
 export const FileLink = styled.a`
   display: inline-block;
   margin-top: 8px;
-  color: ${({ theme }) => theme.colors.brand || '#2563eb'};
+  color: ${({ theme }) => theme.colors.brand || '#0066cc'};
   font-size: 13px;
   text-decoration: underline;
+
+  ${({ theme }) => theme.mqMax.md`
+    font-size: ${theme.typography?.fontSize.sm || '0.875rem'};
+  `}
 `;
 
 export const Overlay = styled.div`
@@ -512,6 +583,10 @@ export const Overlay = styled.div`
   background: ${({ theme }) =>
     theme.mode === 'dark' ? 'rgb(0 0 0 / 40%)' : 'rgb(0 0 0 / 15%)'};
   z-index: 10;
+
+  ${({ theme }) => theme.mqMax.md`
+    background: ${theme.mode === 'dark' ? 'rgb(0 0 0 / 50%)' : 'rgb(0 0 0 / 25%)'};
+  `}
 `;
 
 export const PanelRight = styled.div`
@@ -538,6 +613,12 @@ export const ButtonRow = styled.div`
   gap: 8px;
   margin-top: 16px;
   padding: 0 8px;
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 0 12px;
+    margin-top: 12px;
+    gap: 6px;
+  `}
 `;
 
 export const StatusBadge = styled.span`
@@ -563,6 +644,11 @@ export const InfoTable = styled.table`
   border-spacing: 0;
   overflow: hidden;
   margin-bottom: 16px;
+
+  ${({ theme }) => theme.mqMax.md`
+    margin-bottom: 12px;
+    font-size: ${theme.typography?.fontSize.xs || '0.75rem'};
+  `}
 `;
 
 export const InfoColGroup = styled.colgroup`
@@ -612,6 +698,12 @@ export const InfoTh = styled.th`
   border-bottom: ${({ $noBorder, theme }) =>
     $noBorder ? 'none' : `1px solid ${theme.colors.border || '#e8e8ef'}`};
   text-align: ${({ $noBorder }) => ($noBorder ? 'left' : 'center')};
+
+  ${({ theme }) => theme.mqMax.md`
+    width: 80px;
+    padding: 4px 8px;
+    font-size: ${theme.typography?.fontSize.xs || '0.75rem'};
+  `}
 `;
 
 export const InfoTd = styled.td`
@@ -620,6 +712,11 @@ export const InfoTd = styled.td`
   border-bottom: 1px solid ${({ theme }) => theme.colors.border || '#e8e8ef'};
   color: ${({ theme }) => theme.colors.textPrimary || '#111827'};
   font-size: ${({ theme }) => theme.typography?.fontSize.sm || '0.9rem'};
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 4px 8px;
+    font-size: ${theme.typography?.fontSize.sm || '0.875rem'};
+  `}
 `;
 
 export const ServicesContainer = styled.div`
@@ -670,9 +767,9 @@ export const PageBtn = styled.button`
   }
 
   &[data-active] {
-    background: ${({ theme }) => theme.colors?.brand || '#2563eb'};
+    background: ${({ theme }) => theme.colors?.brand || '#0066cc'};
     color: #fff;
-    border-color: ${({ theme }) => theme.colors?.brand || '#2563eb'};
+    border-color: ${({ theme }) => theme.colors?.brand || '#0066cc'};
   }
 `;
 
@@ -691,7 +788,7 @@ export const ConfirmButton = styled.button`
   padding: 8px 12px;
   border-radius: 8px;
   border: none;
-  background: ${({ theme }) => theme.colors?.brand || '#2563eb'};
+  background: ${({ theme }) => theme.colors?.brand || '#0066cc'};
   color: white;
   font-weight: 700;
   cursor: pointer;
@@ -712,15 +809,20 @@ export const PrimaryButton = styled.button`
   padding: 8px 12px;
   border-radius: 6px;
   border: none;
-  background: ${({ theme }) => theme.colors.brand || '#2563eb'};
+  background: ${({ theme }) => theme.colors.brand || '#0066cc'};
   color: #fff;
   font-size: 13px;
   cursor: pointer;
 
   &:hover {
     background: ${({ theme }) =>
-      theme.mode === 'dark' ? '#3b82f6' : '#1d4ed8'};
+      theme.mode === 'dark' ? '#0080ff' : '#0052a3'};
   }
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 6px 10px;
+    font-size: ${theme.typography?.fontSize.xs || '0.75rem'};
+  `}
 `;
 
 export const DangerButton = styled.button`
@@ -734,5 +836,107 @@ export const DangerButton = styled.button`
 
   &:hover {
     background: #b91c1c;
+  }
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 6px 10px;
+    font-size: ${theme.typography?.fontSize.xs || '0.75rem'};
+  `}
+`;
+
+// 승인/반려 모달 스타일 (ApprovalDetail과 동일)
+export const ActionModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: ${({ theme }) => theme.colors.modalOverlay};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+`;
+
+export const ActionModal = styled.div`
+  width: 720px;
+  max-width: calc(100% - 40px);
+  max-height: calc(100% - 80px);
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  display: flex;
+  flex-direction: column;
+
+  ${({ theme }) => theme.mqMax.md`
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
+    max-height: calc(100% - 40px);
+  `}
+`;
+
+export const ActionModalHeader = styled.div`
+  padding: 12px 16px;
+  border-bottom: 0.5px solid ${({ theme }) => theme.colors.border};
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 10px 12px;
+  `}
+`;
+
+export const ActionModalTitle = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.md};
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+export const ActionModalBody = styled.div`
+  padding: 12px 16px;
+  flex: 1;
+  overflow-y: auto;
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 10px 12px;
+  `}
+`;
+
+export const ActionModalActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px 14px;
+  border-top: 0.5px solid ${({ theme }) => theme.colors.border};
+
+  ${({ theme }) => theme.mqMax.md`
+    padding: 10px 12px;
+    gap: 6px;
+  `}
+`;
+
+export const SubtleButton = styled.button`
+  padding: 6px 12px;
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid ${({ theme }) => theme.colors.cancelBorder || '#e8e8ef'};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.interactiveHover};
+  }
+`;
+
+export const ReasonTextarea = styled.textarea`
+  width: 100%;
+  min-height: 120px;
+  padding: 8px;
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.inputBg || theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  resize: vertical;
+  outline: none;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.brand};
+    box-shadow: 0 0 0 3px rgb(0 102 204 / 10%);
   }
 `;

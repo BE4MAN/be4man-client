@@ -292,7 +292,7 @@ export const DatePickerWrapper = styled.div`
     }
 
     &.react-datepicker__time-list-item--selected {
-      background: #3b82f6;
+      background: #06c;
       color: white;
     }
   }

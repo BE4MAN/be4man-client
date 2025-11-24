@@ -56,14 +56,14 @@ export const Item = styled(NavLink)`
   }
 
   &:hover {
-    background: rgb(100 150 255 / 8%);
+    background: rgb(0 102 204 / 8%);
     color: ${({ theme }) => theme.colors.text};
   }
 
   &.active,
   &[aria-current='page'],
   &[data-active='true'] {
-    background: rgb(100 150 255 / 12%);
+    background: rgb(0 102 204 / 12%);
     color: ${({ theme }) => theme.colors.brand};
     font-weight: 500;
 
@@ -111,7 +111,7 @@ export const LogoutBtn = styled.button`
   }
 
   &:hover {
-    background: rgb(100 150 255 / 8%);
+    background: rgb(0 102 204 / 8%);
     color: ${({ theme }) => theme.colors.text};
   }
 `;

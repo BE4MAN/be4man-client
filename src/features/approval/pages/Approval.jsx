@@ -237,6 +237,29 @@ export default function Approval({
     isError,
   } = useApprovalsQuery(accountId, backendStatus);
 
+  // API 응답 로깅
+  useEffect(() => {
+    if (approvalsData) {
+      console.log('[Approval List API] Response:', approvalsData);
+      console.log(
+        '[Approval List API] Response length:',
+        Array.isArray(approvalsData)
+          ? approvalsData.length
+          : approvalsData?.data?.length || approvalsData?.items?.length || 0,
+      );
+      if (
+        (Array.isArray(approvalsData) && approvalsData.length > 0) ||
+        approvalsData?.data?.length > 0 ||
+        approvalsData?.items?.length > 0
+      ) {
+        const firstItem = Array.isArray(approvalsData)
+          ? approvalsData[0]
+          : approvalsData?.data?.[0] || approvalsData?.items?.[0];
+        console.log('[Approval List API] First item:', firstItem);
+      }
+    }
+  }, [approvalsData]);
+
   const itemsArr = useMemo(() => {
     if (Array.isArray(approvalsData) && approvalsData.length > 0) {
       return approvalsData.map(mapSummaryToRow);
@@ -497,7 +520,6 @@ export default function Approval({
   return (
     <S.Wrap>
       <S.TopBar>
-        <S.Breadcrumb>결재함</S.Breadcrumb>
         <S.PrimaryBtn type="button" onClick={handleCreate}>
           등록
         </S.PrimaryBtn>

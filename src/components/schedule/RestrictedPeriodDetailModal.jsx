@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
+import { DEPARTMENT_REVERSE_MAP } from '@/constants/accounts';
 import { useCancelBan } from '@/features/schedule/hooks/useCancelBan';
 import {
   formatDuration,
@@ -204,7 +205,12 @@ export default function RestrictedPeriodDetailModal({ open, onClose, period }) {
             <S.InfoTh>등록자</S.InfoTh>
             <S.InfoTd>{period.registrant || '—'}</S.InfoTd>
             <S.InfoTh>등록부서</S.InfoTh>
-            <S.InfoTd>{period.registrantDepartment || '—'}</S.InfoTd>
+            <S.InfoTd>
+              {period.registrantDepartment
+                ? DEPARTMENT_REVERSE_MAP[period.registrantDepartment] ||
+                  period.registrantDepartment
+                : '—'}
+            </S.InfoTd>
           </S.InfoRow>
 
           <S.InfoRow>

@@ -389,7 +389,7 @@ export const STATS = [
     label: '승인 대기',
     value: PENDING_APPROVALS.length,
     desc: '결재가 필요한 문서',
-    color: '#2563eb',
+    color: '#0066cc',
   },
   {
     id: 'tasks',

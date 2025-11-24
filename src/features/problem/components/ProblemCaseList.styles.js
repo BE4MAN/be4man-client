@@ -140,7 +140,7 @@ export const Tr = styled.tr`
   cursor: pointer;
 
   &[data-selected='true'] {
-    background: rgb(37 99 235 / 8%);
+    background: rgb(0 102 204 / 8%);
   }
 
   &:hover {

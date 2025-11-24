@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PATHS } from '@/app/routes/paths';
 import ServiceTag from '@/components/common/ServiceTag';
 import ScheduleModal from '@/components/schedule/components/ScheduleModal';
+import { DEPARTMENT_REVERSE_MAP } from '@/constants/accounts';
 import {
   enumToStage,
   enumToStatus,
@@ -57,7 +58,12 @@ export default function DeploymentDetailModal({ open, onClose, deployment }) {
             <S.InfoTh>등록자</S.InfoTh>
             <S.InfoTd>{deployment.registrant || '—'}</S.InfoTd>
             <S.InfoTh>등록부서</S.InfoTh>
-            <S.InfoTd>{deployment.registrantDepartment || '—'}</S.InfoTd>
+            <S.InfoTd>
+              {deployment.registrantDepartment
+                ? DEPARTMENT_REVERSE_MAP[deployment.registrantDepartment] ||
+                  deployment.registrantDepartment
+                : '—'}
+            </S.InfoTd>
           </S.InfoRow>
 
           <S.InfoRow>

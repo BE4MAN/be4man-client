@@ -161,13 +161,13 @@ export const SelectOption = styled.li`
 
   &[aria-selected='true'] {
     color: ${({ theme }) => theme.colors.brand};
-    background: rgb(100 150 255 / 12%);
+    background: rgb(0 102 204 / 12%);
   }
 
   &:hover,
   &[data-active='true'] {
     color: ${({ theme }) => theme.colors.text};
-    background: rgb(100 150 255 / 8%);
+    background: rgb(0 102 204 / 8%);
   }
 `;
 
@@ -453,13 +453,13 @@ export const SheetNavItem = styled(NavLink)`
   -webkit-tap-highlight-color: transparent;
 
   &:hover {
-    background: rgb(100 150 255 / 8%);
+    background: rgb(0 102 204 / 8%);
     color: ${({ theme }) => theme.colors.text};
   }
 
   &.active,
   &[aria-current='page'] {
-    background: rgb(100 150 255 / 12%);
+    background: rgb(0 102 204 / 12%);
     color: ${({ theme }) => theme.colors.brand};
     font-weight: 500;
   }
@@ -483,12 +483,12 @@ export const SheetOption = styled.li`
 
   &[aria-selected='true'] {
     color: ${({ theme }) => theme.colors.brand};
-    background: rgb(100 150 255 / 12%);
+    background: rgb(0 102 204 / 12%);
     font-weight: 500;
   }
 
   &:hover {
-    background: rgb(100 150 255 / 8%);
+    background: rgb(0 102 204 / 8%);
     color: ${({ theme }) => theme.colors.text};
   }
 `;
@@ -510,7 +510,7 @@ export const SheetToggleItem = styled.button`
   -webkit-tap-highlight-color: transparent;
 
   &:hover {
-    background: rgb(100 150 255 / 8%);
+    background: rgb(0 102 204 / 8%);
     color: ${({ theme }) => theme.colors.text};
   }
 

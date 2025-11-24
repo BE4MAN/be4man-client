@@ -7,7 +7,7 @@ export const Wrap = styled.div`
 
 export const TopBar = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
@@ -203,7 +203,7 @@ export const LinkLike = styled.a`
   overflow: hidden;
   text-overflow: ellipsis;
   color: ${({ theme }) =>
-    theme.mode === 'dark' ? theme.colors.brand : '#2563EB'};
+    theme.mode === 'dark' ? theme.colors.brand : '#0066cc'};
   text-decoration: none;
   font-weight: 600;
 
@@ -278,7 +278,7 @@ export const StatusBtn = styled.button`
         ? (theme.colors.danger ?? '#DC2626')
         : p['data-variant'] === 'warning'
           ? (theme.colors.warning ?? '#D97706')
-          : '#007aff'};
+          : '#0066cc'};
   background: ${({ theme, ...p }) => {
     const isDanger = p['data-variant'] === 'danger';
     const isWarn = p['data-variant'] === 'warning';
@@ -301,7 +301,7 @@ export const StatusBtn = styled.button`
     }
     if (isDanger) return theme.colors.danger ?? '#DC2626';
     if (isWarn) return theme.colors.warning ?? '#D97706';
-    return '#007aff';
+    return '#0066cc';
   }};
   font-weight: 600;
   cursor: pointer;

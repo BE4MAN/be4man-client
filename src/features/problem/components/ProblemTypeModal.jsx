@@ -151,6 +151,7 @@ export function ProblemTypeModal({ isOpen, onClose, onSave }) {
       onClose={handleClose}
       title="문제 유형 추가"
       maxWidth="500px"
+      zIndex={199}
     >
       <S.ModalContent>
         <S.FormGroup>

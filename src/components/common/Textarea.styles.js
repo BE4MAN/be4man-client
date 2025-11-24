@@ -34,7 +34,7 @@ export const Textarea = styled.textarea`
 
   &:focus {
     border-color: ${({ theme }) => theme.colors.brand};
-    box-shadow: 0 0 0 3px rgb(37 99 235 / 10%);
+    box-shadow: 0 0 0 3px rgb(0 102 204 / 10%);
   }
 
   &:disabled {

@@ -144,7 +144,7 @@ export const ExpandButtonCount = styled.span`
   font-size: ${({ theme }) => theme.typography.fontSize.xs};
   font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
   color: ${({ $blue, theme }) =>
-    $blue ? theme.colors.brand || '#2563EB' : 'inherit'};
+    $blue ? theme.colors.brand || '#0066cc' : 'inherit'};
 `;
 
 export const DayNumberText = styled.span`
