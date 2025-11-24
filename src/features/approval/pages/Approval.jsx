@@ -520,7 +520,6 @@ export default function Approval({
   return (
     <S.Wrap>
       <S.TopBar>
-        <S.Breadcrumb>결재함</S.Breadcrumb>
         <S.PrimaryBtn type="button" onClick={handleCreate}>
           등록
         </S.PrimaryBtn>

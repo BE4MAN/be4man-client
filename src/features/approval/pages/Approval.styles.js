@@ -7,7 +7,7 @@ export const Wrap = styled.div`
 
 export const TopBar = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
