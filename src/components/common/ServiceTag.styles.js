@@ -14,6 +14,12 @@ export const Tag = styled.div`
   flex: 0 0 auto;
   max-width: 100%;
   white-space: nowrap;
+
+  ${({ theme }) => theme.mqMax.md`
+    height: 22px;
+    padding: 0 ${theme.spacing.xs};
+    font-size: ${theme.typography.fontSize.xs};
+  `}
 `;
 
 export const TagText = styled.span`
@@ -44,4 +50,19 @@ export const RemoveButton = styled.button`
     outline: none;
     color: ${({ theme }) => theme.colors.brand};
   }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  ${({ theme }) => theme.mqMax.md`
+    width: 12px;
+    height: 12px;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  `}
 `;

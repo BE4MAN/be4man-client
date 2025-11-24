@@ -1602,10 +1602,18 @@ export default function Dashboard() {
                       });
                     }
 
-                    // 성공 시 쿼리 무효화하여 목록 갱신
-                    queryClient.invalidateQueries({
-                      queryKey: ['dashboard', 'pending-approvals'],
-                    });
+                    // 성공 시 모든 관련 쿼리 무효화하여 페이지 리렌더링
+                    await Promise.all([
+                      queryClient.invalidateQueries({
+                        queryKey: ['dashboard', 'pending-approvals'],
+                      }),
+                      queryClient.invalidateQueries({
+                        queryKey: ['dashboard', 'in-progress-tasks'],
+                      }),
+                      queryClient.invalidateQueries({
+                        queryKey: ['dashboard', 'notifications'],
+                      }),
+                    ]);
 
                     // 모달 닫기 및 패널 닫기
                     setActionModal(null);
