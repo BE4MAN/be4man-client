@@ -113,7 +113,7 @@ export const IconBtn = styled.button`
   &:hover {
     background: ${({ theme }) =>
       theme.mode === 'dark'
-        ? theme.colors.interactiveActive || 'rgb(100 150 255 / 12%)'
+        ? theme.colors.interactiveActive || 'rgb(0 102 204 / 12%)'
         : '#e5e7eb'};
   }
 `;
@@ -179,7 +179,7 @@ export const DayDate = styled.div`
 
 export const MoreBadge = styled.span`
   font-size: 12px;
-  color: ${({ theme }) => theme.colors.brand || '#2563a1'};
+  color: ${({ theme }) => theme.colors.brand || '#0066cc'};
   padding: 1px 6px;
   line-height: 1;
 `;
@@ -189,7 +189,7 @@ export const DayItem = styled.div`
     ${({ $variant, theme }) =>
       $variant === 'blackout'
         ? theme.colors.error || '#ef4444'
-        : theme.colors.brand || '#2563eb'};
+        : theme.colors.brand || '#0066cc'};
   margin: 6px;
   padding: 8px;
   font-size: 13px;
@@ -304,7 +304,7 @@ export const Table = styled.table`
   tbody tr:hover {
     background: ${({ theme }) =>
       theme.mode === 'dark'
-        ? theme.colors.interactiveHover || 'rgb(100 150 255 / 8%)'
+        ? theme.colors.interactiveHover || 'rgb(0 102 204 / 8%)'
         : theme.colors.interactiveHover || '#f9fafb'};
   }
 `;
@@ -444,7 +444,7 @@ export const TaskItem = styled.div`
   &:hover {
     background: ${({ theme }) =>
       theme.mode === 'dark'
-        ? theme.colors.interactiveHover || 'rgb(100 150 255 / 8%)'
+        ? theme.colors.interactiveHover || 'rgb(0 102 204 / 8%)'
         : '#f3f4f6'};
   }
 
@@ -489,7 +489,7 @@ export const TaskMeta = styled.div`
 export const TaskBadge = styled.span`
   background: ${({ $variant, theme }) => {
     if ($variant === 'alert') return theme.colors.error || '#b91c1c';
-    if ($variant === 'pending') return theme.colors.brand || '#2563eb';
+    if ($variant === 'pending') return theme.colors.brand || '#0066cc';
     return theme.mode === 'dark'
       ? theme.colors.surface || '#131821'
       : '#111827';
@@ -568,7 +568,7 @@ export const DetailDesc = styled.p`
 export const FileLink = styled.a`
   display: inline-block;
   margin-top: 8px;
-  color: ${({ theme }) => theme.colors.brand || '#2563eb'};
+  color: ${({ theme }) => theme.colors.brand || '#0066cc'};
   font-size: 13px;
   text-decoration: underline;
 
@@ -767,9 +767,9 @@ export const PageBtn = styled.button`
   }
 
   &[data-active] {
-    background: ${({ theme }) => theme.colors?.brand || '#2563eb'};
+    background: ${({ theme }) => theme.colors?.brand || '#0066cc'};
     color: #fff;
-    border-color: ${({ theme }) => theme.colors?.brand || '#2563eb'};
+    border-color: ${({ theme }) => theme.colors?.brand || '#0066cc'};
   }
 `;
 
@@ -788,7 +788,7 @@ export const ConfirmButton = styled.button`
   padding: 8px 12px;
   border-radius: 8px;
   border: none;
-  background: ${({ theme }) => theme.colors?.brand || '#2563eb'};
+  background: ${({ theme }) => theme.colors?.brand || '#0066cc'};
   color: white;
   font-weight: 700;
   cursor: pointer;
@@ -809,14 +809,14 @@ export const PrimaryButton = styled.button`
   padding: 8px 12px;
   border-radius: 6px;
   border: none;
-  background: ${({ theme }) => theme.colors.brand || '#2563eb'};
+  background: ${({ theme }) => theme.colors.brand || '#0066cc'};
   color: #fff;
   font-size: 13px;
   cursor: pointer;
 
   &:hover {
     background: ${({ theme }) =>
-      theme.mode === 'dark' ? '#3b82f6' : '#1d4ed8'};
+      theme.mode === 'dark' ? '#0080ff' : '#0052a3'};
   }
 
   ${({ theme }) => theme.mqMax.md`
@@ -937,6 +937,6 @@ export const ReasonTextarea = styled.textarea`
 
   &:focus {
     border-color: ${({ theme }) => theme.colors.brand};
-    box-shadow: 0 0 0 3px rgb(37 99 235 / 10%);
+    box-shadow: 0 0 0 3px rgb(0 102 204 / 10%);
   }
 `;

@@ -67,13 +67,13 @@ const palette = {
     textPrimary: '#0f1115',
     textSecondary: '#5b6270',
     border: '#e8e8ef',
-    brand: '#2563EB',
-    brandText: '#2b5fe3',
+    brand: '#0066cc',
+    brandText: '#0066cc',
     skeletonBase: 'rgba(0,0,0,0.06)',
     skeletonHi: 'rgba(0,0,0,0.12)',
     // Interactive states (Header/Sidebar pattern)
-    interactiveHover: 'rgb(100 150 255 / 8%)',
-    interactiveActive: 'rgb(100 150 255 / 12%)',
+    interactiveHover: 'rgb(0 102 204 / 8%)',
+    interactiveActive: 'rgb(0 102 204 / 12%)',
     // Auth 페이지용 색상
     error: '#ef4444',
     success: '#22c55e',
@@ -85,25 +85,25 @@ const palette = {
     modalOverlay: 'rgba(0,0,0,0.6)',
     inputBg: '#f1f5f9',
 
-    primary: '#2563EB',
+    primary: '#0066cc',
     onPrimary: '#ffffff',
     gray900: '#1F2937',
     tab: {
-      activeBg: '#2563EB',
+      activeBg: '#0066cc',
       inactiveBg: '#7894BC',
     },
     status: {
       pending: { bg: '#86EFAC', text: '#14532D' },
       approved: { bg: '#FDE047', text: '#713F12' },
       rejected: { bg: '#FCA5A5', text: '#7F1D1D' },
-      deployed: { bg: '#93C5FD', text: '#1E3A8A' },
+      deployed: { bg: '#66b3ff', text: '#004d99' },
     },
     btn: {
       approveBg: '#4ccc88',
       approveText: '#fff',
       rejectBg: '#ff6b6b',
       rejectText: '#fff',
-      historyBg: '#2563EB',
+      historyBg: '#0066cc',
       historyText: '#fff',
     },
     riskChipBg: {
@@ -117,9 +117,9 @@ const palette = {
     },
     // 스케줄 페이지 전용 색상
     schedule: {
-      cellToday: '#e3f2fd',
-      deploymentPrimary: '#0969da',
-      deploymentHover: 'rgb(9 105 218 / 15%)',
+      cellToday: '#e6f0ff',
+      deploymentPrimary: '#0066cc',
+      deploymentHover: 'rgb(0 102 204 / 15%)',
       restrictedDanger: '#cf222e',
       restrictedBg: '#fff1f0',
       restrictedBorder: '#ffccc7',
@@ -137,13 +137,13 @@ const palette = {
     textPrimary: '#e8edf7',
     textSecondary: '#a8b0bf',
     border: '#263043',
-    brand: '#3b82f6',
+    brand: '#0066cc',
     brandText: '#ffffff',
     skeletonBase: 'rgba(255,255,255,0.06)',
     skeletonHi: 'rgba(255,255,255,0.22)',
     // Interactive states (Header/Sidebar pattern)
-    interactiveHover: 'rgb(100 150 255 / 8%)',
-    interactiveActive: 'rgb(100 150 255 / 12%)',
+    interactiveHover: 'rgb(0 102 204 / 8%)',
+    interactiveActive: 'rgb(0 102 204 / 12%)',
     // Auth 페이지용 색상
     error: '#ef4444',
     success: '#22c55e',
@@ -155,26 +155,26 @@ const palette = {
     modalOverlay: 'rgba(0,0,0,0.6)',
     inputBg: '#1e293b',
 
-    primary: '#2563EB',
+    primary: '#0066cc',
     onPrimary: '#ffffff',
     gray900: '#1F2937',
     tab: {
-      activeBg: '#2563EB',
+      activeBg: '#0066cc',
       inactiveBg: '#1F2937',
     },
     status: {
       pending: { bg: '#14532D', text: '#86EFAC' },
       approved: { bg: '#713F12', text: '#FDE047' },
       rejected: { bg: '#7F1D1D', text: '#FCA5A5' },
-      deployed: { bg: '#1E3A8A', text: '#93C5FD' },
+      deployed: { bg: '#004d99', text: '#66b3ff' },
     },
     btn: {
       approveBg: 'rgb(80 200 120 / 14%)',
       approveText: '#4ccc88',
       rejectBg: 'rgb(255 90 90 / 12%)',
       rejectText: '#ff6b6b',
-      historyBg: 'rgb(37 99 235 / 12%)',
-      historyText: '#2563EB',
+      historyBg: 'rgb(0 102 204 / 12%)',
+      historyText: '#0066cc',
     },
     riskChipBg: {
       high: '#ff6b6b',
@@ -188,8 +188,8 @@ const palette = {
     // 스케줄 페이지 전용 색상
     schedule: {
       cellToday: '#2a3b5c',
-      deploymentPrimary: '#007aff',
-      deploymentHover: 'rgb(0 122 255 / 20%)',
+      deploymentPrimary: '#0066cc',
+      deploymentHover: 'rgb(0 102 204 / 20%)',
       restrictedDanger: '#ff453a',
       restrictedBg: '#2a1f1f',
       restrictedBorder: '#5a3b3b',

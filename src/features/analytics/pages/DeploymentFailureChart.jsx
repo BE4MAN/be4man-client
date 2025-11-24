@@ -47,7 +47,7 @@ const PROBLEM_LABELS = {
 };
 
 const COLORS = [
-  '#2563eb', // blue-600
+  '#0066cc', // blue-600
   '#f59e0b', // amber-500
   '#ef4444', // red-500
   '#10b981', // emerald-500

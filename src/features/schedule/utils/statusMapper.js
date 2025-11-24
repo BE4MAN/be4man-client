@@ -19,7 +19,7 @@ export const getDeploymentStatusIcon = (status, theme) => {
     case 'PLAN_PENDING':
       return {
         Icon: FileText,
-        color: theme.colors.brand || '#2563EB',
+        color: theme.colors.brand || '#0066cc',
         size: defaultSize,
       };
 

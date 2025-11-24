@@ -869,12 +869,12 @@ export const StatWarn = styled(CardBase)`
 `;
 
 export const StatInfo = styled(CardBase)`
-  background: rgb(59 130 246 / 8%);
-  border: 1px solid rgb(59 130 246 / 25%);
+  background: rgb(0 102 204 / 8%);
+  border: 1px solid rgb(0 102 204 / 25%);
 
   .tit,
   strong {
-    color: #3b82f6;
+    color: #06c;
   }
 `;
 

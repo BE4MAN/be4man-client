@@ -156,7 +156,7 @@ export default function Dashboard() {
         label: '승인 대기',
         value: pendingApprovals.length,
         desc: '결재가 필요한 문서',
-        color: '#2563eb',
+        color: '#0066cc',
       },
       {
         id: 'tasks',

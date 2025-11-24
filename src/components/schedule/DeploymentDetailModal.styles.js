@@ -62,14 +62,14 @@ export const InfoTd = styled.td`
 `;
 
 export const TitleLink = styled.span`
-  color: ${({ theme }) => theme.colors.brand || '#2563EB'};
+  color: ${({ theme }) => theme.colors.brand || '#0066cc'};
   cursor: pointer;
   text-decoration: underline;
-  text-decoration-color: ${({ theme }) => theme.colors.brand || '#2563EB'}40;
+  text-decoration-color: ${({ theme }) => theme.colors.brand || '#0066cc'}40;
 
   &:hover {
-    color: ${({ theme }) => theme.colors.brand || '#2563EB'};
-    text-decoration-color: ${({ theme }) => theme.colors.brand || '#2563EB'};
+    color: ${({ theme }) => theme.colors.brand || '#0066cc'};
+    text-decoration-color: ${({ theme }) => theme.colors.brand || '#0066cc'};
   }
 `;
 

@@ -4,7 +4,7 @@ export const PrimaryBtn = styled.button`
   padding: 8px 14px;
   border-radius: 8px;
   border: 1px solid ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.primary ?? '#2563eb'};
+  background: ${({ theme }) => theme.colors.primary ?? '#0066cc'};
   color: #fff;
   font-weight: 700;
   cursor: pointer;

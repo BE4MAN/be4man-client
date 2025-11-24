@@ -48,7 +48,7 @@ export const PaginationLink = styled.button`
   }
 
   &:focus-visible {
-    box-shadow: 0 0 0 3px rgb(37 99 235 / 20%);
+    box-shadow: 0 0 0 3px rgb(0 102 204 / 20%);
   }
 
   &:disabled {
@@ -79,7 +79,7 @@ export const PaginationButton = styled.button`
   }
 
   &:focus-visible {
-    box-shadow: 0 0 0 3px rgb(37 99 235 / 20%);
+    box-shadow: 0 0 0 3px rgb(0 102 204 / 20%);
   }
 
   &:disabled {
