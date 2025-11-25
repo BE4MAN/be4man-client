@@ -275,7 +275,7 @@ export default function FailureFollowupCharts() {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <StackedBarChart
-        title="실패 → 다음 성공까지 걸린 시간(프로젝트별)"
+        title="빌드 실패 복구 시간"
         projects={successProjects}
         pickValue={(p) => p.avgSuccessMins}
         thresholdMins={successThreshold}
