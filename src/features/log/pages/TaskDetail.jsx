@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { getTaskById } from '../../../api/taskManagement';
+import { useAuthStore } from '../../../stores/authStore';
 
 import JenkinsTab from './JenkinsTab';
 import { getStyles } from './TaskDetail.style';
@@ -24,8 +25,8 @@ export default function TaskDetail() {
   const [modalType, setModalType] = useState('reject');
   const [comment, setComment] = useState('');
 
-  // ✅ 현재 로그인한 사용자 ID (실제로는 Context나 Redux에서 가져와야 함)
-  const currentUserId = 1; // TODO: 실제 로그인 사용자 ID로 변경
+  const user = useAuthStore((state) => state.user);
+  const currentUserId = user?.id;
 
   const fetchTaskDetail = async () => {
     try {

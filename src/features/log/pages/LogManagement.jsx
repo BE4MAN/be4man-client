@@ -246,7 +246,7 @@ export default function LogManagement() {
           <S.FilterSelectWrap>
             <CustomDropdown
               label="작업 단계"
-              options={['전체', '계획서', '배포', '결과보고']}
+              options={['전체', '계획서', '배포', '결과보고', '재배포', '복구']}
               value={filters.작업단계}
               onChange={(val) => handleFilter('작업단계', val)}
             />
@@ -376,16 +376,16 @@ export default function LogManagement() {
           <S.Table>
             <S.Head>
               <S.Tr>
-                <S.Th style={{ width: 80 }}>작업 번호</S.Th>
-                <S.Th style={{ width: 100 }}>기안자</S.Th>
-                <S.Th style={{ width: 90 }}>부서</S.Th>
-                <S.Th style={{ width: 150 }}>서비스명</S.Th>
+                <S.Th style={{ width: 100 }}>작업 번호</S.Th>
+                <S.Th style={{ width: 90 }}>기안자</S.Th>
+                <S.Th style={{ width: 80 }}>부서</S.Th>
+                <S.Th style={{ width: 130 }}>서비스명</S.Th>
                 <S.Th>작업 제목</S.Th>
-                <S.Th style={{ width: 110 }}>작업 단계</S.Th>
-                <S.Th style={{ width: 110 }}>작업 상태</S.Th>
+                <S.Th style={{ width: 100 }}>작업 단계</S.Th>
+                <S.Th style={{ width: 100 }}>작업 상태</S.Th>
                 <S.Th style={{ width: 160 }}>완료 시각</S.Th>
                 <S.Th style={{ width: 90 }}>배포 결과</S.Th>
-                <S.Th style={{ width: 90 }}>상세</S.Th>
+                <S.Th style={{ width: 80 }}>상세</S.Th>
               </S.Tr>
             </S.Head>
             <S.Body>

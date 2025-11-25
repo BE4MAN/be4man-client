@@ -91,7 +91,7 @@ export const MetaTable = styled.table`
 
 export const MetaColGroup = styled.colgroup`
   & > col:nth-of-type(1) {
-    width: 120px;
+    width: 140px;
   }
 
   & > col:nth-of-type(2) {
@@ -99,7 +99,7 @@ export const MetaColGroup = styled.colgroup`
   }
 
   & > col:nth-of-type(3) {
-    width: 120px;
+    width: 140px;
   }
 
   & > col:nth-of-type(4) {
@@ -118,7 +118,7 @@ export const MetaRow = styled.tr`
 `;
 
 export const MetaTh = styled.th`
-  width: 120px;
+  width: 140px;
   vertical-align: middle;
   padding: 8px 10px 8px 15px;
   background: ${({ theme }) => (theme.mode === 'dark' ? '#0f1520' : '#f7f9fc')};
@@ -128,6 +128,7 @@ export const MetaTh = styled.th`
   border-left: 1px solid ${({ theme }) => theme.colors.border};
   border-right: 1px solid ${({ theme }) => theme.colors.border};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  white-space: nowrap;
 
   &[data-bb] {
     border-bottom: 1px solid ${({ theme }) => theme.colors.border};
