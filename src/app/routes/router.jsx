@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
-import PageSkeleton from '@/components/feedback/PageSkeleton';
 import AppLayout from '@/components/layout/AppLayout';
 
 import { PATHS } from './paths';
@@ -69,7 +68,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.HOME,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <Dashboard />
           </Suspense>
         ),
@@ -77,7 +76,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.APPROVALS,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <Approval />
           </Suspense>
         ),
@@ -86,7 +85,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.APPROVAL_NEW,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <ApprovalFormPage />
           </Suspense>
         ),
@@ -94,7 +93,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.APPROVAL_DETAIL,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <ApprovalDetailPage />
           </Suspense>
         ),
@@ -102,7 +101,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.APPROVAL_EDIT,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <ApprovalEditPage />
           </Suspense>
         ),
@@ -110,7 +109,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.SCHEDULE,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <ScheduleManagement />
           </Suspense>
         ),
@@ -118,7 +117,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.SCHEDULE_BAN_NEW,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <RestrictedPeriodCreationPage />
           </Suspense>
         ),
@@ -126,7 +125,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.TASKS,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <Task />
           </Suspense>
         ),
@@ -134,7 +133,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.TASK_DETAIL,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <TaskDetail />
           </Suspense>
         ),
@@ -142,7 +141,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.ANALYTICS,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <AnalyticsPage />
           </Suspense>
         ),
@@ -150,7 +149,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.PROBLEMS,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <ProblemManagement />
           </Suspense>
         ),
@@ -158,7 +157,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.PROBLEM_NEW,
         element: (
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={null}>
             <ProblemFormPage />
           </Suspense>
         ),

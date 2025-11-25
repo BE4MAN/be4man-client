@@ -21,8 +21,9 @@ export const Content = styled.div`
 export const TitleBox = styled.div`
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   gap: ${({ theme }) => theme.spacing.sm};
+  position: relative;
 `;
 
 export const BanIcon = styled.svg`
@@ -30,6 +31,8 @@ export const BanIcon = styled.svg`
   height: 16px;
   color: ${({ theme }) => theme.colors.schedule.restrictedDanger};
   flex-shrink: 0;
+  position: absolute;
+  top: 0;
 `;
 
 export const Details = styled.div`
@@ -44,9 +47,16 @@ export const Title = styled.h3`
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   margin: 0;
+  margin-left: 24px;
   font-weight: ${({ theme }) => theme.typography.fontWeight.normal};
   text-align: left;
   width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
 `;
 
 export const Type = styled.p`
