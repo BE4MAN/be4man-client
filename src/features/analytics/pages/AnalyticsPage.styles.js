@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 export const AppContainer = styled.div`
   min-height: 100vh;
   background: ${({ theme }) =>
-    theme.mode === 'light' ? '#F9FAFB' : '#0E1116'};
+    theme.mode === 'light' ? '#FFFFFF' : '#0E1116'};
   padding: ${({ theme }) => theme.spacing.lg};
 
   ${({ theme }) => theme.mq.md`

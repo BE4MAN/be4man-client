@@ -9,7 +9,7 @@ export const Container = styled.div`
 // 패널 카드
 export const Panel = styled.div`
   background: ${({ theme }) => theme.colors.bg};
-  border-radius: ${({ theme }) => theme.radius.md};
+  border-radius: ${({ theme }) => theme.radius.sm};
   border: 1px solid ${({ theme }) => theme.colors.border};
   overflow: hidden;
 `;
@@ -112,7 +112,7 @@ export const ChartCard = styled.section`
   flex: 1 1 0;
   min-width: 0;
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.md};
+  border-radius: ${({ theme }) => theme.radius.sm};
   border: 1px solid ${({ theme }) => theme.colors.border};
   padding: ${({ theme }) => theme.spacing.md};
   display: flex;

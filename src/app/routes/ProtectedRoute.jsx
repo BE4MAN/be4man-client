@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 
 import { userAPI } from '@/api/user';
-import PageSkeleton from '@/components/feedback/PageSkeleton';
 import { useAuthStore } from '@/stores/authStore';
 
 import { PATHS } from './paths';
@@ -28,7 +27,7 @@ export const ProtectedRoute = ({ children }) => {
 
   // Hydration 대기 중
   if (isLoading) {
-    return <PageSkeleton />;
+    return null;
   }
 
   // 토큰 없으면 로그인 페이지로

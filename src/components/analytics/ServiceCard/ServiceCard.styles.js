@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 
 export const CardContainer = styled.div`
   background: ${({ theme }) => theme.colors.bg};
-  border-radius: ${({ theme }) => theme.radius.md};
+  border-radius: ${({ theme }) => theme.radius.sm};
   padding: ${({ theme }) => theme.spacing.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
   cursor: pointer;

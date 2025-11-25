@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 
 export const PanelContainer = styled.div`
   background: ${({ theme }) => theme.colors.bg};
-  border-radius: ${({ theme }) => theme.radius.md};
+  border-radius: ${({ theme }) => theme.radius.sm};
   border: 1px solid ${({ theme }) => theme.colors.border};
   overflow: hidden;
 `;

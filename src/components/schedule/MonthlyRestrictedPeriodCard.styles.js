@@ -14,8 +14,9 @@ export const Card = styled.button`
 
 export const Content = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.25rem;
+  position: relative;
 `;
 
 export const BanIcon = styled.svg`
@@ -25,15 +26,18 @@ export const BanIcon = styled.svg`
   flex-shrink: 0;
   margin-left: 4px;
   margin-right: 4px;
+  position: absolute;
+  top: 0;
 `;
 
 export const TitleWrapper = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
   gap: ${({ theme }) => theme.spacing.xs};
   flex: 1;
   min-width: 0;
+  margin-left: 22px;
 `;
 
 export const Title = styled.h3`
@@ -43,7 +47,7 @@ export const Title = styled.h3`
   margin: 0;
   line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
