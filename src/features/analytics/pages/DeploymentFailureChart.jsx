@@ -47,7 +47,7 @@ const PROBLEM_LABELS = {
 };
 
 const COLORS = [
-  '#0066cc', // blue-600
+  '#2563eb', // blue-600
   '#f59e0b', // amber-500
   '#ef4444', // red-500
   '#10b981', // emerald-500
@@ -294,7 +294,7 @@ export default function DeploymentFailureCharts({ from, to, endpoint }) {
     <S.Container>
       <S.Panel>
         <S.Header>
-          <S.Title>배포 실패 결과 통계</S.Title>
+          <S.Title>빌드 실패 결과 통계</S.Title>
         </S.Header>
 
         <S.PanelContent>
