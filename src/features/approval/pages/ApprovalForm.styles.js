@@ -115,7 +115,7 @@ export const MetaTable = styled.table`
   border-radius: ${(p) => R(p.theme)}px;
   border-collapse: separate;
   border-spacing: 0;
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: 12px;
 `;
 
@@ -632,7 +632,7 @@ export const ConfirmCard = styled.div`
 
 export const ConfirmHead = styled.div`
   padding: 12px 14px;
-  background: var(--head-bg);
+  background: ${({ theme }) => (theme.mode === 'dark' ? '#050816' : '#f7f7fb')};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
@@ -676,4 +676,85 @@ export const ConfirmFoot = styled.div`
   justify-content: flex-end;
   gap: 8px;
   padding: 12px 14px;
+`;
+
+/* 🔹 Approval 리스트에서 쓰던 커스텀 셀렉트 스타일 그대로 복사 */
+
+export const CustomSelect = styled.div`
+  position: relative;
+  min-width: 140px;
+`;
+
+export const CustomSelectBtn = styled.button`
+  width: 100%;
+  height: 36px;
+  padding: 0 34px 0 10px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 8px;
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  cursor: pointer;
+  position: relative;
+  font-size: 13px;
+
+  span {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: ${({ theme }) => theme.colors.textSecondary};
+    pointer-events: none;
+  }
+`;
+
+export const CustomSelectList = styled.ul`
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow: auto;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius?.md ?? 8}px;
+  z-index: 120;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  box-shadow: 0 8px 16px rgb(15 23 42 / 20%);
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgb(148 163 184 / 45%);
+    border-radius: 9999px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(148 163 184 / 70%);
+  }
+`;
+
+export const CustomSelectItem = styled.li`
+  padding: 6px 10px;
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  cursor: pointer;
+  line-height: 1.4;
+  white-space: nowrap;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surfaceHover ?? '#eff6ff'};
+  }
 `;

@@ -61,17 +61,7 @@ export default function Sidebar() {
         },
         end: true,
       },
-      {
-        key: 'schedule',
-        to: PATHS.SCHEDULE,
-        label: '일정관리',
-        icons: {
-          dark: ScheduleNightIcon,
-          light: ScheduleDayIcon,
-          active: ScheduleActiveIcon,
-        },
-        end: true,
-      },
+
       {
         key: 'tasks',
         to: PATHS.TASKS,
@@ -80,6 +70,17 @@ export default function Sidebar() {
           dark: TaskNightIcon,
           light: TaskDayIcon,
           active: TaskActiveIcon,
+        },
+        end: true,
+      },
+      {
+        key: 'schedule',
+        to: PATHS.SCHEDULE,
+        label: '일정관리',
+        icons: {
+          dark: ScheduleNightIcon,
+          light: ScheduleDayIcon,
+          active: ScheduleActiveIcon,
         },
         end: true,
       },
