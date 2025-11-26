@@ -134,6 +134,9 @@ export default function ApprovalDetail() {
   let currentUserId = user?.accountId || user?.id;
   let currentUserName = user?.name || user?.username || user?.displayName || '';
 
+  currentUserId = 3;
+  currentUserName = '김개발';
+
   const { data: apiDetail, isLoading, isError } = useApprovalDetailQuery(id);
 
   const approveMut = useApproveApprovalMutation();
@@ -199,7 +202,11 @@ export default function ApprovalDetail() {
 
   const openActionModal = (type) => {
     setActionModal({ type });
-    setActionComment('');
+    if (type === 'approve') {
+      setActionComment('승인합니다.');
+    } else {
+      setActionComment('');
+    }
   };
 
   const LAST_PAGE_KEY = 'approvals:lastPage';

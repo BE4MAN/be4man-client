@@ -130,11 +130,17 @@ export default function ApprovalForm({
   const [draftDate, setDraftDate] = useState(
     initial.draftDate ?? new Date().toISOString().slice(0, 10),
   );
+
+  const [workStartAt, setWorkStartAt] = useState(initial.workStartAt ?? '');
+  const [workEndAt, setWorkEndAt] = useState(initial.workEndAt ?? '');
+
   const [docType, setDocType] = useState(initial.docType ?? DOC_TYPES[0]);
   const [htmlText, setHtmlText] = useState(
     initial.htmlText ?? TEMPLATES[docType]?.html?.trim() ?? '',
   );
-  const [title, setTitle] = useState(initial.title ?? '');
+  const [title, setTitle] = useState(
+    initial.title ?? '시스원 연혁 업데이트 배포',
+  );
 
   const editor = useEditor({
     extensions: [
@@ -166,10 +172,28 @@ export default function ApprovalForm({
     ],
   );
 
+  const [openProjectSelect, setOpenProjectSelect] = useState(false);
+  const [openPrSelect, setOpenPrSelect] = useState(false);
+  const [openDocTypeSelect, setOpenDocTypeSelect] = useState(false);
+  const [openStepTypeId, setOpenStepTypeId] = useState(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      const el = e.target;
+      if (el.closest('[data-select-root="true"]')) return;
+      setOpenProjectSelect(false);
+      setOpenPrSelect(false);
+      setOpenDocTypeSelect(false);
+      setOpenStepTypeId(null);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const openConfirm = (t) => {
     if (t === 'submit') {
       const first = steps[0];
-      setSubmitComment(first?.opinion || '');
+      setSubmitComment(first?.opinion || '상신합니다.');
     }
     setConfirmType(t);
   };
@@ -378,6 +402,15 @@ export default function ApprovalForm({
     setSelectedBranch(found?.branch ?? '');
   };
 
+  const selectedPrLabel = useMemo(() => {
+    const found = prOptions.find((p) => String(p.id) === String(selectedPrId));
+    if (found) return found.label;
+    if (initial?.pullRequestId != null) {
+      return initial.branch || `PR #${initial.pullRequestId}`;
+    }
+    return '';
+  }, [prOptions, selectedPrId, initial?.pullRequestId, initial?.branch]);
+
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerStepId, setPickerStepId] = useState(null);
 
@@ -560,6 +593,8 @@ export default function ApprovalForm({
       pullRequestId: selectedPrId,
       branch: selectedBranch,
       service: selectedProjectName,
+      workStartAt,
+      workEndAt,
     },
     body: htmlText,
     bodyMode: 'design',
@@ -631,6 +666,8 @@ export default function ApprovalForm({
       service: p.meta.service,
       projectId: p.meta.projectId,
       pullRequestId: p.meta.pullRequestId,
+      workStartAt: p.meta.workStartAt || null,
+      workEndAt: p.meta.workEndAt || null,
       relatedProjectIds: initial.relatedProjectIds ?? [],
       lines: p.approvalLine
         .map((l) => {
@@ -674,6 +711,8 @@ export default function ApprovalForm({
             pullRequestId: selectedPrId,
             relatedProjectIds: initial.relatedProjectIds ?? [],
             steps,
+            workStartAt,
+            workEndAt,
           };
           await onSaveDraft(formForParent);
         } else {
@@ -713,6 +752,8 @@ export default function ApprovalForm({
             steps,
             submitComment,
             drafterAccountId: CURRENT_ACCOUNT_ID,
+            workStartAt,
+            workEndAt,
           };
           await onSubmit(formForParent);
         } else {
@@ -864,35 +905,53 @@ export default function ApprovalForm({
                 <S.Input readOnly value="프로젝트 조회 실패" />
               ) : myProjectOptions.length === 0 &&
                 initial?.projectId != null ? (
-                <S.Select
-                  value={selectedProjectId ?? initial.projectId}
-                  onChange={(e) => onChangeProject(e.target.value)}
-                >
-                  <option value={initial.projectId}>
-                    {initial.service || `프로젝트 #${initial.projectId}`}
-                  </option>
-                </S.Select>
+                <S.Input
+                  readOnly
+                  value={
+                    initial.service || `프로젝트 #${initial.projectId ?? ''}`
+                  }
+                />
               ) : myProjectOptions.length === 0 ? (
                 <S.Input readOnly value="선택 가능한 프로젝트가 없습니다" />
               ) : (
-                <S.Select
-                  value={selectedProjectId ?? ''}
-                  onChange={(e) => onChangeProject(e.target.value)}
-                >
-                  {myProjectOptions.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                  {initial?.projectId != null &&
-                    !myProjectOptions.some(
-                      (p) => String(p.id) === String(initial.projectId),
-                    ) && (
-                      <option value={initial.projectId}>
-                        {initial.service || `프로젝트 #${initial.projectId}`}
-                      </option>
-                    )}
-                </S.Select>
+                <S.CustomSelect data-select-root="true">
+                  <S.CustomSelectBtn
+                    type="button"
+                    onClick={() => setOpenProjectSelect((prev) => !prev)}
+                  >
+                    {selectedProjectName || '프로젝트 선택'}
+                    <span>▾</span>
+                  </S.CustomSelectBtn>
+                  {openProjectSelect && (
+                    <S.CustomSelectList>
+                      {myProjectOptions.map((p) => (
+                        <S.CustomSelectItem
+                          key={p.id}
+                          onClick={() => {
+                            onChangeProject(String(p.id));
+                            setOpenProjectSelect(false);
+                          }}
+                        >
+                          {p.name}
+                        </S.CustomSelectItem>
+                      ))}
+                      {initial?.projectId != null &&
+                        !myProjectOptions.some(
+                          (p) => String(p.id) === String(initial.projectId),
+                        ) && (
+                          <S.CustomSelectItem
+                            onClick={() => {
+                              onChangeProject(String(initial.projectId));
+                              setOpenProjectSelect(false);
+                            }}
+                          >
+                            {initial.service ||
+                              `프로젝트 #${initial.projectId}`}
+                          </S.CustomSelectItem>
+                        )}
+                    </S.CustomSelectList>
+                  )}
+                </S.CustomSelect>
               )}
             </S.MetaTd>
 
@@ -903,35 +962,50 @@ export default function ApprovalForm({
               ) : isErrorPRs ? (
                 <S.Input readOnly value="PR 조회 실패" />
               ) : prOptions.length === 0 && initial?.pullRequestId != null ? (
-                <S.Select
-                  value={selectedPrId ?? initial.pullRequestId}
-                  onChange={(e) => onChangePR(e.target.value)}
-                >
-                  <option value={initial.pullRequestId}>
-                    {initial.branch || `PR #${initial.pullRequestId}`}
-                  </option>
-                </S.Select>
+                <S.Input
+                  readOnly
+                  value={initial.branch || `PR #${initial.pullRequestId ?? ''}`}
+                />
               ) : prOptions.length === 0 ? (
                 <S.Input readOnly value="PR 없음" />
               ) : (
-                <S.Select
-                  value={selectedPrId ?? ''}
-                  onChange={(e) => onChangePR(e.target.value)}
-                >
-                  {prOptions.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.label}
-                    </option>
-                  ))}
-                  {initial?.pullRequestId != null &&
-                    !prOptions.some(
-                      (p) => String(p.id) === String(initial.pullRequestId),
-                    ) && (
-                      <option value={initial.pullRequestId}>
-                        {initial.branch || `PR #${initial.pullRequestId}`}
-                      </option>
-                    )}
-                </S.Select>
+                <S.CustomSelect data-select-root="true">
+                  <S.CustomSelectBtn
+                    type="button"
+                    onClick={() => setOpenPrSelect((prev) => !prev)}
+                  >
+                    {selectedPrLabel || 'PR 선택'}
+                    <span>▾</span>
+                  </S.CustomSelectBtn>
+                  {openPrSelect && (
+                    <S.CustomSelectList>
+                      {prOptions.map((p) => (
+                        <S.CustomSelectItem
+                          key={p.id}
+                          onClick={() => {
+                            onChangePR(String(p.id));
+                            setOpenPrSelect(false);
+                          }}
+                        >
+                          {p.label}
+                        </S.CustomSelectItem>
+                      ))}
+                      {initial?.pullRequestId != null &&
+                        !prOptions.some(
+                          (p) => String(p.id) === String(initial.pullRequestId),
+                        ) && (
+                          <S.CustomSelectItem
+                            onClick={() => {
+                              onChangePR(String(initial.pullRequestId));
+                              setOpenPrSelect(false);
+                            }}
+                          >
+                            {initial.branch || `PR #${initial.pullRequestId}`}
+                          </S.CustomSelectItem>
+                        )}
+                    </S.CustomSelectList>
+                  )}
+                </S.CustomSelect>
               )}
             </S.MetaTd>
           </S.MetaRow>
@@ -948,16 +1022,51 @@ export default function ApprovalForm({
 
             <S.MetaTh data-bb>문서분류</S.MetaTh>
             <S.MetaTd data-bb>
-              <S.Select
-                value={docType}
-                onChange={(e) => requestTemplateChange(e.target.value)}
-              >
-                {DOC_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </S.Select>
+              <S.CustomSelect data-select-root="true">
+                <S.CustomSelectBtn
+                  type="button"
+                  onClick={() => setOpenDocTypeSelect((prev) => !prev)}
+                >
+                  {docType}
+                  <span>▾</span>
+                </S.CustomSelectBtn>
+                {openDocTypeSelect && (
+                  <S.CustomSelectList>
+                    {DOC_TYPES.map((t) => (
+                      <S.CustomSelectItem
+                        key={t}
+                        onClick={() => {
+                          requestTemplateChange(t);
+                          setOpenDocTypeSelect(false);
+                        }}
+                      >
+                        {t}
+                      </S.CustomSelectItem>
+                    ))}
+                  </S.CustomSelectList>
+                )}
+              </S.CustomSelect>
+            </S.MetaTd>
+          </S.MetaRow>
+
+          {/* 🔹 작업 시작/종료 일시 */}
+          <S.MetaRow>
+            <S.MetaTh>작업 시작</S.MetaTh>
+            <S.MetaTd>
+              <S.Input
+                type="datetime-local"
+                value={workStartAt}
+                onChange={(e) => setWorkStartAt(e.target.value)}
+              />
+            </S.MetaTd>
+
+            <S.MetaTh>작업 종료</S.MetaTh>
+            <S.MetaTd>
+              <S.Input
+                type="datetime-local"
+                value={workEndAt}
+                onChange={(e) => setWorkEndAt(e.target.value)}
+              />
             </S.MetaTd>
           </S.MetaRow>
 
@@ -1002,26 +1111,44 @@ export default function ApprovalForm({
               <S.ALRow key={s.id}>
                 <S.ALCell>
                   {idx === 0 ? (
-                    <S.Select value="draft" disabled data-nocaret="true">
-                      <option value="draft">기안</option>
-                    </S.Select>
+                    <S.Input value="기안" readOnly />
                   ) : (
-                    <S.Select
-                      value={s.type}
-                      onChange={(e) =>
-                        patchStep(s.id, { type: e.target.value })
-                      }
-                    >
-                      {['approve', 'consent', 'cc'].map((t) => (
-                        <option key={t} value={t}>
-                          {t === 'approve'
-                            ? '결재'
-                            : t === 'consent'
-                              ? '합의'
-                              : '참조'}
-                        </option>
-                      ))}
-                    </S.Select>
+                    <S.CustomSelect data-select-root="true">
+                      <S.CustomSelectBtn
+                        type="button"
+                        onClick={() =>
+                          setOpenStepTypeId((prev) =>
+                            prev === s.id ? null : s.id,
+                          )
+                        }
+                      >
+                        {s.type === 'approve'
+                          ? '결재'
+                          : s.type === 'consent'
+                            ? '합의'
+                            : '참조'}
+                        <span>▾</span>
+                      </S.CustomSelectBtn>
+                      {openStepTypeId === s.id && (
+                        <S.CustomSelectList>
+                          {['approve', 'consent', 'cc'].map((t) => (
+                            <S.CustomSelectItem
+                              key={t}
+                              onClick={() => {
+                                patchStep(s.id, { type: t });
+                                setOpenStepTypeId(null);
+                              }}
+                            >
+                              {t === 'approve'
+                                ? '결재'
+                                : t === 'consent'
+                                  ? '합의'
+                                  : '참조'}
+                            </S.CustomSelectItem>
+                          ))}
+                        </S.CustomSelectList>
+                      )}
+                    </S.CustomSelect>
                   )}
                 </S.ALCell>
 
