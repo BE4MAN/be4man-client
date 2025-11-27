@@ -1,3 +1,4 @@
+// 작성자 : 김민호
 import { useEffect, useState } from 'react';
 
 export default function useSystemTheme() {

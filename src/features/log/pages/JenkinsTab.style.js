@@ -1,3 +1,4 @@
+// 작성자 : 조윤상
 // src/features/log/pages/JenkinsTab.style.js
 import { css } from '@emotion/react';
 

@@ -1,3 +1,4 @@
+// 작성자 : 김민호
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 

@@ -1,3 +1,4 @@
+// 작성자 : 허겸, 김민호, 이원석
 import path from 'path';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';

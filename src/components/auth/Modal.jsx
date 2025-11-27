@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import { AnimatePresence } from 'framer-motion';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';

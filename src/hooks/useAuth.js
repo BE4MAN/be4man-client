@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 이원석
 import { useNavigate } from 'react-router-dom';
 
 import { authAPI } from '@/api/auth';

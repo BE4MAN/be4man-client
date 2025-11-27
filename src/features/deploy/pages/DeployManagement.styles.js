@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 이원석, 조윤상
 import styled from '@emotion/styled';
 
 const R = (t, key = 'lg', def = 12) =>

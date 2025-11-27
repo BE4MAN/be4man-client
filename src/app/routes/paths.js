@@ -1,3 +1,4 @@
+// 작성자 : 허겸, 김민호, 이원석
 export const PATHS = {
   ROOT: '/',
   AUTH: '/auth',

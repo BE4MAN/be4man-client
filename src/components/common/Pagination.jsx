@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import * as S from './Pagination.styles';

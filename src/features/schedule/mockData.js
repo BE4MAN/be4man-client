@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 /**
  * @type {import('./types').Deployment[]}
  */

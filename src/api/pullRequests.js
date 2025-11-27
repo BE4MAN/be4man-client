@@ -1,3 +1,4 @@
+// 작성자 : 김민호
 import axiosInstance from './axios';
 
 export async function getMyPullRequestsByGithubId(githubId) {

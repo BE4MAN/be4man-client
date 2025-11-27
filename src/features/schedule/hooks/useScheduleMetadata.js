@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import { useQuery } from '@tanstack/react-query';
 
 import { scheduleAPI } from '@/api/schedule';

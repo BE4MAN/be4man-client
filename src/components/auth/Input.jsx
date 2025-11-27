@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import React from 'react';
 
 import * as S from './Input.styles';

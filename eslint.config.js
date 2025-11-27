@@ -1,3 +1,4 @@
+// 작성자 : 김민호
 import js from '@eslint/js';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import importPlugin from 'eslint-plugin-import';

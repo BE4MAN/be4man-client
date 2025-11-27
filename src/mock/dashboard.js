@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 이원석
 export const PENDING_APPROVALS = [
   {
     id: 101,

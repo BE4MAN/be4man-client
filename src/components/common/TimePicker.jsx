@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import { Clock, ChevronDown } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 

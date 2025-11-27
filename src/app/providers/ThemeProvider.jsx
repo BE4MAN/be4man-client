@@ -1,3 +1,4 @@
+// 작성자 : 김민호
 import { ThemeProvider as EmotionThemeProvider, Global } from '@emotion/react';
 
 import { useUIStore } from '@/stores/uiStore';

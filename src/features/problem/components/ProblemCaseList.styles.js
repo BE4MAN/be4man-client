@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 이원석
 // src/features/problem/components/ProblemCaseList.styles.jsx
 import styled from '@emotion/styled';
 

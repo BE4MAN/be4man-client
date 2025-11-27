@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import Modal from '@/components/auth/Modal';
 
 export const ScheduleModal = ({

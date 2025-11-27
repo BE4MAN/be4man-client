@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 조윤상
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';

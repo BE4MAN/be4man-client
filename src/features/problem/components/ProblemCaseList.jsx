@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 이원석
 import { RotateCcw, Search as SearchIcon } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 

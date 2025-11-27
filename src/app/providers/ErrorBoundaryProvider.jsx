@@ -1,3 +1,4 @@
+// 작성자 : 김민호
 import { ErrorBoundary } from 'react-error-boundary';
 
 function Fallback({ error, resetErrorBoundary }) {

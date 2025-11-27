@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 이원석
 import styled from '@emotion/styled';
 
 export const Content = styled.div`

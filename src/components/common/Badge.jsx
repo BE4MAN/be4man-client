@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import * as S from './Badge.styles';
 
 export default function Badge({

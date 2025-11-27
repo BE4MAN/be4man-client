@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 이원석
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 

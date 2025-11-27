@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 이원석
 import { Trash2, Edit } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';

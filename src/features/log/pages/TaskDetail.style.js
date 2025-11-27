@@ -1,3 +1,4 @@
+// 작성자 : 허겸, 조윤상
 // src/features/log/pages/TaskDetail.style.js
 
 export const getStyles = (theme) => {

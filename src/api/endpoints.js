@@ -1,4 +1,4 @@
-// src/api/endpoints.js
+// 작성자 : 김민호, 이원석, 조윤상
 
 // API Base URL
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;

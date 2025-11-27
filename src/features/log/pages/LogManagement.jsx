@@ -1,3 +1,4 @@
+// 작성자 : 허겸, 김민호, 조윤상
 import { useTheme } from '@emotion/react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';

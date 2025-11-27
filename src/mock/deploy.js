@@ -1,3 +1,4 @@
+// 작성자 : 김민호
 export const MOCK_RISKS = [
   {
     text: 'Project C의 서버가 점검 중으로 배포 중 운영상의 위험이 있을 수 있음',

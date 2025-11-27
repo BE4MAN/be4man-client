@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import { AlertTriangle, Clock, TrendingDown, TrendingUp } from 'lucide-react';
 
 import { getSuccessColor } from '@/utils/analyticsHelpers';

@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import * as S from './Textarea.styles';
 
 export default function Textarea({

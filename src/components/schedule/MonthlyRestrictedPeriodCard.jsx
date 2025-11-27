@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import { CalendarOff } from 'lucide-react';
 
 import * as S from './MonthlyRestrictedPeriodCard.styles';

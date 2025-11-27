@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 // Position 매핑 (한글 → 영문)
 export const POSITION_MAP = {
   사원: 'STAFF',

@@ -1,3 +1,4 @@
+// 작성자 : 이원석, 조윤상
 // src/features/analytics/DeploymentDurationStats.jsx
 import { useEffect, useState, useMemo } from 'react';
 

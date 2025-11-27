@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 이원석
 import { css } from '@emotion/react';
 
 export const globalStyles = (theme) => css`

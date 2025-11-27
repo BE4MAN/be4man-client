@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import { useAuthStore } from '@/stores/authStore';
 import { extractErrorInfo } from '@/utils/errorHandler';
 

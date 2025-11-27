@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import { ThemeProvider } from '@emotion/react';
 import { Github } from 'lucide-react';
 import { useState } from 'react';

@@ -1,3 +1,4 @@
+// 작성자 : 조윤상
 // src/features/log/pages/JenkinsTab.jsx
 import { Global } from '@emotion/react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';

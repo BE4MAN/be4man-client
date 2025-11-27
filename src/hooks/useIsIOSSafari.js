@@ -1,3 +1,4 @@
+// 작성자 : 김민호
 import { useMemo } from 'react';
 
 export function useIsIOSSafari() {

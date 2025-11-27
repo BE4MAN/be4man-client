@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import { X } from 'lucide-react';
 
 import * as S from './ServiceTag.styles';

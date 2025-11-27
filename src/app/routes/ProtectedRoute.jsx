@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 

@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 이원석
 // src/features/problem/components/ProblemTypeTree.jsx
 import { ChevronRight, ChevronDown, ChevronLeft, Plus } from 'lucide-react';
 import { useState, useMemo } from 'react';

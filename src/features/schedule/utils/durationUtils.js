@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 /**
  * Ban의 duration을 분 단위로 변환
  * @param {Object} ban - Ban 객체

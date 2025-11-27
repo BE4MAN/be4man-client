@@ -1,3 +1,4 @@
+// 작성자 : 김민호
 import { useQuery } from '@tanstack/react-query';
 
 import { fetchAccountById } from '@/api/user';

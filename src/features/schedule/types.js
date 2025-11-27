@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 /**
  * @typedef {Object} Deployment
  * @property {string} id - 배포 ID

@@ -1,3 +1,4 @@
+// 작성자 : 김민호, 조윤상
 import { LibraryBig } from 'lucide-react';
 import { useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';

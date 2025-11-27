@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import * as S from './Table.styles';
 
 export function Table({ children, className, ...props }) {

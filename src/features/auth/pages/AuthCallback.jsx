@@ -1,3 +1,4 @@
+// 작성자 : 이원석
 import { ThemeProvider } from '@emotion/react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';

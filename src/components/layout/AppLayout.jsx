@@ -1,3 +1,4 @@
+// 작성자 : 김민호
 import { Outlet } from 'react-router-dom';
 
 import * as S from './AppLayout.styles';
