@@ -679,12 +679,6 @@ export const ConfirmFoot = styled.div`
   padding: 12px 14px;
 `;
 
-export const ConfirmFoot = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 12px 14px;
-`;
 export const CustomSelect = styled.div`
   position: relative;
   width: 100%;
