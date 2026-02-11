@@ -678,3 +678,54 @@ export const ConfirmFoot = styled.div`
   gap: 8px;
   padding: 12px 14px;
 `;
+
+export const ConfirmFoot = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 14px;
+`;
+export const CustomSelect = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+export const CustomSelectBtn = styled.button`
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.86);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+`;
+
+export const CustomSelectList = styled.div`
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(20,20,24,0.98);
+  overflow: hidden;
+`;
+
+export const CustomSelectItem = styled.button`
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: rgba(255,255,255,0.86);
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255,255,255,0.08);
+  }
+`;
