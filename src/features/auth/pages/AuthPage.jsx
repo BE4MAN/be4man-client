@@ -190,10 +190,6 @@ export default function AuthPage() {
                   </S.LogoRow>
                 </S.HeaderSection>
 
-                <S.WelcomeSection>
-                  <S.WelcomeTitle>CI/CD management system</S.WelcomeTitle>
-                </S.WelcomeSection>
-
                 <S.GithubButtonWrapper>
                   <Button
                     variant="github"

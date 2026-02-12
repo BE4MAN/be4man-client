@@ -266,7 +266,13 @@ export default function Header() {
         </S.DesktopOnly>
 
         <S.User>
-          <S.Avatar src={avatar} alt={`${displayName} 프로필`} />
+          <S.Avatar
+            src={avatar || '/icons/user.png'}
+            alt={`${displayName} 프로필`}
+            onError={(e) => {
+              e.target.src = '/icons/user.png';
+            }}
+          />
           <S.NameTitle>
             <strong>{displayName}</strong>
             <small>{position}</small>

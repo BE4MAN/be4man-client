@@ -31,7 +31,7 @@ export const Left = styled.div`
 export const Logo = styled.img`
   display: block;
   width: 120px;
-  height: 60px;
+  height: 66px;
   cursor: pointer;
   image-rendering: optimizequality;
   image-rendering: -webkit-optimize-contrast;
@@ -50,7 +50,7 @@ export const BrandLink = styled(Link)`
   text-decoration: none;
   color: inherit;
   display: inline-block;
-  font-size: 20.5px;
+  font-size: 12.3px;
   font-weight: 700;
   letter-spacing: 0.2px;
   white-space: nowrap;

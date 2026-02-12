@@ -96,8 +96,8 @@ export const WelcomeSection = styled.div`
 `;
 
 export const GithubButtonWrapper = styled.div`
-  width: 36%;
-  margin: 24px auto;
+  width: 45%;
+  margin: 0 auto 20px;
   padding-top: 5px;
   padding-bottom: 5px;
 
