@@ -22,11 +22,14 @@ export const globalStyles = (theme) => css`
     box-sizing: border-box;
   }
 
-  html,
+  html {
+    min-height: 100vh;
+    scrollbar-gutter: stable;
+  }
+
   body,
   #root {
-    height: 100%;
-    scrollbar-gutter: stable;
+    min-height: 100vh;
   }
 
   html {

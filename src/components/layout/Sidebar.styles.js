@@ -3,7 +3,10 @@ import styled from '@emotion/styled';
 import { NavLink } from 'react-router-dom';
 
 export const Aside = styled.aside`
-  grid-area: sidebar;
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  bottom: 0;
   width: var(--sidebar-w);
   box-sizing: border-box;
   border-right: 1px solid ${({ theme }) => theme.colors.border};
@@ -11,14 +14,10 @@ export const Aside = styled.aside`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  position: sticky;
-  top: var(--header-h);
-  height: calc(100dvh - var(--header-h));
   overflow: auto;
   z-index: 15;
 
   @media (width <= 767px) {
-    position: fixed;
     inset: var(--header-h) auto auto 0;
     height: calc(100dvh - var(--header-h));
     width: min(80vw, 240px);
