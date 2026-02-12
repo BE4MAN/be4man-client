@@ -15,7 +15,7 @@ export const GradientBackground = styled.div`
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: linear-gradient(145deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f8fafc;
 `;
 
 export const MainContainer = styled.div`
@@ -41,9 +41,16 @@ export const HeaderSection = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.sm};
 `;
 
+export const LogoRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`;
+
 export const Logo = styled.img`
   height: 4.8rem;
-  margin-bottom: ${({ theme }) => theme.spacing.md};
+  display: block;
 
   ${({ theme }) => theme.mq.md`
     height: 6rem;
@@ -52,6 +59,14 @@ export const Logo = styled.img`
   ${({ theme }) => theme.mq.xl`
     height: 7.2rem;
   `}
+`;
+
+export const LogoText = styled.span`
+  font-size: 20.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  white-space: nowrap;
 `;
 
 export const ServiceDescription = styled.h1`
@@ -81,8 +96,14 @@ export const WelcomeSection = styled.div`
 `;
 
 export const GithubButtonWrapper = styled.div`
-  margin-top: 24px;
-  margin-bottom: 24px;
+  width: 36%;
+  margin: 24px auto;
+  padding-top: 5px;
+  padding-bottom: 5px;
+
+  & > button {
+    border-radius: 4px;
+  }
 `;
 
 export const WelcomeTitle = styled.h2`

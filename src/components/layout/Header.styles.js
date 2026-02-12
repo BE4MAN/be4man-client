@@ -25,7 +25,7 @@ export const Bar = styled.header`
 export const Left = styled.div`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
+  gap: 0;
 `;
 
 export const Logo = styled.img`
@@ -50,7 +50,7 @@ export const BrandLink = styled(Link)`
   text-decoration: none;
   color: inherit;
   display: inline-block;
-  font-size: 30px;
+  font-size: 20.5px;
   font-weight: 700;
   letter-spacing: 0.2px;
   white-space: nowrap;

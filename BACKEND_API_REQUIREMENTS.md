@@ -311,3 +311,200 @@
 - 배포 작업(Deployment) 데이터는 다른 모듈에서 관리될 가능성이 높음 (배포 관리 모듈)
 - 작업 금지 기간(Restricted Period)은 스케줄 관리 모듈에서 직접 관리
 - 프론트엔드는 현재 mock 데이터를 사용 중이며, 실제 API 연동 시 위 구조에 맞춰 데이터를 전달해야 함
+
+---
+
+# 문제 관리 모듈 - 백엔드 API 요구사항
+
+## 개요
+
+프론트엔드는 문제 관리 시스템을 제공하며, 문제 카테고리(Problem Category)와 문제(Problem)를 관리합니다.
+사용자는 문제 목록을 조회하고, 문제를 생성하며, 문제와 관련된 배포(Deployment)를 연결할 수 있습니다.
+
+---
+
+## 필요한 API 엔드포인트
+
+### 1. 문제 카테고리 생성 API
+
+**목적**: 사용자가 새로운 문제 카테고리를 등록하기 위해 필요
+
+**요구사항**:
+
+- 필수 필드: 제목(title), 설명(description)
+- 등록자 정보는 인증된 사용자 정보에서 자동으로 가져옴
+- 프로젝트 ID는 현재 프로젝트 컨텍스트에서 자동으로 가져옴
+
+**요청 데이터 구조**:
+
+```json
+{
+  "title": "string (required)",
+  "description": "string (required)"
+}
+```
+
+**응답 데이터 구조**:
+
+```json
+{
+  "id": "number",
+  "projectId": "number",
+  "accountId": "number",
+  "title": "string",
+  "description": "string"
+}
+```
+
+---
+
+### 2. 문제 생성 API
+
+**목적**: 사용자가 새로운 문제를 등록하기 위해 필요
+
+**요구사항**:
+
+- 필수 필드: 카테고리 ID(categoryId), 제목(title), 설명(description), 중요도(importance)
+- 설명(description)에는 발생 상황과 예방법이 포함됨
+- 등록자 정보는 인증된 사용자 정보에서 자동으로 가져옴
+- 선택 필드: 관련 배포 ID 목록(deploymentIds)
+
+**요청 데이터 구조**:
+
+```json
+{
+  "categoryId": "number (required)",
+  "title": "string (required)",
+  "description": "string (required)",
+  "importance": "LOW" | "MEDIUM" | "HIGH (required)",
+  "deploymentIds": ["number"] (optional)
+}
+```
+
+**응답 데이터 구조**:
+
+```json
+{
+  "id": "number",
+  "categoryId": "number",
+  "accountId": "number",
+  "title": "string",
+  "description": "string",
+  "importance": "LOW" | "MEDIUM" | "HIGH",
+  "createdAt": "YYYY-MM-DDTHH:mm:ss"
+}
+```
+
+---
+
+### 3. 문제 목록 조회 API
+
+**목적**: 문제 목록을 조회하고 필터링하기 위해 필요
+
+**요구사항**:
+
+- 다음 필터 조건을 지원해야 함:
+  - 카테고리(categoryId): 카테고리 ID 필터
+  - 중요도(importance): LOW, MEDIUM, HIGH
+  - 연관 서비스(services): 서비스 이름 배열 (OR 조건, 하나라도 포함되면 포함)
+  - 검색어(search): 제목(title), 설명(description)에 포함
+- 각 문제 객체에는 카테고리 정보가 포함되어야 함
+- 생성일 기준 내림차순 정렬
+
+**응답 데이터 구조**:
+
+```json
+[
+  {
+    "id": "number",
+    "category": {
+      "id": "number",
+      "title": "string",
+      "description": "string"
+    },
+    "title": "string",
+    "description": "string",
+    "importance": "LOW" | "MEDIUM" | "HIGH",
+    "accountId": "number",
+    "createdAt": "YYYY-MM-DDTHH:mm:ss",
+    "deployments": [
+      {
+        "id": "number",
+        "title": "string"
+      }
+    ],
+    "services": ["string"]
+  }
+]
+```
+
+**필터 파라미터 예시**:
+
+- `categoryId`: "number" (카테고리 ID 필터)
+- `importance`: "LOW" | "MEDIUM" | "HIGH" (중요도 필터)
+- `services`: string[] (서비스 이름 배열)
+- `search`: "string" (제목/설명 검색)
+
+---
+
+### 4. 배포 목록 조회 API
+
+**목적**: 문제 생성 시 관련 배포를 선택하기 위해 필요
+
+**요구사항**:
+
+- 모든 배포 목록을 반환 (필터링 없음)
+- 제목 기준 오름차순 정렬
+- 각 배포 객체는 id와 title만 포함
+
+**응답 데이터 구조**:
+
+```json
+[
+  {
+    "id": "number",
+    "title": "string"
+  }
+]
+```
+
+**참고사항**:
+
+- 이 API는 문제 관리 모듈에서 사용되지만, 배포 데이터는 배포 관리 모듈에서 관리됨
+- 프론트엔드에서는 문제 생성 폼에서 드롭다운으로 사용
+
+---
+
+## 데이터 타입 상세
+
+### Importance
+
+- `"LOW"`: 낮음 (하)
+- `"MEDIUM"`: 보통 (중)
+- `"HIGH"`: 높음 (상)
+
+---
+
+## 추가 요구사항
+
+1. **인증**: 모든 API는 인증된 사용자만 접근 가능해야 함
+2. **등록자 정보**: 문제 및 문제 카테고리 생성 시 현재 로그인한 사용자의 ID가 자동으로 저장되어야 함
+3. **프로젝트 컨텍스트**: 문제 카테고리 생성 시 현재 프로젝트 ID가 자동으로 저장되어야 함
+4. **관계 관리**: 문제와 배포는 N:N 관계이며, `problem_deployment` 테이블을 통해 관리됨
+
+---
+
+## 프론트엔드 사용 시나리오
+
+1. **문제 목록 조회**: 필터링된 문제 목록을 테이블로 표시 (검색, 카테고리, 중요도, 서비스 필터 지원)
+2. **문제 생성**: 폼을 통해 새 문제 등록 (카테고리 선택, 배포 연결 포함)
+3. **문제 카테고리 생성**: 모달을 통해 새 문제 카테고리 등록
+4. **문제 상세 보기**: 문제 클릭 시 상세 정보 표시
+
+---
+
+## 참고사항
+
+- 문제(Problem) 데이터는 문제 관리 모듈에서 직접 관리
+- 배포(Deployment) 데이터는 배포 관리 모듈에서 관리되며, 문제와 연결 시에만 참조
+- 프론트엔드는 현재 mock 데이터를 사용 중이며, 실제 API 연동 시 위 구조에 맞춰 데이터를 전달해야 함

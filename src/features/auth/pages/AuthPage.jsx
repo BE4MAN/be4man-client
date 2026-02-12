@@ -3,7 +3,7 @@ import { ThemeProvider } from '@emotion/react';
 import { Github } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import logo from '/icons/logo.svg';
+import logo from '/icons/aiwacs_logo.png';
 
 import Button from '@/components/auth/Button';
 import CustomSelect from '@/components/auth/CustomSelect';
@@ -184,14 +184,14 @@ export default function AuthPage() {
             {step === 1 && (
               <S.StepContainer>
                 <S.HeaderSection>
-                  <S.Logo src={logo} alt="BE4MAN Logo" />
+                  <S.LogoRow>
+                    <S.Logo src={logo} alt="ITSM" />
+                    <S.LogoText>ITSM</S.LogoText>
+                  </S.LogoRow>
                 </S.HeaderSection>
 
                 <S.WelcomeSection>
-                  <S.WelcomeTitle>배포맨</S.WelcomeTitle>
-                  <S.WelcomeText>
-                    안정적인 CI/CD 배포 환경 관리 서비스
-                  </S.WelcomeText>
+                  <S.WelcomeTitle>CI/CD management system</S.WelcomeTitle>
                 </S.WelcomeSection>
 
                 <S.GithubButtonWrapper>
@@ -202,7 +202,7 @@ export default function AuthPage() {
                     onClick={handleGithubLogin}
                   >
                     <Github size={24} />
-                    깃허브 로그인
+                    로그인
                   </Button>
                 </S.GithubButtonWrapper>
               </S.StepContainer>
