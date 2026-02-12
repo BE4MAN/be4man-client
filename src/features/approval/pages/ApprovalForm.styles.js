@@ -116,7 +116,7 @@ export const MetaTable = styled.table`
   border-radius: ${(p) => R(p.theme)}px;
   border-collapse: separate;
   border-spacing: 0;
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: 12px;
 `;
 
@@ -689,9 +689,9 @@ export const CustomSelectBtn = styled.button`
   height: 40px;
   padding: 0 12px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.86);
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.textPrimary};
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -703,11 +703,12 @@ export const CustomSelectList = styled.div`
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: 110;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(20,20,24,0.98);
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
   overflow: hidden;
+  box-shadow: ${({ theme }) => theme.shadow.md};
 `;
 
 export const CustomSelectItem = styled.button`
@@ -716,10 +717,10 @@ export const CustomSelectItem = styled.button`
   padding: 10px 12px;
   border: 0;
   background: transparent;
-  color: rgba(255,255,255,0.86);
+  color: ${({ theme }) => theme.colors.textPrimary};
   cursor: pointer;
 
   &:hover {
-    background: rgba(255,255,255,0.08);
+    background: ${({ theme }) => theme.colors.interactiveHover};
   }
 `;
