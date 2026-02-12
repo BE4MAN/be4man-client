@@ -7,6 +7,7 @@ import {
   useUpdateApprovalMutation,
   useSubmitApprovalMutation,
 } from '@/hooks/useApprovalQueries';
+import { generateUUID } from '@/utils/uuid';
 
 import ApprovalForm from './ApprovalForm';
 
@@ -125,7 +126,7 @@ export default function ApprovalEditPage() {
     } = detail;
 
     const steps = lines.map((l, idx) => ({
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       type: idx === 0 ? 'draft' : (l.type || '').toLowerCase(),
       dept: l.deptName || drafterDept || '',
       name: l.accountName || '',

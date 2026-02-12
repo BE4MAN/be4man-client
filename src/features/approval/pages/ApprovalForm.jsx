@@ -17,6 +17,7 @@ import {
 } from '@/hooks/useProblemQueries';
 import { useAccountProjectsByAccountQuery } from '@/hooks/useProjectQueries';
 import { useMyPullRequestsQueryByGithubId } from '@/hooks/usePullRequestQueries.js';
+import { generateUUID } from '@/utils/uuid';
 
 import {
   useSaveDraftApprovalMutation,
@@ -162,7 +163,7 @@ export default function ApprovalForm({
   const [steps, setSteps] = useState(
     initial.steps ?? [
       {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         type: 'draft',
         dept: dept,
         name: drafter,
@@ -252,7 +253,7 @@ export default function ApprovalForm({
     setSteps((prev) => [
       ...prev,
       {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         type: type === 'draft' ? 'approve' : type,
         dept: '',
         name: '',
